@@ -55,3 +55,22 @@ vadata$ssp[33:63] <- "Psittacanthus robustus"
 
 #calculate single wall thickness
 wdata$wthickness <- wdata$Length/2
+
+
+####saving dataframes 
+
+
+# Loop over each data frame name
+for (df_name in dataframes) {
+  df <- get(df_name)  # Get the data frame by name
+  
+  # Construct file path
+  dfile <- paste0(df_name, ".csv")
+  file_path <- here("data", "processed", dfile)
+  
+  # Save data frame as CSV using fwrite
+  fwrite(df, file = file_path)
+  
+  cat("Data frame", df_name, "saved successfully to", file_path, "\n")
+}
+rm(df)
