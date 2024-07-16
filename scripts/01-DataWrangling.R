@@ -11,7 +11,7 @@ source("scripts/00-library.R")
 rm(list=ls())
 
 #reading data
-vdata <- read.csv(here("data","raw","VesselsDiameter.csv"))
+vdata <- read.csv(here("data","raw","VesselsDiameter.csv"),sep=";")
 vadata <- read.csv(here("data","raw","VesselArea.csv"), sep=";")
 wdata <- read.csv(here("data","raw","2xWallThickness.csv"), sep=";")
 pitdata <- read.csv(here("data","raw","Pits.csv"),sep=";")
@@ -25,7 +25,7 @@ pitdata <- read.csv(here("data","raw","Pits.csv"),sep=";")
 # calculated equivalent area circle diameter based on vessel area
 vdata$VD <- 2*(sqrt(vdata$Area/pi)) 
 #correcting indiv
-vdata$indiv <- paste(vdata$ssp,vdata$indiv, sep=" ")
+vdata$label <- paste(vdata$ssp,vdata$label, sep=" ")
 
 ##vadata
 

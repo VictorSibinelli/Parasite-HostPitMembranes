@@ -1,0 +1,37 @@
+This file contains metadata for the tables in both raw and processed data
+
+ssp: species name
+label: individual of that species
+pic: image from what that measurement was taken
+
+###2xWallThickness/wdta.csv
+angle: irelevant to analysis
+length: linear thickness of intervascular double wall
+wthickness: single intervacular wall thickness (length/2)
+
+
+##Pits/pitdtada.csv
+pc1-3 : pit membrane thickness measured at center o pit opening (1) and at opening walls (2 amd 3)
+pe1-2 : pit membrane thickness measured at the edges, close to the anulus
+peavg: average from pe1-2
+pcavg: average taken from pc1-3
+pitavg: average taken from all 5 points
+pcd : pit chamber depth, distance from the chamber uperwall (close to the opening) to pit membrane
+parasitism: species habit, parasite (p) or host (h)
+
+##VesselArea/vadata.csv
+count: number of vessels 
+total.Area: total vessel area
+average.size: average vessel size
+x.area: vessel area fraction
+circ: index of circularity
+solidity: describe the compactness of the vessel lumen
+vdensity: vessels/mm2
+
+##VesselDiameter/vdata.csv
+area: individual vessel area
+circ: index of circularity
+AR: aspect ratio
+Round:area and the length of the major axis of the best-fitting ellipse
+VD: equivalent areaS circle diameter
+
