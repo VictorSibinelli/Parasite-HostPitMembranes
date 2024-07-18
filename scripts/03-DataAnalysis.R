@@ -4,6 +4,8 @@
 #13/07/2024
 # Scrpt 03 - Data Analysis
 #################################################################
+source("scripts/00-library.R")
+rm(list=ls())
 
 #load data
 vdata <- read.csv(here("data","processed","vdata.csv"))
@@ -90,6 +92,7 @@ pit_mean_diff <- rbind(pit_mean_diff, data.frame(Species1 = "Struthanthus", SP1m
 pit_mean_diff <- rbind(pit_mean_diff, data.frame(Species1 = "Viscum", SP1mean = mean_diff4[1], Species2 = "Populus", SP2mean = mean_diff4[2], MeanDifference = mean_diff4[3]))
 
 pit_means <- tapply(pitdata_clean$pitavg, pitdata_clean$ssp, mean, na.rm=T)
+pcd_measn <- tapply(pitdata_clean$pcd, pitdata_clean$ssp, mean, na.rm=T)
 # Print the results
 print(pit_mean_diff)
 
@@ -104,4 +107,32 @@ t.test(phoradendron_data$pcd, tapirira_data$pcd, var.equal = FALSE) #highly sign
 t.test(struthanthus_data$pcd, tipuana_data$pcd, var.equal = FALSE) #highly significant 
 
 t.test(viscum_data$pcd, populus_data$pcd, var.equal = FALSE) #highly significant 
+
+# Perform t-tests and store the results in a data frame
+pcd_results <- data.frame(Species1 = character(),
+                      Species2 = character(),
+                      MeanDifference = numeric(),
+                      stringsAsFactors = FALSE)
+
+# Perform t-tests and extract the difference of means
+ttest1 <- t.test(psittacanthus_data$pcd, vochysia_data$pcd, var.equal = FALSE)
+mean_diff1 <- diff(ttest1$estimate)
+
+ttest2 <- t.test(phoradendron_data$pcd, tapirira_data$pcd, var.equal = FALSE)
+mean_diff2 <- diff(ttest2$estimate)
+
+ttest3 <- t.test(struthanthus_data$pcd, tipuana_data$pcd, var.equal = FALSE)
+mean_diff3 <- diff(ttest3$estimate)
+
+ttest4 <- t.test(viscum_data$pcd, populus_data$pcd, var.equal = FALSE)
+mean_diff4 <- diff(ttest4$estimate)
+
+# Add the results to the data frame
+pcd_results <- rbind(pcd_results, data.frame(Species1 = "Psittacanthus robustus", Species2 = "Vochysia thyrsoidea", MeanDifference = mean_diff1))
+pcd_results <- rbind(pcd_results, data.frame(Species1 = "Phoradendron", Species2 = "Tapirira", MeanDifference = mean_diff2))
+pcd_results <- rbind(pcd_results, data.frame(Species1 = "Struthanthus", Species2 = "Tipuana", MeanDifference = mean_diff3))
+pcd_results <- rbind(pcd_results, data.frame(Species1 = "Viscum", Species2 = "Populus", MeanDifference = mean_diff4))
+
+# Print the results
+print(pcd_results)
 
