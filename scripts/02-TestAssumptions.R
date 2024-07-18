@@ -26,8 +26,9 @@ pitdata <- read.csv(here("data","processed","pitdata.csv"))
 results <- data.frame(
   species = character(),
   pitavg_p_value = numeric(),
-  column2_p_value = numeric(),
-  column3_p_value = numeric(),
+  pcavg_p_value = numeric(),
+  peavg_p_value = numeric(),
+  pcdvg_p_value = numeric(),
   stringsAsFactors = FALSE
 )
 
@@ -42,7 +43,7 @@ for (ssp in species) {
   subset_data <- pitdata[pitdata$ssp == ssp, ]
   
   # Perform Shapiro-Wilk test for each column
-  shapiro_results <- sapply(subset_data[, c("pitavg", "pcavg", "peavg")], function(x) {
+  shapiro_results <- sapply(subset_data[, c("pitavg", "pcavg", "peavg","pcd")], function(x) {
     shapiro_test <- shapiro.test(x)
     shapiro_test$p.value
   })
@@ -52,7 +53,8 @@ for (ssp in species) {
     species = ssp,
     pitavg_p_value = shapiro_results["pitavg"],
     pcavg_p_value = shapiro_results["pcavg"],
-    peavg_p_value = shapiro_results["peavg"]
+    peavg_p_value = shapiro_results["peavg"],
+    pcd_p_value = shapiro_results["pcd"]
   ))
 }
 
@@ -122,6 +124,16 @@ shapiro.test(pitdata$peavg[pitdata$ssp == "Vochysia thyrsoidea"])###re test
 
 
 
+############################################
+#pcd
+
+plot(density(pitdata$pcd[pitdata$ssp == "Populus nigra"], na.rm = TRUE))
+
+outlier<- boxplot.stats(pitdata$pcd[pitdata$ssp=="Populus nigra"])$out #Find outliers
+x1 <- outlier[which.max(abs(outlier - median(pitdata$pcd[pitdata$ssp=="Populus nigra"],na.rm = T)))] #find most extreme outlier
+pitdata$pcd[which(pitdata$pcd == x1)] <- NA
+shapiro.test(pitdata$pcd[pitdata$ssp == "Populus nigra"])###re test
+
 #homogeneity of variance test
 ###############################################
 
@@ -134,6 +146,30 @@ ggplot(pitdata, aes(x = ssp, y = pitavg, fill = ssp)) +
 
 ###Graph shows heterocedasticity between groups
 
+ggplot(pitdata, aes(x = ssp, y = peavg, fill = ssp)) +
+  geom_boxplot() +
+  labs(title = "Boxplot of peavg Across Species",
+       x = "Species", y = "peavg") +
+  theme_minimal()
+
+ggplot(pitdata, aes(x = ssp, y = pcavg, fill = ssp)) +
+  geom_boxplot() +
+  labs(title = "Boxplot of pcavg Across Species",
+       x = "Species", y = "pcavg") +
+  theme_minimal()
+
+
+ggplot(pitdata, aes(x = ssp, y = pcd, fill = ssp)) +
+  geom_boxplot() +
+  labs(title = "Boxplot of pcd Across Species",
+       x = "Species", y = "pcd") +
+  theme_minimal()
+
+###heterocedasticity present in all pit traits
+
+
+
+fwrite(pitdata,file=here("data","processed","pitdata_clean.csv"))
 #########################################################################################################
 
 

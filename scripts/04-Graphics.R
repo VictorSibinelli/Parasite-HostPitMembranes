@@ -10,8 +10,56 @@
 
 
 
+###Pit graphs
+
+#grouped parasite and host pit membrane
+png(here("outputs","figs","p-h_pitmembrane.png"), width = 9, height = 7, units = "in", res = 600)
+boxplot(data=pitdata_clean,pitavg*1000~parasitism,
+        ylab="Pit Membrane Thickness (nm)", xlab="", tcl=T, xaxt="n", at=c(1,3),
+        col=c("grey","firebrick"), ylim=c(0,1000), cex.lab=1.5, cex.axis=1.5,whisklwd=3,staplelwd=3)
+legend("topleft",cex=2, bty="n", fill=c("grey", "firebrick"), legend = c("Host", "Parasite"))
+text(x=c(2), y=c(0.3120534,0.5938832)*1000, "--", cex=2, col="black")
+segments(x0=2,y0=0.3120534*1000,x1=2,y1=0.5938832*1000,lwd=3)
+text(x=2.2,y=(0.2818298/2+0.3120534)*1000,"0.28", cex=2)
+text(x=c(1,3),y=c(2,1.2)-0.1, c("A","B"), cex=1.5)
+dev.off()
+
+#grouped parasite host pcd
+
+png(here("outputs","figs","p-h_pitchamber.png"), width = 9, height = 7, units = "in", res = 600)
+par(mar = c(5, 6, 4, 2) + 0.1, mgp = c(3, 1, 0))
+boxplot(data=pitdata_clean, pcd*1000~parasitism, na.rm=T, las=2,ylim=c(0,2000),cex.lab=1.5,at=c(1,3),
+        ylab="", xlab="", tcl=T, xaxt="n",cex.axis=1.5,
+        col=c("grey","firebrick"),whisklwd=3,staplelwd=3, boxwex=0.5)
+legend(cex=2,"topright", bty="n", fill=c("grey", "firebrick"), legend = c("Host", "Parasite"))
+segments(x0=2,y0=0.5342017*1000,x1=2,y1=0.8891008*1000, lwd=3)
+text(cex=2,x=2,
+     y=1000*c(mean(pitdata_clean$pcd[pitdata_clean$parasitism=="h"], na.rm = T),mean(pitdata_clean$pcd[pitdata_clean$parasitism=="p"], na.rm = T)), "--")
+text(x=2.2, y=(0.3608233/2+0.5342017)*1000,0.36, cex=2)
+text(x=c(1,3),y=c(2,1.2), c("A","B"), cex=1.5)
+title(ylab="Pit Chamber depth (nm)", line=4, cex.lab=1.5)
+dev.off()
 
 
+#pairwise pit membrane thickness
+
+png(here("outputs","figs","pairwise_pitmembrane.png"), width =12, height = 9, units = "in", res = 600)
+par(mar = c(5, 6, 4, 2) + 0.1, mgp = c(3, 1, 0))
+boxplot(data=pitdata_clean, pitavg*1000~ssp, na.rm=T,las=2,
+        ylab="", xlab=NA, tcl=T,xaxt="n",
+        col=c("firebrick","grey"), at=c(1,3,5,7,9,11,13,15),
+        ylim=c(0,1100), cex.lab=1.5,cex.axis=1.5,whisklwd=2,staplelwd=2)
+legend("topright",bty="n", fill = c("firebrick","grey"),legend = c("Parasite","Host"), cex=1.5)
+axis(1,at=c(1,3,5,7,9,11,13,15), labels = NA)
+text(x=c(1,3,5,7,9,11,13,15),y= 100, labels = c("A","B"), cex=2)
+abline(v= c(4,8,12),lty=2)
+text(x=c(1,3,5,7,9,11,13,15), y=-135, c("P. robustus", "V. thyrsoidea","P. perrottetti", "T. guianensis", "S. rhynchophyllus", "T. tipu", "V. album","P. nigra"),
+     xpd=NA  , cex=1.2,srt = 35, col="black", adj=0.50, font = 3)
+text(x=c(2,2,6,6,10,10,14,14), y=pit_means*1000, "-", cex=2, col="black")
+segments(x0=c(2,6,10,14),y0=pit_mean_diff$SP1mean*1000,x1=c(2,6,10,14),y1=pit_mean_diff$SP2mean*1000,lwd=2)
+text(x=c(2,6,10,14)+0.3, y=(pit_mean_diff$SP1mean + pit_mean_diff$SP2mean) * 500,round(pit_mean_diff$MeanDifference,3)*1000, cex=1.2)
+title(ylab="Pit Chamber depth (nm)", line=4, cex.lab=1.5)
+dev.off()
 #Wave graph base don Kaack 2021.
 # Function definition
 
