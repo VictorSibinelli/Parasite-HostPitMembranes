@@ -1,0 +1,5 @@
+Parasite,ParasiteMean,Host,HostMean,MeanDifference
+P. robustus,0.832103448275862,V. thyrsoidea,1.12229032258065,0.290186874304783
+P. perrotettii,0.5494,T. guianensis,0.992766666666667,0.443366666666667
+S. rhynchophyllus,0.4968,T. tipu,0.7789,0.2821
+V. album,0.268433333333333,P. nigra,0.671103448275862,0.402670114942529

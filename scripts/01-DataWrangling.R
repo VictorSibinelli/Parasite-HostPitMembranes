@@ -2,12 +2,12 @@
 #
 #Victor Sibinelli (victor.sibinelli@usp.br / sibinelli95@gmail.com)
 #13/07/2024
-# Scrpt 01 - Data wrangling
+# Script 01 - Data wrangling
 #################################################################
 
 
-#loading packages used uin the analysis (you can also run the 00-library script manualy)
-source("scripts/00-library.R")
+#loading packages used run the analysis (you can also run the 00-library script manually)
+source(here("scripts","00-library.R"))
 rm(list=ls())
 
 #reading data
@@ -17,7 +17,7 @@ wdata <- read.csv(here("data","raw","2xWallThickness.csv"), sep=";")
 pitdata <- read.csv(here("data","raw","Pits.csv"),sep=";")
 
  
-#### modifiying dataframes
+#### modifying data frames
  
  
 ##vdata

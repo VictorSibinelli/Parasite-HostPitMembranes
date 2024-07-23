@@ -24,8 +24,9 @@ Contains raw `.csv` files after data wrangling.
 Contains scripts used to run the analysis:
 - `00-library`: Checks if required packages are installed (and installs if they are not) and loads them. Additionally, manages package version controls (if desired) using the package groundhog.
 - `01-data_wrangling`: Data manipulation.
-- `02-analysis`: Performs the statistical analysis used in the paper.
-- `03-graphics`: Builds the figures presented in the article.
+- `02-testAssumption`: Performs the statistical analysis used in the paper.
+- `03-Analysis`: Builds the figures presented in the article.
+- `04-Graphics`: Builds the figures presented in the article.
 
 ### outputs
 Contains the outputs from the analysis and graphics scripts:

@@ -6,7 +6,7 @@
 #################################################################
  
 # Package names
-packages <- c("tidyverse", "here", "plotly", "data.table", "readr" , "groundhog","car")
+packages <- c("tidyverse", "here", "plotly", "data.table", "readr" , "groundhog","car","htmlwidgets")
 
 # Install packages not yet installed
 installed_packages <- packages %in% rownames(installed.packages())

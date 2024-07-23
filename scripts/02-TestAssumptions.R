@@ -5,7 +5,7 @@
 # Scrpt 02 - Test assumptions test
 #################################################################
 #load packages
-source("scripts/00-library.R")
+source(here("scripts","01-DataWrangling.R"))
 rm(list=ls())
 
 
