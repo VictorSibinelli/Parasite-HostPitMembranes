@@ -6,7 +6,7 @@
 #################################################################
 #load packages
 source(here("scripts","01-DataWrangling.R"))
-rm(list=ls())
+
 
 
 #load data
@@ -18,12 +18,12 @@ pitdata <- read.csv(here("data","processed","pitdata.csv"))
 ################################################################################
 
 
-
+##############################################################################
 #Pits analysis
 ################################################################################
 
 # Create an empty dataframe to store results
-results <- data.frame(
+pitresults <- data.frame(
   species = character(),
   pitavg_p_value = numeric(),
   pcavg_p_value = numeric(),
@@ -49,7 +49,7 @@ for (ssp in species) {
   })
   
   # Append the results to the dataframe
-  results <- rbind(results, data.frame(
+  pitresults <- rbind(pitresults, data.frame(
     species = ssp,
     pitavg_p_value = shapiro_results["pitavg"],
     pcavg_p_value = shapiro_results["pcavg"],
@@ -59,7 +59,7 @@ for (ssp in species) {
 }
 
 # Print the final results dataframe
-print(results)
+print(pitresults)
 
 
 ####removing outliers
@@ -170,7 +170,8 @@ ggplot(pitdata, aes(x = ssp, y = pcd, fill = ssp)) +
 
 
 fwrite(pitdata,file=here("data","processed","pitdata_clean.csv"))
-#########################################################################################################
+
+
 
 
 
