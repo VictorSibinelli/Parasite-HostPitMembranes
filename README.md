@@ -18,15 +18,15 @@ Contains original data for the analysis:
 - `PitsArea`: Intervascular wall pit area data
 
 #### processed
-Contains raw `.csv` files after data wrangling.
+Contains `.csv` files after data wrangling and manipulation.
 
 ### scripts
 Contains scripts used to run the analysis:
 - `00-library`: Checks if required packages are installed (and installs if they are not) and loads them. Additionally, manages package version controls (if desired) using the package groundhog.
 - `01-data_wrangling`: Data manipulation.
-- `02-testAssumption`: Performs the statistical analysis used in the paper.
-- `03-Analysis`: Builds the figures presented in the article.
-- `04-Graphics`: Builds the figures presented in the article.
+- `02-testAssumption`: Performs the statistical analysis used in the paper (divided for each data set).
+- `03-Analysis`: Builds the figures presented in the article (divided for each data set).
+- `04-Graphics`: Builds the figures presented in the article (divided for each data set).
 
 ### outputs
 Contains the outputs from the analysis and graphics scripts:
