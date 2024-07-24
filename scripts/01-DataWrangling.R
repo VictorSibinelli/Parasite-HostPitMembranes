@@ -7,6 +7,7 @@
 
 
 # loading packages used run the analysis (you can also run the 00-library script manually)
+library(here)
 source(here("scripts", "00-library.R"))
 rm(list = ls())
 

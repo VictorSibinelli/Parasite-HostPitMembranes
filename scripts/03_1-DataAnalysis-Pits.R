@@ -4,6 +4,7 @@
 # 13/07/2024
 # Script 03.1 - Data Analysis - Pit membranes
 #################################################################
+library(here)
 source(here("scripts", "02-TestAssumptions.R"))
 rm(list = ls())
 

@@ -4,6 +4,7 @@
 # 13/07/2024
 # Scrpt 04.1 -Graphics- Pits
 #################################################################
+library(here)
 source(here("scripts", "03_1-DataAnalysis-Pits.R"))
 
 ### Pit graphs

@@ -5,6 +5,7 @@
 # Scrpt 02.2 - Test assumptions test
 #################################################################
 # load packages
+library(here)
 source(here("scripts", "01-DataWrangling.R"))
 
 
