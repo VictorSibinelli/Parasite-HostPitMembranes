@@ -4,6 +4,8 @@ This repository contains all data, scripts, and outputs (including Supplementary
 
 All data were collected from mature wood samples, either with light or electronic microscopy techniques (for more details, check the Materials and Methods sections of the article at "xxxxx").
 
+Contact info: Victor Sibinelli (victor.sibinelli@usp.br)
+
 ## Repository Structure
 
 ### data
@@ -30,7 +32,7 @@ Contains scripts used to run the analysis:
 
 ### outputs
 Contains the outputs from the analysis and graphics scripts:
-- `figs`: Contains the figures.
-- `tables`: Contains the tables.
+- `figs`: Contains the figures produced in the scrips.
+- `tables`: Contains the result tables produced inthe scrips.
 
 
