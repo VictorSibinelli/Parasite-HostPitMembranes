@@ -13,7 +13,7 @@ rm(list = ls())
 
 # reading data
 vdata <- read.csv(here("data", "raw", "VesselsDiameter.csv"), sep = ";")
-vadata <- read.csv(here("data", "raw", "VesselArea.csv"), sep = ";")
+vadata <- read.csv(here("data", "raw", "VesselArea2.csv"), sep = ",")
 wdata <- read.csv(here("data", "raw", "2xWallThickness.csv"), sep = ";")
 pitdata <- read.csv(here("data", "raw", "Pits.csv"), sep = ";")
 
