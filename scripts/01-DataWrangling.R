@@ -16,7 +16,7 @@ vdata <- read.csv(here("data", "raw", "VesselsDiameter.csv"), sep = ";")
 vadata <- read.csv(here("data", "raw", "VesselArea2.csv"), sep = ",")
 wdata <- read.csv(here("data", "raw", "2xWallThickness.csv"), sep = ";")
 pitdata <- read.csv(here("data", "raw", "Pits.csv"), sep = ";")
-
+pitOdata <- read.csv(here("data", "raw", "PitOpeningData.csv"), sep = ",")
 
 #### modifying data frames
 
@@ -32,7 +32,7 @@ vdata$label <- paste(vdata$ssp, vdata$label, sep = " ")
 
 # calculated vessel density based on vessel count,total area and vessel area fraction in mm2
 vadata$vdensity <- vadata$Count / (vadata$Total.Area / vadata$X.Area) * 10000
-# corrcting missing name
+# Inserting missing name
 vadata$ssp[33:63] <- "Psittacanthus robustus"
 
 ## wdata
