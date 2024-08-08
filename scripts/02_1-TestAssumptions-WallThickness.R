@@ -95,5 +95,5 @@ wdata_clean <- bind_rows(wdata_clean)
 
 # View the cleaned dataframe
 head(wdata_clean)
-
-fwrite(wdata_clean, file = here("data", "processed", "wdata_clean"))
+wdata_clean[,c(-3,-4)]
+fwrite(wdata_clean[,c(-3,-4)], file = here("data", "processed", "wdata_clean"))
