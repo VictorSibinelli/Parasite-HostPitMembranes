@@ -2,98 +2,118 @@
 #
 # Victor Sibinelli (victor.sibinelli@usp.br / sibinelli95@gmail.com)
 # 13/07/2024
-# Scrpt 02.2 - Test assumptions test
-#################################################################
-# load packages
-library(here)
+# Script 02.2 - Test assumptions test
+######################################################################
+
+
+# Load the data wrangling script
 source(here("scripts", "01-DataWrangling.R"))
 
-
-
-# load data
+# Load data
 wdata <- read.csv(here("data", "processed", "wdata.csv"))
 
-
-# wdata
-###########
-
-# Assuming wdata is your data frame and it contains columns 'ssp' and 'wthickness'
-for (ssp in unique(wdata$ssp)) {
-  # Subset data for the current species
-  subset_data <- wdata[wdata$ssp == ssp, ]
-
-  # Perform Shapiro-Wilk test for the current species
-  shapiro_test <- shapiro.test(subset_data$wthickness)
-  print(paste("Shapiro-Wilk test for species", ssp, ": p-value =", shapiro_test$p.value))
-
-  # Plot the density of 'wthickness' for the current species
-  p <- ggplot(subset_data, aes(x = wthickness)) +
-    geom_density() +
-    ggtitle(paste("Density plot for species", ssp)) +
-    xlab("Wthickness") +
-    ylab("Density")
-
-  print(p)
+# Function to plot density before and after outlier removal on the same graph
+plot_density_comparison <- function(original_density, updated_density, species, variable) {
+  plot(original_density, main = paste(species, "-", variable), 
+       xlab = variable, ylab = "Density", lwd = 2, col = "red", 
+       xlim = range(c(original_density$x, updated_density$x), na.rm = TRUE))
+  lines(updated_density, lwd = 2, col = "blue")
+  legend("topright", legend = c("Before", "After"), col = c("red", "blue"), lwd = 2)
 }
-#####################
 
-# Function to check normality by removing one data point at a time
-check_normality <- function(data) {
-  # Perform initial Shapiro-Wilk test
-  shapiro_test <- shapiro.test(data$wthickness)
-  p_value <- shapiro_test$p.value
-
-  # Continue removing one data point at a time until normality is reached or only one data point is left
-  while (p_value < 0.05 && nrow(data) > 1) {
-    # Find the data point whose removal improves normality the most
-    best_p_value <- 0
-    best_data <- data
-
-    for (i in 1:nrow(data)) {
-      temp_data <- data[-i, ]
-      temp_shapiro_test <- shapiro.test(temp_data$wthickness)
-
-      if (temp_shapiro_test$p.value > best_p_value) {
-        best_p_value <- temp_shapiro_test$p.value
-        best_data <- temp_data
-      }
-    }
-
-    # Update data and p_value
-    data <- best_data
-    p_value <- best_p_value
+# Function to replace outliers with NA and test for normality
+replace_outliers_test_normality <- function(data, variable, species, max_iter = 10) {
+  outlier_count <- 0
+  removed_outliers <- numeric()
+  
+  original_data <- data[[variable]][data$ssp == species]
+  shapiro_p <- NA
+  
+  for (i in 1:max_iter) {
+    outliers <- boxplot.stats(data[[variable]][data$ssp == species])$out
+    if (length(outliers) == 0) break
+    x1 <- outliers[which.max(abs(outliers - median(data[[variable]][data$ssp == species], na.rm = TRUE)))]
+    data[[variable]][data[[variable]] == x1 & data$ssp == species] <- NA
+    outlier_count <- outlier_count + 1
+    removed_outliers <- c(removed_outliers, x1)
+    shapiro_test <- shapiro.test(data[[variable]][data$ssp == species])
+    shapiro_p <- shapiro_test$p.value
+    if (shapiro_p > 0.05) break
   }
-
-  return(data)
+  
+  original_density <- density(original_data, na.rm = TRUE)
+  updated_density <- density(data[[variable]][data$ssp == species], na.rm = TRUE)
+  
+  return(list(data = data, outlier_count = outlier_count, shapiro_p = shapiro_p, removed_outliers = removed_outliers,
+              original_density = original_density, updated_density = updated_density))
 }
 
-# Assuming wdata is your data frame and it contains columns 'ssp' and 'wthickness'
-wdata_clean <- list()
+# Variables of interest
+variables <- c("wthickness")
 
-for (ssp in unique(wdata$ssp)) {
-  # Subset data for the current species
-  subset_data <- wdata[wdata$ssp == ssp, ]
+# Perform Shapiro-Wilk test for each species and variable
+species <- unique(wdata$ssp)
 
-  # Check normality and clean data
-  clean_data <- check_normality(subset_data)
+# Directory for saving plots and table
+output_dir_figs <- here("outputs", "figs", "assumptions")
+output_dir_tables <- here("outputs", "tables", "assumptions")
+dir.create(output_dir_figs, recursive = TRUE, showWarnings = FALSE)
+dir.create(output_dir_tables, recursive = TRUE, showWarnings = FALSE)
 
-  # Append cleaned data to the list
-  wdata_clean[[ssp]] <- clean_data
+# Initialize data frame to store outlier information
+outlier_info <- data.frame(
+  species = character(),
+  wthickness = numeric(),
+  stringsAsFactors = FALSE
+)
 
-  # Plot the density of 'wthickness' for the current species
-  p <- ggplot(clean_data, aes(x = wthickness)) +
-    geom_density() +
-    ggtitle(paste("Density plot for species", ssp)) +
-    xlab("Wthickness") +
-    ylab("Density")
+# Set up the plotting area with 2 rows and 4 columns
+png(filename = file.path(output_dir_figs, "WthicknessDensity.png"), width = 1600, height = 800)
+par(mfrow = c(2, 4), oma = c(4, 4, 2, 2), mar = c(4, 4, 2, 1))
 
-  print(p)
+# Iterate over species and variables to replace outliers with NA and check for normality
+for (ssp in species) {
+  outlier_counts <- numeric(length(variables))
+  names(outlier_counts) <- variables
+  
+  for (var in variables) {
+    result <- replace_outliers_test_normality(wdata, var, ssp)
+    wdata <- result$data
+    
+    # Plot density comparison
+    plot_density_comparison(result$original_density, result$updated_density, ssp, var)
+    
+    # Store the number of points substituted for NA
+    outlier_counts[var] <- result$outlier_count
+  }
+  
+  # Add the counts to the outlier_info dataframe
+  outlier_info <- rbind(outlier_info, data.frame(
+    species = ssp,
+    wthickness = outlier_counts["wthickness"],
+    stringsAsFactors = FALSE
+  ))
 }
 
-# Combine all cleaned data into a single dataframe
-wdata_clean <- bind_rows(wdata_clean)
+# Close the PNG device
+dev.off()
 
-# View the cleaned dataframe
-head(wdata_clean)
-wdata_clean[,c(-3,-4)]
-fwrite(wdata_clean[,c(-3,-4)], file = here("data", "processed", "wdata_clean"))
+# Save the outlier information as a CSV file
+write.csv(outlier_info, file = file.path(output_dir_tables, "w_outlier.csv"), row.names = FALSE)
+print(outlier_info)
+# Save the cleaned data
+fwrite(wdata, file = here("data", "processed", "wdata_clean.csv"))
+
+# Print final data (optionally save it to a file for further analysis)
+print(wdata)
+
+
+# Homogeneity of variance test
+ggplot(wdata, aes(x = ssp, y = wthickness, fill = ssp)) +
+  geom_boxplot() +
+  labs(
+    title = "Boxplot of Wall Thickness Across Species",
+    x = "Species", y = "Wall Thickness"
+  ) +
+  theme_minimal()
+#hogeneity of variance found inside pairs
