@@ -13,12 +13,13 @@ rm(list = ls())
 
 # reading data
 vdata <- read.csv(here("data", "raw", "VesselsDiameter.csv"), sep = ";")
-vadata <- read.csv(here("data", "raw", "VesselArea2.csv"), sep = ",")
+vadata <- read.csv(here("data", "raw", "VesselArea2.csv"), sep = ";")
 wdata <- read.csv(here("data", "raw", "2xWallThickness.csv"), sep = ";")
 pitdata <- read.csv(here("data", "raw", "Pits.csv"), sep = ";")
 pitOdata <- read.csv(here("data", "raw", "PitOpeningData.csv"), sep = ";")
 
-
+# List of data frame names
+dataframes <- ls()
 
 # Relevel the factors for each data frame
 for (df_name in dataframes) {
@@ -27,7 +28,7 @@ for (df_name in dataframes) {
   if ("ssp" %in% colnames(df)) { # Check if 'ssp' column exists
     df$ssp <- factor(df$ssp, levels = c(
       "Psittacanthus robustus", "Vochysia thyrsoidea",
-      "Phoradendeon perrotettii", "Tapirira guianensis",
+      "Phoradendron perrotettii", "Tapirira guianensis",
       "Struthanthus rhynchophyllus", "Tipuana tipu",
       "Viscum album", "Populus nigra"
     ))
@@ -37,9 +38,7 @@ for (df_name in dataframes) {
 }
 
 
-
 #### modifying data frames
-
 
 ## vdata
 
@@ -61,6 +60,7 @@ wdata$wthickness <- wdata$Length / 2
 
 # pitdata
 
+pitdata <- pitdata[,1:8]
 pitdata$peavg <- rowMeans(pitdata[, 5:6], na.rm = T) # calculating pit membrane thickness average at the edges
 pitdata$pcavg <- rowMeans(pitdata[, 2:4], na.rm = T) # calculating pit membrane thickness average at the center
 pitdata$pitavg <- rowMeans(pitdata[, 2:6], na.rm = T) # calculating pit membrane thickness average
@@ -71,25 +71,31 @@ colnames(pitOdata)[4] <- "PitOpening"
 
 
 #### saving dataframes
-
-# List of data frame names
+# List of all objects in the environment
 dataframes <- ls()
 
-# Loop over each data frame name
+# Loop over each object
 for (df_name in dataframes) {
-  df <- get(df_name) # Get the data frame by name
+  df <- get(df_name) # Get the object by name
   
-  # Construct file path
-  dfile <- paste0(df_name, ".csv")
-  file_path <- here("data", "processed", dfile)
-  
-  # Save data frame as CSV using fwrite
-  fwrite(df, file = file_path)
-  
-  cat("Data frame", df_name, "saved successfully to", file_path, "\n")
+  # Check if the object is a data frame
+  if (is.data.frame(df)) {
+    # Construct file path
+    dfile <- paste0(df_name, ".csv")
+    file_path <- here("data", "processed", dfile)
+    
+    # Save data frame as CSV using fwrite
+    fwrite(df, file = file_path)
+    
+    cat("Data frame", df_name, "saved successfully to", file_path, "\n")
+  } else {
+    cat("Object", df_name, "is not a data frame and was skipped.\n")
+  }
 }
 
 # Remove all objects from the environment
 rm(list = ls())
+
+
 
 #######################################################

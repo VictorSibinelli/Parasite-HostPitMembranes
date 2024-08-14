@@ -8,9 +8,29 @@
 
 # Load the data wrangling script
 source(here("scripts", "01-DataWrangling.R"))
+# Remove all objects from the environment
+rm(list = ls())
+
 
 # Load data
 wdata <- read.csv(here("data", "processed", "wdata.csv"))
+dataframes <- ls()
+
+# Relevel the factors for each data frame
+for (df_name in dataframes) {
+  df <- get(df_name) # Get the data frame by name
+  
+  if ("ssp" %in% colnames(df)) { # Check if 'ssp' column exists
+    df$ssp <- factor(df$ssp, levels = c(
+      "Psittacanthus robustus", "Vochysia thyrsoidea",
+      "Phoradendeon perrotettii", "Tapirira guianensis",
+      "Struthanthus rhynchophyllus", "Tipuana tipu",
+      "Viscum album", "Populus nigra"
+    ))
+    assign(df_name, df) # Assign the modified data frame back to its name
+  }
+  rm(df, df_name) # remove duplicated dataframe
+}
 
 # Function to plot density before and after outlier removal on the same graph
 plot_density_comparison <- function(original_density, updated_density, species, variable) {
