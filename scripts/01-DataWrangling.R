@@ -19,8 +19,6 @@ pitdata <- read.csv(here("data", "raw", "Pits.csv"), sep = ";")
 pitOdata <- read.csv(here("data", "raw", "PitOpeningData.csv"), sep = ";")
 
 
-# List of data frame names
-dataframes <- ls()
 
 # Relevel the factors for each data frame
 for (df_name in dataframes) {
@@ -80,16 +78,18 @@ dataframes <- ls()
 # Loop over each data frame name
 for (df_name in dataframes) {
   df <- get(df_name) # Get the data frame by name
-
+  
   # Construct file path
   dfile <- paste0(df_name, ".csv")
   file_path <- here("data", "processed", dfile)
-
+  
   # Save data frame as CSV using fwrite
   fwrite(df, file = file_path)
-
+  
   cat("Data frame", df_name, "saved successfully to", file_path, "\n")
 }
+
+# Remove all objects from the environment
 rm(list = ls())
 
 #######################################################
