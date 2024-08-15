@@ -7,8 +7,7 @@
 # load packages
 library(here)
 source(here("scripts", "01-DataWrangling.R"))
-
-
+rm(list=ls())
 # Load data
 pitO <- read.csv(here("data", "processed", "PitOdata.csv"))
 pitdata <- read.csv(here("data", "processed", "pitdata.csv"))
@@ -39,12 +38,14 @@ for (df_name in dataframes) {
 
 
 
-# Function to plot density before and after outlier removal on the same graph
-plot_density_comparison <- function(original_density, updated_density, title) {
-  plot(original_density, main = title, 
-       xlab = "", ylab = "Density", lwd = 2, col = "red", xlim = range(c(original_density$x, updated_density$x), na.rm = TRUE))
+## Function to plot density before and after outlier removal on the same graph
+plot_density_comparison <- function(original_density, updated_density, species, variable) {
+  plot(original_density, main = paste(species, "-", variable), 
+       xlab = variable, ylab = "Density", lwd = 2, col = "red", 
+       xlim = range(c(original_density$x, updated_density$x), na.rm = TRUE), 
+       cex.main = 1.2, cex.lab = 1.0, cex.axis = 0.8)  # Adjusted text sizes
   lines(updated_density, lwd = 2, col = "blue")
-  legend("topright", legend = c("Before", "After"), col = c("red", "blue"), lwd = 2)
+  legend("topright", legend = c("Before", "After"), col = c("red", "blue"), lwd = 2, cex = 0.8)  # Smaller legend text
 }
 
 # Function to replace outliers with NA and test for normality
@@ -113,24 +114,34 @@ output_dir_tables <- here("outputs", "tables", "assumptions")
 dir.create(output_dir_figs, recursive = TRUE, showWarnings = FALSE)
 dir.create(output_dir_tables, recursive = TRUE, showWarnings = FALSE)
 
-# Iterate over variables to replace outliers with NA and check for normality in the first dataframe
+## Iterate over variables to replace outliers with NA and check for normality in the first dataframe
 for (var in variables1) {
-  png(filename = file.path(output_dir_figs, paste0(var, "_density.png")), width = 1200, height = 800)
+  # Set up the PNG file for output
+  png(filename = file.path(output_dir_figs, paste0(var, "_density.png")),
+      width = 8000, height = 6000, res = 600)
+  
+  # Set up the plotting area
   par(mfrow = c(2, 4), oma = c(4, 4, 2, 2), mar = c(4, 4, 2, 1))
   
+  # Iterate over each species
   for (ssp in species) {
     result <- replace_outliers_test_normality(pitdata, var, ssp)
     pitdata <- result$data
     
-    plot_density_comparison(result$original_density, result$updated_density, ssp)
+    # Plot density comparison
+    plot_density_comparison(result$original_density, result$updated_density, ssp, var)
     
     # Update outlier_info1 with the count of replaced data points
     outlier_info1[outlier_info1$species == ssp, var] <- result$outlier_count
   }
   
+  # Add variable name as a title for the entire page
   mtext(var, side = 3, outer = TRUE, cex = 1.5, line = 1)
+  
+  # Close the PNG device
   dev.off()
 }
+
 
 # Print outlier info for first dataframe
 print(outlier_info1)
@@ -153,14 +164,15 @@ print(pitresults2)
 
 # Iterate over variables to replace outliers with NA and check for normality in the second dataframe
 for (var in variables2) {
-  png(filename = file.path(output_dir_figs, paste0(var, "_density.png")), width = 1200, height = 800)
+  png(filename = file.path(output_dir_figs, paste0(var, "_density.png")),
+      width = 8000, height = 6000, res=600)
   par(mfrow = c(2, 4), oma = c(4, 4, 2, 2), mar = c(4, 4, 2, 1))
   
   for (ssp in species) {
     result <- replace_outliers_test_normality(pitO, var, ssp)
     pitO <- result$data
     
-    plot_density_comparison(result$original_density, result$updated_density, ssp)
+    plot_density_comparison(result$original_density, result$updated_density, ssp,var)
     
     # Update outlier_info2 with the count of replaced data points
     outlier_info2[outlier_info2$species == ssp, var] <- result$outlier_count
@@ -182,25 +194,18 @@ write.csv(outlier_info_combined, file = file.path(output_dir_tables, "pit_outlie
 fwrite(pitdata, file = here("data", "processed", "pitdata_clean.csv"))
 fwrite(pitO[,-5], file = here("data", "processed", "pitO_clean.csv"))
 
-# Print final data
-print(pitdata)
-print(pitO)
-
 
 
 # homogeneity of variance test
 ###############################################
 
-
-
-ggplot(pitdata, aes(x = ssp, y = pitavg, fill = ssp)) +
-  geom_boxplot() +
+ggplot(data = pitdata, aes(x = ssp, y = pitavg, fill = ssp)) +
+  geom_boxplot(na.rm = TRUE) +  # Remove rows with NA values
   labs(
     title = "Boxplot of pitavg Across Species",
     x = "Species", y = "pitavg"
   ) +
   theme_minimal()
-
 
 ### Graph shows heterocedasticity between groups
 

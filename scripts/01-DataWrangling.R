@@ -12,11 +12,12 @@ source(here("scripts", "00-library.R"))
 rm(list = ls())
 
 # reading data
-vdata <- read.csv(here("data", "raw", "VesselsDiameter.csv"), sep = ";")
-vadata <- read.csv(here("data", "raw", "VesselArea2.csv"), sep = ";")
+vdata <- read.csv(here("data", "raw", "VesselsDiameter.csv"), sep = ",")
+vadata <- read.csv(here("data", "raw", "VesselCount.csv"), sep = ",")
 wdata <- read.csv(here("data", "raw", "2xWallThickness.csv"), sep = ";")
-pitdata <- read.csv(here("data", "raw", "Pits.csv"), sep = ";")
+pitdata <- read.csv(here("data", "raw", "Pits.csv"), sep = ";")[,1:8]
 pitOdata <- read.csv(here("data", "raw", "PitOpeningData.csv"), sep = ";")
+
 
 # List of data frame names
 dataframes <- ls()
@@ -43,15 +44,19 @@ for (df_name in dataframes) {
 ## vdata
 
 # calculated equivalent area circle diameter based on vessel area
-vdata$VD <- 2 * (sqrt(vdata$Area / pi))
+vdata$ssp[is.na(vdata$ssp)] <- "Phoradendron perrotettii"
+vdata$VesselDiameter <- 2 * (sqrt(vdata$Area/pi))
+
 # correcting indiv
-vdata$label <- paste(vdata$ssp, vdata$label, sep = " ")
+vdata$indiv <- paste(vdata$ssp, vdata$indiv, sep = " ")
 
 ## vadata
 
 # calculated vessel density based on vessel count,total area and vessel area fraction in mm2
 vadata$vdensity <- vadata$Count / (vadata$Total.Area / vadata$X.Area) * 10000
+str(vadata)
 # Inserting missing name
+vadata$ssp[1:32] <- "Phoradendron perrotettii"
 vadata$ssp[33:63] <- "Psittacanthus robustus"
 
 ## wdata
@@ -60,12 +65,11 @@ wdata$wthickness <- wdata$Length / 2
 
 # pitdata
 
-pitdata <- pitdata[,1:8]
 pitdata$peavg <- rowMeans(pitdata[, 5:6], na.rm = T) # calculating pit membrane thickness average at the edges
 pitdata$pcavg <- rowMeans(pitdata[, 2:4], na.rm = T) # calculating pit membrane thickness average at the center
 pitdata$pitavg <- rowMeans(pitdata[, 2:6], na.rm = T) # calculating pit membrane thickness average
 
-#pit)data
+#pitdata
 pitOdata$PitDiameter <- read.csv(here("data", "raw", "PitDiameter.csv"), sep = ";")$PitDiameter/10
 colnames(pitOdata)[4] <- "PitOpening"
 

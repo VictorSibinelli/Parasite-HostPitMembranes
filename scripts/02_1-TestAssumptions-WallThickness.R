@@ -7,6 +7,7 @@
 
 
 # Load the data wrangling script
+library(here)
 source(here("scripts", "01-DataWrangling.R"))
 # Remove all objects from the environment
 rm(list = ls())
@@ -23,7 +24,7 @@ for (df_name in dataframes) {
   if ("ssp" %in% colnames(df)) { # Check if 'ssp' column exists
     df$ssp <- factor(df$ssp, levels = c(
       "Psittacanthus robustus", "Vochysia thyrsoidea",
-      "Phoradendeon perrotettii", "Tapirira guianensis",
+      "Phoradendron perrotettii", "Tapirira guianensis",
       "Struthanthus rhynchophyllus", "Tipuana tipu",
       "Viscum album", "Populus nigra"
     ))
@@ -36,9 +37,10 @@ for (df_name in dataframes) {
 plot_density_comparison <- function(original_density, updated_density, species, variable) {
   plot(original_density, main = paste(species, "-", variable), 
        xlab = variable, ylab = "Density", lwd = 2, col = "red", 
-       xlim = range(c(original_density$x, updated_density$x), na.rm = TRUE))
+       xlim = range(c(original_density$x, updated_density$x), na.rm = TRUE), 
+       cex.main = 1.2, cex.lab = 1.0, cex.axis = 0.8)  # Adjusted text sizes
   lines(updated_density, lwd = 2, col = "blue")
-  legend("topright", legend = c("Before", "After"), col = c("red", "blue"), lwd = 2)
+  legend("topright", legend = c("Before", "After"), col = c("red", "blue"), lwd = 2, cex = 0.8)  # Smaller legend text
 }
 
 # Function to replace outliers with NA and test for normality
@@ -88,8 +90,12 @@ outlier_info <- data.frame(
 )
 
 # Set up the plotting area with 2 rows and 4 columns
-png(filename = file.path(output_dir_figs, "WthicknessDensity.png"), width = 1600, height = 800)
-par(mfrow = c(2, 4), oma = c(4, 4, 2, 2), mar = c(4, 4, 2, 1))
+
+png(filename = file.path(output_dir_figs, "WthicknessDensity.png"), 
+    width = 6400, height = 4800, res = 600)  # Increase image size for bigger graphs
+
+# Set the layout for multiple plots per page
+par(mfrow = c(2, 4), oma = c(4, 4, 4, 2), mar = c(5, 5, 3, 2))  # Adjusted margins
 
 # Iterate over species and variables to replace outliers with NA and check for normality
 for (ssp in species) {
@@ -123,10 +129,6 @@ write.csv(outlier_info, file = file.path(output_dir_tables, "w_outlier.csv"), ro
 print(outlier_info)
 # Save the cleaned data
 fwrite(wdata, file = here("data", "processed", "wdata_clean.csv"))
-
-# Print final data (optionally save it to a file for further analysis)
-print(wdata)
-
 
 # Homogeneity of variance test
 ggplot(wdata, aes(x = ssp, y = wthickness, fill = ssp)) +
