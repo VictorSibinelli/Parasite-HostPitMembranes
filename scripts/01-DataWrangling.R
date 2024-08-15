@@ -54,7 +54,7 @@ vdata$indiv <- paste(vdata$ssp, vdata$indiv, sep = " ")
 
 # calculated vessel density based on vessel count,total area and vessel area fraction in mm2
 vadata$vdensity <- vadata$Count / (vadata$Total.Area / vadata$X.Area) * 10000
-str(vadata)
+
 # Inserting missing name
 vadata$ssp[1:32] <- "Phoradendron perrotettii"
 vadata$ssp[33:63] <- "Psittacanthus robustus"

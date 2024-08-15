@@ -32,7 +32,6 @@ for (df_name in dataframes) {
   }
   rm(df, df_name) # remove duplicated dataframe
 }
-
 # Function to plot density before and after outlier removal on the same graph
 plot_density_comparison <- function(original_density, updated_density, species, variable) {
   plot(original_density, main = paste(species, "-", variable), 
@@ -131,11 +130,19 @@ print(outlier_info)
 fwrite(wdata, file = here("data", "processed", "wdata_clean.csv"))
 
 # Homogeneity of variance test
-ggplot(wdata, aes(x = ssp, y = wthickness, fill = ssp)) +
-  geom_boxplot() +
+h <- ggplot(wdata, aes(x = ssp, y = wthickness)) +
+  geom_boxplot(na.rm = TRUE) +
   labs(
     title = "Boxplot of Wall Thickness Across Species",
-    x = "Species", y = "Wall Thickness"
+    x = "Species", 
+    y = "Wall Thickness"
   ) +
-  theme_minimal()
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1))
+h
+png(filename = file.path(output_dir_figs, "WthicknessVaricance.png"), 
+    width = 6400, height = 4800, res = 600)
+h
+dev.off()
 #hogeneity of variance found inside pairs
+

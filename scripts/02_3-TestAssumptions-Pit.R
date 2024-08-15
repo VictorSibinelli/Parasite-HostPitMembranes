@@ -199,55 +199,105 @@ fwrite(pitO[,-5], file = here("data", "processed", "pitO_clean.csv"))
 # homogeneity of variance test
 ###############################################
 
-ggplot(data = pitdata, aes(x = ssp, y = pitavg, fill = ssp)) +
-  geom_boxplot(na.rm = TRUE) +  # Remove rows with NA values
+# Plot 1
+var <- "pitavg"
+png(filename = file.path(output_dir_figs, paste0(var, "_Variance.png")),
+    width = 8000, height = 6000, res = 600)
+p1 <- ggplot(data = pitdata, aes(x = ssp, y = pitavg)) +
+  geom_boxplot(na.rm = TRUE) +
   labs(
     title = "Boxplot of pitavg Across Species",
     x = "Species", y = "pitavg"
   ) +
-  theme_minimal()
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  )
+p1
+dev.off()
 
-### Graph shows heterocedasticity between groups
-
-ggplot(pitdata, aes(x = ssp, y = peavg, fill = ssp)) +
-  geom_boxplot() +
+# Plot 2
+var <- "peavg"
+png(filename = file.path(output_dir_figs, paste0(var, "_Variance.png")),
+    width = 8000, height = 6000, res = 600)
+p2 <- ggplot(pitdata, aes(x = ssp, y = peavg)) +
+  geom_boxplot(na.rm = TRUE) +
   labs(
     title = "Boxplot of peavg Across Species",
     x = "Species", y = "peavg"
   ) +
-  theme_minimal()
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  )
+p2
+dev.off()
 
-ggplot(pitdata, aes(x = ssp, y = pcavg, fill = ssp)) +
-  geom_boxplot() +
+# Plot 3
+var <- "pcavg"
+png(filename = file.path(output_dir_figs, paste0(var, "_Variance.png")),
+    width = 8000, height = 6000, res = 600)
+p3 <- ggplot(pitdata, aes(x = ssp, y = pcavg)) +
+  geom_boxplot(na.rm = TRUE) +
   labs(
     title = "Boxplot of pcavg Across Species",
     x = "Species", y = "pcavg"
   ) +
-  theme_minimal()
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  )
+p3
+dev.off()
 
-
-ggplot(pitdata, aes(x = ssp, y = pcd, fill = ssp)) +
-  geom_boxplot() +
+# Plot 4
+var <- "pcd"
+png(filename = file.path(output_dir_figs, paste0(var, "_Variance.png")),
+    width = 8000, height = 6000, res = 600)
+p4<- ggplot(pitdata, aes(x = ssp, y = pcd)) +
+  geom_boxplot(na.rm = TRUE) +
   labs(
     title = "Boxplot of pcd Across Species",
     x = "Species", y = "pcd"
   ) +
-  theme_minimal()
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  )
+p4
+dev.off()
 
-ggplot(pitO, aes(x = ssp, y = PitDiameter, fill = ssp)) +
-  geom_boxplot() +
+# Plot 5
+var <- "PitDiameter"
+png(filename = file.path(output_dir_figs, paste0(var, "_Variance.png")),
+    width = 8000, height = 6000, res = 600)
+p5 <- ggplot(pitO, aes(x = ssp, y = PitDiameter)) +
+  geom_boxplot(na.rm = TRUE) +
   labs(
     title = "Boxplot of PitDiameter Across Species",
     x = "Species", y = "Pit Diameter"
   ) +
-  theme_minimal()
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  )
+p5
+dev.off()
 
-ggplot(pitO, aes(x = ssp, y = PitOpening, fill = ssp)) +
-  geom_boxplot() +
+# Plot 6
+var <- "PitOpening"
+png(filename = file.path(output_dir_figs, paste0(var, "_Homogeneity.png")),
+    width = 8000, height = 6000, res = 600)
+p6 <- ggplot(pitO, aes(x = ssp, y = PitOpening)) +
+  geom_boxplot(na.rm = TRUE) +
   labs(
     title = "Boxplot of Pit Opening Across Species",
     x = "Species", y = "Pit Opening"
   ) +
-  theme_minimal()
-##Only pit opening has homogeneity of variance
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  )
+p6
+dev.off()
 
