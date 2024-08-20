@@ -13,7 +13,7 @@ rm(list = ls())
 
 # reading data
 vdata <- read.csv(here("data", "raw", "VesselsDiameter.csv"), sep = ",")
-vadata <- read.csv(here("data", "raw", "VesselCount.csv"), sep = ",")
+vadata <- read.csv(here("data", "raw", "VesselDensity.csv"), sep = ",")
 wdata <- read.csv(here("data", "raw", "2xWallThickness.csv"), sep = ";")
 pitdata <- read.csv(here("data", "raw", "Pits.csv"), sep = ";")[,1:8]
 pitOdata <- read.csv(here("data", "raw", "PitOpeningData.csv"), sep = ";")
@@ -56,9 +56,7 @@ vdata$indiv <- paste(vdata$ssp, vdata$indiv, sep = " ")
 vadata$vdensity <- vadata$Count / (vadata$Total.Area / vadata$X.Area) * 10000
 
 # Inserting missing name
-vadata$ssp[1:32] <- "Phoradendron perrotettii"
-vadata$ssp[33:63] <- "Psittacanthus robustus"
-
+vadata$ssp[is.na(vadata$ssp)] <- "Phoradendron perrotettii"
 ## wdata
 # calculate single wall thickness
 wdata$wthickness <- wdata$Length / 2
