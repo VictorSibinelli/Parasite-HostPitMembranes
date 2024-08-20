@@ -1,3 +1,6 @@
+# 01-DataWrangling.R SUGESTÂO
+# Linha 78 em diante alterada, para tornar o loop mais eficiente
+
 ######################################################################
 #
 # Victor Sibinelli (victor.sibinelli@usp.br / sibinelli95@gmail.com)
@@ -74,7 +77,6 @@ pitOdata$PitDiameter <- read.csv(here("data", "raw", "PitDiameter.csv"), sep = "
 colnames(pitOdata)[4] <- "PitOpening"
 
 
-
 #### saving dataframes
 # List of all objects in the environment
 dataframes <- Filter(function(x) is.data.frame(get(x)), ls())
@@ -95,5 +97,7 @@ for (df_name in dataframes) {
 
 # Remove all objects from the environment
 rm(list = ls())
+
+
 
 #######################################################
