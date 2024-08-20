@@ -21,7 +21,7 @@ for (i in unique(vdata$ssp)) {
 }
 
 # Create a data frame instead of a matrix
-Hydraulic_Diameter <- data.frame(
+HydraulicData <- data.frame(
   pic = unique(vdata$Label),
   ssp= NA,
   Indiv = NA,
@@ -35,13 +35,20 @@ for (i in seq_along(unique(vdata$Label))) {
   filter_data <- vdata %>%
     filter(Label == label_value)
   
-  Hydraulic_Diameter[i, "HydraulicDiameter"] <- (sum(filter_data$VesselDiameter^4) / 
+  HydraulicData[i, "HydraulicDiameter"] <- (sum(filter_data$VesselDiameter^4) / 
                                                    length(filter_data$VesselDiameter))^(1/4)
-  Hydraulic_Diameter[i, c("pic", "ssp", "Indiv")] <- filter_data[1, c("Label", "ssp", "indiv")]
+  HydraulicData[i, c("pic", "ssp", "Indiv")] <- filter_data[1, c("Label", "ssp", "indiv")]
 }
 
-Hydraulic_Diameter
+HydraulicData <- merge(HydraulicData, vadata[, c("pic", "vdensity")], by = "pic", all.x = TRUE)
 
+# η is the viscosity index of water (1.002 × 10−9 MPa s at 20°C)
+n <- 1.002 * 10^-9
 
-df_merged <- merge(Hydraulic_Diameter, vadata[, c("pic", "vdensity")], by = "pic", all.x = TRUE)
+#ρw is the density of water at 20°C (998.2*kg*m−3 at 20°C)
+pw <- 998.2
 
+#Max hydraulic conductivity
+HydraulicData$Kmax <- ((pi*pw)/(n*128)) * #constants
+  (HydraulicData$vdensity*1e+6) * #Vessel density in vessels/ meter2 (converted from vessel/mm2)
+  ((HydraulicData$HydraulicDiameter*10e-6)^4) #Vessel diameter in meters to the power of 4
