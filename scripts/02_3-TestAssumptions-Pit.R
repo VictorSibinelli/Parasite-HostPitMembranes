@@ -192,7 +192,7 @@ write.csv(outlier_info_combined, file = file.path(output_dir_tables, "pit_outlie
 
 # Save cleaned data
 fwrite(pitdata, file = here("data", "processed", "pitdata_clean.csv"))
-fwrite(pitO[,-5], file = here("data", "processed", "pitO_clean.csv"))
+fwrite(pitO, file = here("data", "processed", "pitO_clean.csv"))
 
 
 
