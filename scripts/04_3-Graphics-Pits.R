@@ -2,10 +2,10 @@
 #
 # Victor Sibinelli (victor.sibinelli@usp.br / sibinelli95@gmail.com)
 # 13/07/2024
-# Scrpt 04.1 -Graphics- Pits
+# Scrpt 04.3 -Graphics- Pits
 #################################################################
 library(here)
-source(here("scripts", "03_1-DataAnalysis-Pits.R"))
+source(here("scripts", "03_3-DataAnalysis-Pits.R"))
 
 ### Pit graphs
 
