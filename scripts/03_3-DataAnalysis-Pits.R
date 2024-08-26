@@ -10,7 +10,7 @@ rm(list = ls())
 
 # load data
 pitdata_clean <- read.csv(here("data", "processed", "pitdata_clean.csv"))
-pitOdata_clena <- read.csv(here("data", "processed", "pitO_clean.csv"))
+pitOdata_clean <- read.csv(here("data", "processed", "pitO_clean.csv"))
 
 # List of data frame names
 dataframes <- ls()
@@ -77,22 +77,49 @@ species_data <- list(
   "P. nigra" = pitdata_clean[pitdata_clean$ssp == "Populus nigra", ]
 )
 
+species_data2 <- list(
+  "P. robustus" = pitOdata_clean[pitOdata_clean$ssp == "Psittacanthus robustus", ],
+  "V. thyrsoidea" = pitOdata_clean[pitOdata_clean$ssp == "Vochysia thyrsoidea", ],
+  "P. perrotettii" = pitOdata_clean[pitOdata_clean$ssp == "Phoradendron perrotettii", ],
+  "T. guianensis" = pitOdata_clean[pitOdata_clean$ssp == "Tapirira guianensis", ],
+  "S. rhynchophyllus" = pitOdata_clean[pitOdata_clean$ssp == "Struthanthus rhynchophyllus", ],
+  "T. tipu" = pitOdata_clean[pitOdata_clean$ssp == "Tipuana tipu", ],
+  "V. album" = pitOdata_clean[pitOdata_clean$ssp == "Viscum album", ],
+  "P. nigra" = pitOdata_clean[pitOdata_clean$ssp == "Populus nigra", ]
+)
+
 # Initialize result data frames
 pit_mean_diff <- data.frame(Parasite = character(),
-                            ParasiteMean = numeric(),
                             Host = character(),
+                            ParasiteMean = numeric(),
                             HostMean = numeric(),
                             MeanDifference = numeric(),
                             pvalue = numeric(),
                             stringsAsFactors = FALSE)
 
 pcd_results <- data.frame(Parasite = character(),
-                          ParasiteMean = numeric(),
                           Host = character(),
+                          ParasiteMean = numeric(),
                           HostMean = numeric(),
                           MeanDifference = numeric(),
                           pvalue = numeric(),
                           stringsAsFactors = FALSE)
+
+pitDiameter_results <- data.frame(Parasite = character(),
+                                  Host = character(),
+                                  ParasitePitDiameter = numeric(),
+                                  HostPitDiameter = numeric(),
+                                  MeanDifference = numeric(),
+                                  pvalue = numeric(),
+                                  stringsAsFactors = FALSE)
+
+pitOpening_results <- data.frame(Parasite = character(),
+                                  Host = character(),
+                                  ParasitePitOpeningDiameter = numeric(),
+                                  HostPitOpeningDiameter = numeric(),
+                                  MeanDifference = numeric(),
+                                  pvalue = numeric(),
+                                  stringsAsFactors = FALSE)
 
 # Perform t-tests for Pit membrane thickness
 for (pair in list(c("P. robustus", "V. thyrsoidea"), 
@@ -147,3 +174,50 @@ pcd_results
 fwrite(pcd_results, file = here("outputs", "tables", "pcd_results.csv"))
 
 
+# Perform t-tests for Pit Diameter
+for (pair in list(c("P. robustus", "V. thyrsoidea"), 
+                  c("P. perrotettii", "T. guianensis"), 
+                  c("S. rhynchophyllus", "T. tipu"), 
+                  c("V. album", "P. nigra"))) {
+  
+  parasite_data <- species_data2[[pair[1]]]
+  host_data <- species_data2[[pair[2]]]
+  
+  # Perform t-test for pit diameter
+  ttest <- t.test(parasite_data$PitDiameter, host_data$PitDiameter, var.equal = FALSE)
+  pitDiameter_results <- rbind(pitDiameter_results, data.frame(
+    Parasite = pair[1],
+    Host = pair[2],
+    ParasiteMean = ttest$estimate[1],
+    HostMean = ttest$estimate[2],
+    MeanDifference = diff(ttest$estimate),
+    pvalue = ttest$p.value,
+    stringsAsFactors = FALSE
+  ))
+}
+
+
+
+# Perform t-tests for Pit Opening Diameter
+for (pair in list(c("P. robustus", "V. thyrsoidea"), 
+                  c("P. perrotettii", "T. guianensis"), 
+                  c("S. rhynchophyllus", "T. tipu"), 
+                  c("V. album", "P. nigra"))) {
+  
+  parasite_data <- species_data2[[pair[1]]]
+  host_data <- species_data2[[pair[2]]]
+  
+  # Perform t-test for pit Opening diameter
+  ttest <- t.test(parasite_data$PitOpening, host_data$PitOpening, var.equal = FALSE)
+  pitOpening_results <- rbind(pitOpening_results, data.frame(
+    Parasite = pair[1],
+    Host = pair[2],
+    ParasiteMean = ttest$estimate[1],
+    HostMean = ttest$estimate[2],
+    MeanDifference = diff(ttest$estimate),
+    pvalue = ttest$p.value,
+    stringsAsFactors = FALSE
+  ))
+}
+fwrite(pitDiameter_results, file = here("outputs", "tables", "PitDiameter_results.csv"))
+fwrite(pitOpening_results, file = here("outputs", "tables", "PitOpening_results.csv"))
