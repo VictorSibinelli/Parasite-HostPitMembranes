@@ -173,4 +173,4 @@ for (pair in species_pairs) {
 print(results_df)
 
 # Save the results dataframe to a CSV file
-fwrite(results_df, file = here("data", "processed", "Wdata_AIC.csv"))
+fwrite(results_df, file = here("outputs", "tables", "Wdata_AIC.csv"))
