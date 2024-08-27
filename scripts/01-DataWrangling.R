@@ -13,7 +13,7 @@ rm(list = ls())
 
 # reading data
 vdata <- read.csv(here("data", "raw", "VesselsDiameter.csv"), sep = ",")
-vadata <- read.csv(here("data", "raw", "VesselCount.csv"), sep = ",")
+vadata <- read.csv(here("data", "raw", "VesselDensity.csv"), sep = ",")
 wdata <- read.csv(here("data", "raw", "2xWallThickness.csv"), sep = ";")
 pitdata <- read.csv(here("data", "raw", "Pits.csv"), sep = ";")[,1:8]
 pitOdata <- read.csv(here("data", "raw", "PitOpeningData.csv"), sep = ";")
@@ -47,17 +47,23 @@ for (df_name in dataframes) {
 vdata$ssp[is.na(vdata$ssp)] <- "Phoradendron perrotettii"
 vdata$VesselDiameter <- 2 * (sqrt(vdata$Area/pi))
 
-# correcting indiv
+# correcting Names
 vdata$indiv <- paste(vdata$ssp, vdata$indiv, sep = " ")
+vdata[740:747,3] <- "Phoradendeon perrotettii 2 - GC4841 x10 005-1.tif"
+vdata[3247:3881,3] <- gsub("(^[a-z])", "\\U\\1", vdata[3247:3881,3], perl = TRUE)
+# Replace the specific value in the 'Label' column
+vdata$Label[vdata$Label == "Phoradendeon perrotettii 2 - GC4841 x10 001-Recovered-1.tif"] <- 
+  "Phoradendeon perrotettii 2 - GC4841 x10 001-1.tif"
+
+
 
 ## vadata
-
 # calculated vessel density based on vessel count,total area and vessel area fraction in mm2
 vadata$vdensity <- vadata$Count / (vadata$Total.Area / vadata$X.Area) * 10000
 
-# Inserting missing name
-vadata$ssp[1:32] <- "Phoradendron perrotettii"
-vadata$ssp[33:63] <- "Psittacanthus robustus"
+# Inserting missing name/ correcting name
+vadata$ssp[is.na(vadata$ssp)] <- "Phoradendron perrotettii"
+
 
 ## wdata
 # calculate single wall thickness
