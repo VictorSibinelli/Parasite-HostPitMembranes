@@ -28,3 +28,43 @@ segments(x0 = c(2, 6, 10, 14), y0 = VWall_results$ParasiteMean, y1 = VWall_resul
 text(x = c(2, 6, 10, 14) + 0.3, y = (VWall_results$ParasiteMean+VWall_results$HostMean)/2, round(VWall_results$MeanDifference, 3), cex = 1.2)
 
 
+wdata <- wdata %>%
+  mutate(parasitism = case_when(
+    ssp %in% c("Psittacanthus robustus", 
+               "Phoradendron perrotettii", 
+               "Struthanthus rhynchophyllus", 
+               "Viscum album") ~ "p",
+    TRUE ~ "h"
+  ))
+# Print the updated dataframe to check
+print(wdata)
+
+
+#Define short names
+short_names <- c(
+  "Psittacanthus robustus" = expression(italic("P. robustus")),
+  "Vochysia thyrsoidea" = expression(italic("V. thyrsoidea")),
+  "Phoradendron perrotettii" = expression(italic("P. perrotettii")),
+  "Tapirira guianensis" = expression(italic("T. guianensis")),
+  "Struthanthus rhynchophyllus" = expression(italic("S. rhynchophyllus")),
+  "Tipuana tipu" = expression(italic("T. tipu")),
+  "Viscum album" = expression(italic("V. album")),
+  "Populus nigra" = expression(italic("P. nigra"))
+)
+
+ggplot(wdata, aes(x = x_pos, y = wthickness, fill = ssp)) +
+  geom_boxplot(aes(color = ssp),color="black", alpha = 2, position = position_dodge(width = 0.8)) +
+  geom_jitter(aes(color = label), size = 1, alpha = 0.25, position = position_jitter(width = 0.3))+
+  scale_fill_manual(values = c("firebrick", "grey","firebrick", "grey","firebrick", "grey","firebrick", "grey")) +  # Colors for ssp fills
+  theme_minimal()+
+  scale_x_continuous(breaks = x_pos, labels = short_names) +
+  # Labels and theme
+  labs(title = "Vessel Wall Thickness",
+       x = "Species",
+       y = "Vessel Wall Thickness (µm)") +
+theme(legend.position = "none",
+      axis.title.x = element_text(size = 14),  # Increase x-axis title size
+      axis.title.y = element_text(size = 14),  # Increase y-axis title size
+      axis.text.x = element_text(size = 12),  # Increase x-axis tick label size
+      axis.text.y = element_text(size = 12) 
+      )
