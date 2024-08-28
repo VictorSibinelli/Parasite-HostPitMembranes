@@ -7,41 +7,61 @@
 library(here)
 source(here("scripts", "03_3-DataAnalysis-Pits.R"))
 
+pitOdata <- pitOdata %>%
+  mutate(parasitism = case_when(
+    ssp %in% c("Psittacanthus robustus", 
+               "Phoradendron perrotettii", 
+               "Struthanthus rhynchophyllus", 
+               "Viscum album") ~ "Parasite",
+    TRUE ~ "Host"
+  ))
+
+# Define short names
+short_names <- c(
+  "Psittacanthus robustus" = expression(italic("P. robustus")),
+  "Vochysia thyrsoidea" = expression(italic("V. thyrsoidea")),
+  "Phoradendron perrotettii" = expression(italic("P. perrotettii")),
+  "Tapirira guianensis" = expression(italic("T. guianensis")),
+  "Struthanthus rhynchophyllus" = expression(italic("S. rhynchophyllus")),
+  "Tipuana tipu" = expression(italic("T. tipu")),
+  "Viscum album" = expression(italic("V. album")),
+  "Populus nigra" = expression(italic("P. nigra"))
+)
 ### Pit graphs
 
-# grouped parasite and host pit membrane
-png(here("outputs", "figs", "p-h_pitmembrane.png"), width = 9, height = 7, units = "in", res = 600)
-boxplot(
-  data = pitdata_clean, pitavg * 1000 ~ parasitism,
-  ylab = "Pit Membrane Thickness (nm)", xlab = "", tcl = T, xaxt = "n", at = c(1, 3),
-  col = c("grey", "firebrick"), ylim = c(0, 1000), cex.lab = 1.5, cex.axis = 1.5, whisklwd = 3, staplelwd = 3
-)
-legend("topleft", cex = 2, bty = "n", fill = c("grey", "firebrick"), legend = c("Host", "Parasite"))
-text(x = c(2), y = c(0.3120534, 0.5938832) * 1000, "--", cex = 2, col = "black")
-segments(x0 = 2, y0 = 0.3120534 * 1000, x1 = 2, y1 = 0.5938832 * 1000, lwd = 3)
-text(x = 2.2, y = (0.2818298 / 2 + 0.3120534) * 1000, "0.28", cex = 2)
-text(x = c(1, 3), y = c(2, 1.2) - 0.1, c("A", "B"), cex = 1.5)
-dev.off()
+# # grouped parasite and host pit membrane
+# png(here("outputs", "figs", "p-h_pitmembrane.png"), width = 9, height = 7, units = "in", res = 600)
+# boxplot(
+#   data = pitdata_clean, pitavg * 1000 ~ parasitism,
+#   ylab = "Pit Membrane Thickness (nm)", xlab = "", tcl = T, xaxt = "n", at = c(1, 3),
+#   col = c("grey", "firebrick"), ylim = c(0, 1000), cex.lab = 1.5, cex.axis = 1.5, whisklwd = 3, staplelwd = 3
+# )
+# legend("topleft", cex = 2, bty = "n", fill = c("grey", "firebrick"), legend = c("Host", "Parasite"))
+# text(x = c(2), y = c(0.3120534, 0.5938832) * 1000, "--", cex = 2, col = "black")
+# segments(x0 = 2, y0 = 0.3120534 * 1000, x1 = 2, y1 = 0.5938832 * 1000, lwd = 3)
+# text(x = 2.2, y = (0.2818298 / 2 + 0.3120534) * 1000, "0.28", cex = 2)
+# text(x = c(1, 3), y = c(2, 1.2) - 0.1, c("A", "B"), cex = 1.5)
+# dev.off()
 
 # grouped parasite host pcd
 
-png(here("outputs", "figs", "p-h_pitchamber.png"), width = 9, height = 7, units = "in", res = 600)
-par(mar = c(5, 6, 4, 2) + 0.1, mgp = c(3, 1, 0))
-boxplot(
-  data = pitdata_clean, pcd * 1000 ~ parasitism, na.rm = T, las = 2, ylim = c(0, 2000), cex.lab = 1.5, at = c(1, 3),
-  ylab = "", xlab = "", tcl = T, xaxt = "n", cex.axis = 1.5,
-  col = c("grey", "firebrick"), whisklwd = 3, staplelwd = 3, boxwex = 0.5
-)
-legend(cex = 2, "topright", bty = "n", fill = c("grey", "firebrick"), legend = c("Host", "Parasite"))
-segments(x0 = 2, y0 = 0.5342017 * 1000, x1 = 2, y1 = 0.8891008 * 1000, lwd = 3)
-text(
-  cex = 2, x = 2,
-  y = 1000 * c(mean(pitdata_clean$pcd[pitdata_clean$parasitism == "h"], na.rm = T), mean(pitdata_clean$pcd[pitdata_clean$parasitism == "p"], na.rm = T)), "--"
-)
-text(x = 2.2, y = (0.3608233 / 2 + 0.5342017) * 1000, 0.36, cex = 2)
-text(x = c(1, 3), y = c(2, 1.2), c("A", "B"), cex = 1.5)
-title(ylab = "Pit Chamber depth (nm)", line = 4, cex.lab = 1.5)
-dev.off()
+# png(here("outputs", "figs", "p-h_pitchamber.png"), width = 9, height = 7, units = "in", res = 600)
+# par(mar = c(5, 6, 4, 2) + 0.1, mgp = c(3, 1, 0))
+# boxplot(
+#   data = pitdata_clean, pcd * 1000 ~ parasitism, na.rm = T, las = 2, ylim = c(0, 2000), cex.lab = 1.5, at = c(1, 3),
+#   ylab = "", xlab = "", tcl = T, xaxt = "n", cex.axis = 1.5,
+#   col = c("grey", "firebrick"), whisklwd = 3, staplelwd = 3, boxwex = 0.5
+# )
+# legend(cex = 2, "topright", bty = "n", fill = c("grey", "firebrick"), legend = c("Host", "Parasite"))
+# segments(x0 = 2, y0 = 0.5342017 * 1000, x1 = 2, y1 = 0.8891008 * 1000, lwd = 3)
+# text(
+#   cex = 2, x = 2,
+#   y = 1000 * c(mean(pitdata_clean$pcd[pitdata_clean$parasitism == "h"], na.rm = T), mean(pitdata_clean$pcd[pitdata_clean$parasitism == "p"], na.rm = T)), "--"
+# )
+# text(x = 2.2, y = (0.3608233 / 2 + 0.5342017) * 1000, 0.36, cex = 2)
+# text(x = c(1, 3), y = c(2, 1.2), c("A", "B"), cex = 1.5)
+# title(ylab = "Pit Chamber depth (nm)", line = 4, cex.lab = 1.5)
+# dev.off()
 
 
 # pairwise pit membrane thickness and pcd
@@ -88,6 +108,49 @@ text(x = c(2, 2, 6, 6, 10, 10, 14, 14), y = pcd_measn * 1000, "-", cex = 2, col 
 segments(x0 = c(2, 6, 10, 14), y0 = pcd_measn[seq(1, 8, by = 2)] * 1000, y1 = pcd_measn[seq(2, 8, by = 2)] * 1000, lwd = 2)
 text(x = c(2, 6, 10, 14) + 0.3, y = (pcd_measn[seq(1, 8, by = 2)] + (pcd_results$MeanDifference / 2)) * 1000, round(pcd_results$MeanDifference, 3) * 1000, cex = 1.2)
 dev.off()
+
+
+ggplot(data=pitOdata, aes(y=PitDiameter, x=ssp, fill=parasitism))+
+  geom_boxplot(color = "black", alpha = 1, position = position_dodge(width = 0.8))+
+geom_jitter(aes(color = label), size = 1, alpha = 0.2, position = position_jitter(width = 0.3)) +
+  scale_fill_manual(
+    values = c("Parasite" = "firebrick", "Host" = "grey"),
+    name = "Parasitism"
+  ) +
+  geom_vline(xintercept = c(2.5,4.5,6.5)) +
+  theme_classic() +
+  scale_x_discrete(labels = short_names) +
+  labs(title = "VIntervessel Pit Diameter",
+       x = "Species",
+       y = "Intervessel Pit Diameter (µm)") +
+  annotate("text", x = seq_along(unique(pitOdata$ssp)),
+           y = max(pitOdata$PitDiameter) + 5, label = "A", size = 6)+
+  theme(legend.position = "right") +  # Legend on the right
+  guides(color = "none")  # Remove the legend for `ssp`
+
+ggplot(data=pitOdata, aes(y=PitOpening, x=ssp, fill=parasitism))+
+  geom_boxplot(color = "black", alpha = 1, position = position_dodge(width = 0.8))+
+  geom_jitter(aes(color = label), size = 1, alpha = 0.2, position = position_jitter(width = 0.3)) +
+  scale_fill_manual(
+    values = c("Parasite" = "firebrick", "Host" = "grey"),
+    name = "Parasitism"
+  ) +
+  geom_vline(xintercept = c(2.5,4.5,6.5)) +
+  theme_classic() +
+  scale_x_discrete(labels = short_names) +
+  labs(title = "Intervessel Pit Opening",
+       x = "Species",
+       y = "Intervessel Pit Opening (µm)") +
+  annotate("text", x = seq_along(unique(pitOdata$ssp)),
+           y = max(pitOdata$PitOpening) + 5, label = "A", size = 6)+
+  theme(legend.position = "right") +  # Legend on the right
+  guides(color = "none")  # Remove the legend for `ssp`
+
+
+
+
+
+
 
 # Wave graph base don Kaack 2021.
 # Function definition
