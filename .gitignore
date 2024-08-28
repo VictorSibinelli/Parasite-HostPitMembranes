@@ -48,5 +48,10 @@ po/*~
 # RStudio Connect folder
 rsconnect/
 
-#png file
+
+
+#outputs .csv files
+outputs/.csv
+
+#png files
 .png
