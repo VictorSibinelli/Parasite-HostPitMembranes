@@ -174,3 +174,4 @@ print(results_df)
 
 # Save the results dataframe to a CSV file
 fwrite(results_df, file = here("outputs", "tables", "Wdata_AIC.csv"))
+
