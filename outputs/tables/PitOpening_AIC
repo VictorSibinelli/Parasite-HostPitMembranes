@@ -1,0 +1,4 @@
+PairTested,ParasiteMean,HostMean,EstimatedDifference,REVariance,PValue,DeltaAIC
+Psittacanthus robustus vs Vochysia thyrsoidea,2.035,2.921,0.886,0.834,0.039,-2.251
+Phoradendron perrotettii vs Tapirira guianensis,2.281,2.485,0.203,0.369,0.572,2.319
+Struthanthus rhynchophyllus vs Tipuana tipu,1.532,2.891,1.359,0.308,0,-10.385

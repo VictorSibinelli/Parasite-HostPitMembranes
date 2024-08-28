@@ -8,18 +8,12 @@
 library(here)
 source(here("scripts", "01-DataWrangling.R"))
 
-
 # load data
 vdata <- read.csv(here("data", "processed", "vdata.csv"))
 vadata <- read.csv(here("data", "processed", "vadata.csv"))
 
 
-for (i in unique(vdata$ssp)) {
-  plot(density(vdata$VesselDiameter[vdata$ssp == i]),
-       main = paste("Density of VesselDiameter for", i),
-       xlab = "Vessel Diameter", ylab = "Density")
-}
-
+#creating a data frame with Hydraulic data
 # Create a data frame instead of a matrix
 HydraulicData <- data.frame(
   pic = unique(vdata$Label),
@@ -36,7 +30,7 @@ for (i in seq_along(unique(vdata$Label))) {
     filter(Label == label_value)
   
   HydraulicData[i, "HydraulicDiameter"] <- (sum(filter_data$VesselDiameter^4) / 
-                                                   length(filter_data$VesselDiameter))^(1/4)
+                                              length(filter_data$VesselDiameter))^(1/4)
   HydraulicData[i, c("pic", "ssp", "Indiv")] <- filter_data[1, c("Label", "ssp", "indiv")]
 }
 
@@ -52,3 +46,23 @@ pw <- 998.2
 HydraulicData$Kmax <- ((pi*pw)/(n*128)) * #constants
   (HydraulicData$vdensity*1e+6) * #Vessel density in vessels/ meter2 (converted from vessel/mm2)
   ((HydraulicData$HydraulicDiameter*10e-6)^4) #Vessel diameter in meters to the power of 4
+
+
+for (i in unique(vdata$ssp)) {
+  plot(density(vdata$VesselDiameter[vdata$ssp == i]),
+       main = paste("Density of VesselDiameter for", i),
+       xlab = "Vessel Diameter", ylab = "Density")
+}
+
+for (i in unique(vadata$ssp)) {
+  plot(density(vadata$vdensity[vadata$ssp == i]),
+       main = paste("Density of Vessel Density for", i),
+       xlab = "Vessel Diameter", ylab = "Density")
+}
+
+for (i in unique(HydraulicData$ssp)) {
+  plot(density(HydraulicData$Kmax[HydraulicData$ssp == i]),
+       main = paste("Kmax", i),
+       xlab = "Vessel Diameter", ylab = "Density")
+}
+
