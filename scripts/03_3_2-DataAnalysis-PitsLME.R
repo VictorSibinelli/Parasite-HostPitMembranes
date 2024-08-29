@@ -57,8 +57,8 @@ species_data2 <- list(
 species_pairs <- list(
   c("Psittacanthus robustus", "Vochysia thyrsoidea"),
   c("Phoradendron perrotettii", "Tapirira guianensis"),
-  c("Struthanthus rhynchophyllus", "Tipuana tipu"),
-  c("Viscum album", "Populus nigra")
+  c("Struthanthus rhynchophyllus", "Tipuana tipu")  #,
+  #c("Viscum album", "Populus nigra")
 )
 
 # Initialize result data frames
@@ -84,22 +84,44 @@ PitOpening_results <- data.frame(
   stringsAsFactors = FALSE
 )
 
-# Loop through each species pair and fit the model
 for (pair in species_pairs) {
   # Subset data for the current species pair
   subset_data <- pitOdata[pitOdata$ssp %in% pair, ]
   
+  if (nrow(subset_data) < 1) {
+    cat("No data for species pair:", paste(pair, collapse = " vs "), "\n")
+    next
+  }
   
   # Fit the linear mixed-effects model
-  full_model <- lme(PitDiameter ~ ssp, 
-                    random = ~ 1 | label, 
-                    data = subset_data, 
-                    weights = varIdent(form = ~ 1 | ssp))
+  full_model <- tryCatch({
+    lme(PitDiameter ~ ssp, 
+        random = ~ 1 | label, 
+        data = subset_data, 
+        weights = varIdent(form = ~ 1 | ssp))
+  }, error = function(e) {
+    cat("Error in fitting model for pair:", paste(pair, collapse = " vs "), "\n")
+    return(NULL)
+  })
   
-  reduced_model <- lme(PitDiameter ~ 1, 
-                       random = ~ 1 | label, 
-                       data = subset_data, 
-                       weights = varIdent(form = ~ 1 | ssp))
+  if (is.null(full_model)) {
+    next
+  }
+  
+  # Fit the reduced model
+  reduced_model <- tryCatch({
+    lme(PitDiameter ~ 1, 
+        random = ~ 1 | label, 
+        data = subset_data, 
+        weights = varIdent(form = ~ 1 | ssp))
+  }, error = function(e) {
+    cat("Error in fitting reduced model for pair:", paste(pair, collapse = " vs "), "\n")
+    return(NULL)
+  })
+  
+  if (is.null(reduced_model)) {
+    next
+  }
   
   # Print summaries of the models
   cat("\nModel Summary for Full Model (", paste(pair, collapse = " vs "), "):\n")
@@ -110,18 +132,19 @@ for (pair in species_pairs) {
   
   # Extract information from the full model
   fixed_effects <- as.data.frame(summary(full_model)$tTable)
+  
+  if (nrow(fixed_effects) < 2) {
+    cat("Insufficient fixed effects for pair:", paste(pair, collapse = " vs "), "\n")
+    next
+  }
+  
   random_effects <- as.numeric(VarCorr(full_model)[1])
-  residual_variance <- sigma(full_model)^2
   
-  # Extract fixed effects and variances
+  # Calculate metrics
   estimated_difference <- fixed_effects$Value[2]
-  variance_explained_by_label <- random_effects /sigma(full_model)^2
-  lrt_p_value <- lrt$`p-value`
-  
-  # Calculate Delta AIC
-  full_model_aic <- AIC(full_model)
-  reduced_model_aic <- AIC(reduced_model)
-  delta_aic <- full_model_aic - reduced_model_aic
+  variance_explained_by_label <- random_effects / sigma(full_model)^2
+  lrt_p_value <- lrt$`p-value`[2] # Use correct index
+  delta_aic <- AIC(full_model) - AIC(reduced_model)
   
   # Append results to the dataframe
   PitDiameter_results <- rbind(PitDiameter_results, data.frame(
@@ -147,43 +170,56 @@ for (pair in species_pairs) {
     Pair = paste(pair, collapse = " vs ")
   )
   
-  # Create and save the plot
-  plot1 <- ggplot(residuals_df, aes(x = StandardizedResiduals)) +
-    geom_histogram(binwidth = 0.1, color = "black", fill = "grey") +
-    ggtitle(paste("Pit Diameter Residuals Distribution for", paste(pair, collapse = " vs "))) +
-    xlab("Standardized Residuals") +
-    ylab("Frequency")
-  print(plot1)
+  # Residual plots for model analysis
+  par(mar=c(5,5,5,5))
+  resid_plot <- residplot(full_model,newwd = F)
+  title(sub = paste("PitDiameter", paste(pair, collapse = " vs ")), adj=0.5, line = 4,cex.sub=0.9)
   
-  # Create and save the residuals vs. fitted values plot
-  plot2 <- ggplot(residuals_df, aes(x = FittedValues, y = StandardizedResiduals)) +
-    geom_point() +
-    geom_hline(yintercept = 0, color = "red", linetype = "dashed") +
-    ggtitle(paste("Pit Diameter Standardized Residuals vs Fitted Values for", paste(pair, collapse = " vs "))) +
-    xlab("Fitted Values") +
-    ylab("Standardized Residuals") +
-    theme_minimal()
-  print(plot2)
+  cookd_plot <- CookD(full_model,newwd = F)
+  title(main = paste("PitDiameter", paste(pair, collapse = " vs ")), adj=0.5, line = 0.5)
+  
+  
 }
 
 
-
-############# repeat for Pit Opening
 for (pair in species_pairs) {
   # Subset data for the current species pair
   subset_data <- pitOdata[pitOdata$ssp %in% pair, ]
   
+  if (nrow(subset_data) < 1) {
+    cat("No data for species pair:", paste(pair, collapse = " vs "), "\n")
+    next
+  }
   
   # Fit the linear mixed-effects model
-  full_model <- lme(PitOpening ~ ssp, 
-                    random = ~ 1 | label, 
-                    data = subset_data, 
-                    weights = varIdent(form = ~ 1 | ssp))
+  full_model <- tryCatch({
+    lme(PitOpening ~ ssp, 
+        random = ~ 1 | label, 
+        data = subset_data, 
+        weights = varIdent(form = ~ 1 | ssp))
+  }, error = function(e) {
+    cat("Error in fitting full model for pair:", paste(pair, collapse = " vs "), "\n")
+    return(NULL)
+  })
   
-  reduced_model <- lme(PitOpening ~ 1, 
-                       random = ~ 1 | label, 
-                       data = subset_data, 
-                       weights = varIdent(form = ~ 1 | ssp))
+  if (is.null(full_model)) {
+    next
+  }
+  
+  # Fit the reduced model
+  reduced_model <- tryCatch({
+    lme(PitOpening ~ 1, 
+        random = ~ 1 | label, 
+        data = subset_data, 
+        weights = varIdent(form = ~ 1 | ssp))
+  }, error = function(e) {
+    cat("Error in fitting reduced model for pair:", paste(pair, collapse = " vs "), "\n")
+    return(NULL)
+  })
+  
+  if (is.null(reduced_model)) {
+    next
+  }
   
   # Print summaries of the models
   cat("\nModel Summary for Full Model (", paste(pair, collapse = " vs "), "):\n")
@@ -194,18 +230,19 @@ for (pair in species_pairs) {
   
   # Extract information from the full model
   fixed_effects <- as.data.frame(summary(full_model)$tTable)
+  
+  if (nrow(fixed_effects) < 2) {
+    cat("Insufficient fixed effects for pair:", paste(pair, collapse = " vs "), "\n")
+    next
+  }
+  
   random_effects <- as.numeric(VarCorr(full_model)[1])
-  residual_variance <- sigma(full_model)^2
   
-  # Extract fixed effects and variances
+  # Calculate metrics
   estimated_difference <- fixed_effects$Value[2]
-  variance_explained_by_label <- random_effects /sigma(full_model)^2
-  lrt_p_value <- lrt$`p-value`
-  
-  # Calculate Delta AIC
-  full_model_aic <- AIC(full_model)
-  reduced_model_aic <- AIC(reduced_model)
-  delta_aic <- full_model_aic - reduced_model_aic
+  variance_explained_by_label <- random_effects / sigma(full_model)^2
+  lrt_p_value <- lrt$`p-value`[2] # Use correct index
+  delta_aic <- AIC(full_model) - AIC(reduced_model)
   
   # Append results to the dataframe
   PitOpening_results <- rbind(PitOpening_results, data.frame(
@@ -231,31 +268,19 @@ for (pair in species_pairs) {
     Pair = paste(pair, collapse = " vs ")
   )
   
-  # Create and save the plot
-  plot1 <- ggplot(residuals_df, aes(x = StandardizedResiduals)) +
-    geom_histogram(binwidth = 0.1, color = "black", fill = "grey") +
-    ggtitle(paste("Pit Opening Residuals Distribution for", paste(pair, collapse = " vs "))) +
-    xlab("Standardized Residuals") +
-    ylab("Frequency")
-  print(plot1)
+#residual plot analysis for the models
+  par(mar=c(5,5,5,1))
+  resid_plot <- residplot(full_model, newwd = F)
+  title(sub = paste("PitOpening", paste(pair, collapse = " vs ")), adj=0.5, line = 4, cex.sub=0.9)
   
-  # Create and save the residuals vs. fitted values plot
-  plot2 <- ggplot(residuals_df, aes(x = FittedValues, y = StandardizedResiduals)) +
-    geom_point() +
-    geom_hline(yintercept = 0, color = "red", linetype = "dashed") +
-    ggtitle(paste("Pit Opening Standardized Residuals vs Fitted Values for", paste(pair, collapse = " vs "))) +
-    xlab("Fitted Values") +
-    ylab("Standardized Residuals") +
-    theme_minimal()
-  print(plot2)
+  cookd_plot <- CookD(full_model, newwd = F)
+  title(main = paste("PitOpening", paste(pair, collapse = " vs ")), adj=0.5, line = 0.5)
 }
 
 
-PitDiameter_results[,2:7] <- round(PitDiameter_results[,2:7],3) #round values
-PitDiameter_results <- PitDiameter_results %>%  drop_na() #remove redundant lines
+
+
+#save result tables
 fwrite(PitDiameter_results, file=here("outputs","tables","PitDiameter_AIC")) #save data frame
 
-
-PitOpening_results[,2:7] <- round(PitOpening_results[,2:7],3) #round values
-PitOpening_results <- PitOpening_results %>%  drop_na() #remove redundant lines
 fwrite(PitOpening_results, file=here("outputs","tables","PitOpening_AIC")) #save data frame

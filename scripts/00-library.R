@@ -8,7 +8,7 @@
 # Package names
 packages <- c("tidyverse", "here", "plotly", "data.table",
               "readr", "groundhog", "car", "htmlwidgets",
-              "lattice","lme4","nlme")
+              "lattice","lme4","nlme","predictmeans")
 
 # Install packages not yet installed
 installed_packages <- packages %in% rownames(installed.packages())
