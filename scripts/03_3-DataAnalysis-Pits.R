@@ -89,7 +89,7 @@ species_data2 <- list(
 )
 
 # Initialize result data frames
-pit_mean_diff <- data.frame(Parasite = character(),
+PitMembrane_results <- data.frame(Parasite = character(),
                             Host = character(),
                             ParasiteMean = numeric(),
                             HostMean = numeric(),
@@ -132,10 +132,10 @@ for (pair in list(c("P. robustus", "V. thyrsoidea"),
   
   # Perform t-test for pit membrane thickness
   ttest <- t.test(parasite_data$pitavg, host_data$pitavg, var.equal = FALSE)
-  pit_mean_diff <- rbind(pit_mean_diff, data.frame(
+  PitMembrane_results <- rbind(PitMembrane_results, data.frame(
     Parasite = pair[1],
-    ParasiteMean = ttest$estimate[1]*1000,
     Host = pair[2],
+    ParasiteMean = ttest$estimate[1]*1000,
     HostMean = ttest$estimate[2]*1000,
     MeanDifference = diff(ttest$estimate)*1000,
     pvalue = ttest$p.value,
@@ -143,9 +143,7 @@ for (pair in list(c("P. robustus", "V. thyrsoidea"),
   ))
 }
 
-# Save pit membrane thickness results to CSV
-pit_mean_diff
-fwrite(pit_mean_diff, file = here("outputs", "tables", "pit_membrane_diff.csv"))
+PitMembrane_results
 
 # Perform t-tests for Pit chamber depth
 for (pair in list(c("P. robustus", "V. thyrsoidea"), 
@@ -160,8 +158,8 @@ for (pair in list(c("P. robustus", "V. thyrsoidea"),
   ttest <- t.test(parasite_data$pcd, host_data$pcd, var.equal = FALSE)
   pcd_results <- rbind(pcd_results, data.frame(
     Parasite = pair[1],
-    ParasiteMean = ttest$estimate[1]*1000,
     Host = pair[2],
+    ParasiteMean = ttest$estimate[1]*1000,
     HostMean = ttest$estimate[2]*1000,
     MeanDifference = diff(ttest$estimate)*1000,
     pvalue = ttest$p.value,
@@ -169,9 +167,9 @@ for (pair in list(c("P. robustus", "V. thyrsoidea"),
   ))
 }
 
-# Save pit chamber depth results to CSV
+
 pcd_results
-fwrite(pcd_results, file = here("outputs", "tables", "pcd_results.csv"))
+
 
 
 # Perform t-tests for Pit Diameter
@@ -196,7 +194,7 @@ for (pair in list(c("P. robustus", "V. thyrsoidea"),
   ))
 }
 
-
+pitDiameter_results
 
 # Perform t-tests for Pit Opening Diameter
 for (pair in list(c("P. robustus", "V. thyrsoidea"), 
@@ -219,5 +217,10 @@ for (pair in list(c("P. robustus", "V. thyrsoidea"),
     stringsAsFactors = FALSE
   ))
 }
+pitOpening_results
+
+# Save Results to csv
+fwrite(pcd_results, file = here("outputs", "tables", "pcd_results.csv"))
+fwrite(PitMembrane_results, file = here("outputs", "tables", "pit_membrane_diff.csv"))
 fwrite(pitDiameter_results, file = here("outputs", "tables", "PitDiameter_results.csv"))
 fwrite(pitOpening_results, file = here("outputs", "tables", "PitOpening_results.csv"))

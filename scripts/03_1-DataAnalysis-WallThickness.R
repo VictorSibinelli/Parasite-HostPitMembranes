@@ -84,7 +84,7 @@ species_pairs <- list(
 )
 
 # Initialize a dataframe to store results
-results_df <- data.frame(
+VWall_AIC <- data.frame(
   PairTested = character(),
   ParasiteMean = numeric(),
   HostMean = numeric(),
@@ -128,7 +128,7 @@ for (pair in species_pairs) {
   delta_aic <- full_model_aic - reduced_model_aic
   
   # Append results to the dataframe
-  results_df <- rbind(results_df, data.frame(
+  VWall_AIC <- rbind(VWall_AIC, data.frame(
     PairTested = paste(pair, collapse = " vs "),
     ParasiteMean = fixed_effects[1,1], # Assumes the first level is the reference
     HostMean = fixed_effects[1,1] + fixed_effects[2,1], # Adjust if necessary
@@ -170,8 +170,8 @@ for (pair in species_pairs) {
 }
 
 # Print the results dataframe
-print(results_df)
+print(VWall_AIC)
 
 # Save the results dataframe to a CSV file
-fwrite(results_df, file = here("outputs", "tables", "Wdata_AIC.csv"))
+fwrite(VWall_AIC, file = here("outputs", "tables", "Wdata_AIC.csv"))
 

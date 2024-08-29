@@ -58,14 +58,16 @@ short_names <- c(
 )
 
 # Create the plot
-
+library("viridis")
 g <- ggplot(wdata, aes(x = ssp, y = wthickness, fill = parasitism)) +
+  geom_jitter(aes(color = label),
+              size = 1, alpha = 0.4, position = position_jitter(width = 0.3)) +
   geom_boxplot(color = "black", alpha = 1, position = position_dodge(width = 0.8)) +
-  geom_jitter(aes(color = label), size = 1, alpha = 0.4, position = position_jitter(width = 0.3)) +
   scale_fill_manual(
     values = c("Parasite" = "firebrick", "Host" = "grey"),
     name = "Parasitism"
   ) +
+  scale_color_viridis_d(option = "D") +
  geom_vline(xintercept = c(2.5,4.5,6.5)) +
   theme_classic() +
   scale_x_discrete(labels = short_names) +
