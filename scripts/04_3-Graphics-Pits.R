@@ -8,7 +8,7 @@ library(here)
 source(here("scripts", "03_3-DataAnalysis-Pits.R"))
 rm(list=ls())
 
-pitdata <- read.csv(here("data", "processed", "pitdata.csv"))
+pitdata_clean <- read.csv(here("data", "processed", "pitdata_clean.csv"))
 pitOdata <- read.csv(here("data", "processed", "pitOdata.csv"))
 PitMembrane_results <- read.csv(here("outputs","tables","pit_membrane_diff.csv"))
 pcd_results <- read.csv(here("outputs","tables","pcd_results.csv"))
@@ -121,8 +121,7 @@ title(ylab = "Pit Membrane Thickness (nm)", line = 4, cex.lab = 1.5)
 text(
   x = c(1, 4, 7, 10, 12, 15, 18, 21), 
   y = -150,
-  labels = c("P. robustus", "V. thyrsoidea", "P. perrottetti", "T. guianensis", 
-             "S. rhynchophyllus", "T. tipu", "V. album", "P. nigra"),
+  labels = short_names,
   xpd = NA, 
   cex = 1.5, 
   srt = 35, 
@@ -180,8 +179,7 @@ title(ylab = "Pit Chamber Depth (nm)", line = 4, cex.lab = 1.5)
 text(
   x = c(1, 4, 7, 10, 12, 15, 18, 21), 
   y = -300, 
-  labels = c("P. robustus", "V. thyrsoidea", "P. perrottetti", "T. guianensis", 
-             "S. rhynchophyllus", "T. tipu", "V. album", "P. nigra"),
+  labels = short_names,
   xpd = NA, 
   cex = 1.5, 
   srt = 35, 
@@ -228,14 +226,19 @@ geom_jitter(aes(color = label), size = 1, alpha = 0.2, position = position_jitte
   geom_vline(xintercept = c(2.5,4.5,6.5)) +
   theme_classic() +
   scale_x_discrete(labels = short_names) +
-  scale_y_continuous(limits=c(0,13), breaks = seq(2,12,by=2))+
+  scale_y_continuous(limits=c(0,13), breaks = seq(2,16,by=2))+
   labs(title = "VIntervessel Pit Diameter",
        x = "Species",
        y = "Intervessel Pit Diameter (µm)") +
   annotate("text", x = seq_along(unique(pitOdata$ssp)),
-           y = max(pitOdata$PitDiameter) + 5, label = "A", size = 6)+
+           y = max(pitOdata$PitDiameter) + 1,label = rep(c("A", "B"), 
+           length.out = length(seq_along(unique(pitOdata$ssp)))), size = 4)+
   theme(legend.position = "right") +  # Legend on the right
   guides(color = "none")  # Remove the legend for `ssp`
+
+
+
+
 
 ggplot(data=pitOdata, aes(y=PitOpening, x=ssp, fill=parasitism))+
   geom_jitter(aes(color = label), size = 1, alpha = 0.2, position = position_jitter(width = 0.3)) +
@@ -252,7 +255,7 @@ ggplot(data=pitOdata, aes(y=PitOpening, x=ssp, fill=parasitism))+
        x = "Species",
        y = "Intervessel Pit Opening (µm)") +
   annotate("text", x = seq_along(unique(pitOdata$ssp)),
-           y = max(pitOdata$PitOpening) + 5, label = "A", size = 6)+
+           y = max(pitOdata$PitOpening) + 1, label = c("A","B","A","A","A","B","A"), size = 4)+
   theme(legend.position = "right") +  # Legend on the right
   guides(color = "none")  # Remove the legend for `ssp`
 
