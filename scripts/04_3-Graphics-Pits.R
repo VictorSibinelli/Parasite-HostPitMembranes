@@ -90,11 +90,11 @@ short_names <- c(
 
 # pairwise pit membrane thickness and pcd
 # Save the plot as a PNG file with 600 dpi resolution
-png(here("outputs", "figs", "pairwise_pit.png"), 
+png(here("outputs", "figs", "pairwise_tpm.png"), 
     width = 24, height = 9, units = "in", res = 600)
 
 # Set graphical parameters
-par(mar = c(7, 6, 1, 2) + 0.1, mgp = c(3, 1, 0), mfrow = c(1, 1))
+par(mar = c(7, 6, 1, 2) + 0.1,bty="l", mgp = c(3, 1, 0), mfrow = c(1, 1))
 
 # First boxplot
 boxplot(
@@ -112,9 +112,8 @@ boxplot(
   ylim = c(0, 1100), 
   cex.lab = 1.5, 
   cex.axis = 1.5, 
-  whisklwd = 2, 
-  staplelwd = 2
-)
+  whisklwd = 4, 
+  staplelwd = 4)
 
 # Add y-axis label and species names
 title(ylab = "Pit Membrane Thickness (nm)", line = 4, cex.lab = 1.5)
@@ -123,7 +122,7 @@ text(
   y = -150,
   labels = short_names,
   xpd = NA, 
-  cex = 1.5, 
+  cex = 1.7, 
   srt = 35, 
   col = "black", 
   adj = 0.50, 
@@ -132,8 +131,8 @@ text(
 
 # Add x-axis and annotations
 axis(1, at = c(1, 4, 7, 10, 12, 15, 18, 21), labels = NA)
-text(x = c(1, 4, 7, 10, 12, 15, 18, 21), y = 100, labels = c("A", "B"), cex = 2)
-abline(v = c(5.5, 11, 16.5), lty = 2)
+text(x = c(1, 4, 7, 10, 12, 15, 18, 21), y = 1000, labels = c("A", "B"), cex = 2.5)
+abline(v = c(5.5, 11, 16.5), lty = 2,lwd=2.5)
 text(
   x = rep(c(2.5, 8.5, 13.5, 19.5), times = 2), 
   y = c(PitMembrane_results$ParasiteMean, PitMembrane_results$HostMean), 
@@ -151,10 +150,23 @@ text(
   x = c(2.5, 8.5, 13.5, 19.5) + 0.5, 
   y = (PitMembrane_results$ParasiteMean + PitMembrane_results$HostMean) / 2,
   labels = round(abs(PitMembrane_results$MeanDifference), 0), 
-  cex = 1
+  cex = 2
 )
 
+dev.off()
+
+
+
+
+
 # Second boxplot
+png(here("outputs", "figs", "pairwise_pcd.png"), 
+    width = 24, height = 9, units = "in", res = 600)
+
+# Set graphical parameters
+par(mar = c(7, 6, 1, 2) + 0.1,bty="l", mgp = c(3, 1, 0), mfrow = c(1, 1))
+
+
 boxplot(
   data = pitdata_clean, 
   pcd * 1000 ~ ssp, 
@@ -170,8 +182,8 @@ boxplot(
   ylim = c(0, 2000), 
   cex.lab = 1.5, 
   cex.axis = 1.5, 
-  whisklwd = 2, 
-  staplelwd = 2
+  whisklwd = 4, 
+  staplelwd = 4
 )
 
 # Add y-axis label and species names
@@ -181,7 +193,7 @@ text(
   y = -300, 
   labels = short_names,
   xpd = NA, 
-  cex = 1.5, 
+  cex = 1.7, 
   srt = 35, 
   col = "black", 
   adj = 0.50, 
@@ -190,8 +202,8 @@ text(
 
 # Add x-axis and annotations
 axis(1, at = c(1, 4, 7, 10, 12, 15, 18, 21), labels = NA)
-text(x = c(1, 4, 7, 10, 12, 15, 18, 21), y = 100, labels = c("A", "B"), cex = 1.5)
-abline(v = c(5.5, 11, 16.5), lty = 2)
+text(x = c(1, 4, 7, 10, 12, 15, 18, 21), y = 2000, labels = c("A", "B"), cex = 2.5)
+abline(v = c(5.5, 11, 16.5), lty = 2, lwd=2.5)
 text(
   x = rep(c(2.5, 8.5, 13.5, 19.5), times = 2), 
   y = c(pcd_results$ParasiteMean, pcd_results$HostMean), 
@@ -209,7 +221,7 @@ text(
   x = c(2.5, 8.5, 13.5, 19.5) + 0.5, 
   y = (pcd_results$ParasiteMean + pcd_results$HostMean) / 2, 
   labels = round(pcd_results$MeanDifference), 
-  cex = 1
+  cex = 2
 )
 
 # Close the graphics device
@@ -318,5 +330,5 @@ wave <- plot_ly(
     line = list(color = "black", width = 4),
     showlegend = FALSE
   )
-
+wave
 saveWidget(wave, here("outputs", "figs", "interactive_wave_plot.html"))
