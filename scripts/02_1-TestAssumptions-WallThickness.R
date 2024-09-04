@@ -141,8 +141,8 @@ h <- ggplot(wdata, aes(x = ssp, y = wthickness)) +
     axis.text.x = element_text(angle = 45, hjust = 1))
 h
 ## save graph
-png(filename = file.path(output_dir_figs, "WthicknessVaricance.png"), 
-    width = 6400, height = 4800, res = 600)
+ggsave(here(output_dir_figs, "WthicknessVaricance.png"), plot = h, dpi = 600, width = 10, height = 7)
+
 h
 dev.off()
 #hogeneity of variance found inside pairs

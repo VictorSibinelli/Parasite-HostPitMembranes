@@ -34,6 +34,7 @@ for (df_name in dataframes) {
     # Assign the modified data frame back to its name
     assign(df_name, df, envir = .GlobalEnv)
   }
+  rm(df)
 }
 
 
@@ -142,7 +143,6 @@ for (var in variables1) {
   dev.off()
 }
 
-
 # Print outlier info for first dataframe
 print(outlier_info1)
 
@@ -194,110 +194,50 @@ write.csv(outlier_info_combined, file = file.path(output_dir_tables, "pit_outlie
 fwrite(pitdata, file = here("data", "processed", "pitdata_clean.csv"))
 fwrite(pitO, file = here("data", "processed", "pitO_clean.csv"))
 
-
+rm(list=ls())
 
 # homogeneity of variance test
 ###############################################
 
-# Plot 1
-var <- "pitavg"
-png(filename = file.path(output_dir_figs, paste0(var, "_Variance.png")),
-    width = 8000, height = 6000, res = 600)
-p1 <- ggplot(data = pitdata, aes(x = ssp, y = pitavg)) +
-  geom_boxplot(na.rm = TRUE) +
-  labs(
-    title = "Boxplot of pitavg Across Species",
-    x = "Species", y = "pitavg"
-  ) +
-  theme_minimal() +
-  theme(
-    axis.text.x = element_text(angle = 45, hjust = 1)
-  )
-p1
-dev.off()
 
-# Plot 2
-var <- "peavg"
-png(filename = file.path(output_dir_figs, paste0(var, "_Variance.png")),
-    width = 8000, height = 6000, res = 600)
-p2 <- ggplot(pitdata, aes(x = ssp, y = peavg)) +
-  geom_boxplot(na.rm = TRUE) +
-  labs(
-    title = "Boxplot of peavg Across Species",
-    x = "Species", y = "peavg"
-  ) +
-  theme_minimal() +
-  theme(
-    axis.text.x = element_text(angle = 45, hjust = 1)
-  )
-p2
-dev.off()
+##Re-upload original data , can be done with cleanes data
+pitO <- read.csv(here("data", "processed", "PitOdata.csv"))
+pitdata <- read.csv(here("data", "processed", "pitdata.csv"))
 
-# Plot 3
-var <- "pcavg"
-png(filename = file.path(output_dir_figs, paste0(var, "_Variance.png")),
-    width = 8000, height = 6000, res = 600)
-p3 <- ggplot(pitdata, aes(x = ssp, y = pcavg)) +
-  geom_boxplot(na.rm = TRUE) +
-  labs(
-    title = "Boxplot of pcavg Across Species",
-    x = "Species", y = "pcavg"
-  ) +
-  theme_minimal() +
-  theme(
-    axis.text.x = element_text(angle = 45, hjust = 1)
-  )
-p3
-dev.off()
+variables1 <- c("pitavg", "pcavg", "peavg", "pcd")
+variables2 <- c("PitOpening", "PitDiameter")
 
-# Plot 4
-var <- "pcd"
-png(filename = file.path(output_dir_figs, paste0(var, "_Variance.png")),
-    width = 8000, height = 6000, res = 600)
-p4<- ggplot(pitdata, aes(x = ssp, y = pcd)) +
-  geom_boxplot(na.rm = TRUE) +
-  labs(
-    title = "Boxplot of pcd Across Species",
-    x = "Species", y = "pcd"
-  ) +
-  theme_minimal() +
-  theme(
-    axis.text.x = element_text(angle = 45, hjust = 1)
-  )
-p4
-dev.off()
+for (var in variables1) {
+  p <- ggplot(data = pitdata, aes_string(x = "ssp", y = var)) +
+    geom_boxplot(na.rm = TRUE) +
+    labs(
+      title = paste("Boxplot of", var, "variance across Species"),
+      x = "Species",
+      y = var
+    ) +
+    theme_classic() +
+    theme(
+      axis.text.x = element_text(angle = 45, hjust = 1)
+    )
+  print(p)
+  plot_name <- paste(var,"_Variance.png",sep="")
+  ggsave(here("outputs","figs","assumptions",plot_name), plot = p, dpi = 600, width = 10, height = 7)
+}
 
-# Plot 5
-var <- "PitDiameter"
-png(filename = file.path(output_dir_figs, paste0(var, "_Variance.png")),
-    width = 8000, height = 6000, res = 600)
-p5 <- ggplot(pitO, aes(x = ssp, y = PitDiameter)) +
-  geom_boxplot(na.rm = TRUE) +
-  labs(
-    title = "Boxplot of PitDiameter Across Species",
-    x = "Species", y = "Pit Diameter"
-  ) +
-  theme_minimal() +
-  theme(
-    axis.text.x = element_text(angle = 45, hjust = 1)
-  )
-p5
-dev.off()
-
-# Plot 6
-var <- "PitOpening"
-png(filename = file.path(output_dir_figs, paste0(var, "_Homogeneity.png")),
-    width = 8000, height = 6000, res = 600)
-p6 <- ggplot(pitO, aes(x = ssp, y = PitOpening)) +
-  geom_boxplot(na.rm = TRUE) +
-  labs(
-    title = "Boxplot of Pit Opening Across Species",
-    x = "Species", y = "Pit Opening"
-  ) +
-  theme_minimal() +
-  theme(
-    axis.text.x = element_text(angle = 45, hjust = 1)
-  )
-p6
-dev.off()
+for (var in variables2) {
+  p <- ggplot(data = pitO, aes_string(x = "ssp", y = var)) +
+    geom_boxplot(na.rm = TRUE) +
+    labs(
+      title = paste("Boxplot of", var, "variance across Species"),
+      x = "Species",
+      y = var
+    ) +
+    theme_classic() +
+    theme(
+      axis.text.x = element_text(angle = 45, hjust = 1)
+    )
+  print(p)
+  plot_name <- paste(var,"_Variance.png",sep="")
+  ggsave(here("outputs","figs","assumptions",plot_name), plot = p, dpi = 600, width = 10, height = 7)
+}
 
