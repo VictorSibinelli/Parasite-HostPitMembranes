@@ -228,7 +228,7 @@ text(
 dev.off()
 
 
-ggplot(data=pitOdata, aes(y=PitDiameter, x=ssp, fill=parasitism))+
+PD_plot <- ggplot(data=pitOdata, aes(y=PitDiameter, x=ssp, fill=parasitism))+
 geom_jitter(aes(color = label), size = 1, alpha = 0.2, position = position_jitter(width = 0.3)) +
   scale_fill_manual(
     values = c("Parasite" = "firebrick", "Host" = "grey"),
@@ -239,7 +239,7 @@ geom_jitter(aes(color = label), size = 1, alpha = 0.2, position = position_jitte
   theme_classic() +
   scale_x_discrete(labels = short_names) +
   scale_y_continuous(limits=c(0,13), breaks = seq(2,16,by=2))+
-  labs(title = "VIntervessel Pit Diameter",
+  labs(title = "Intervessel Pit Diameter",
        x = "Species",
        y = "Intervessel Pit Diameter (µm)") +
   annotate("text", x = seq_along(unique(pitOdata$ssp)),
@@ -248,11 +248,11 @@ geom_jitter(aes(color = label), size = 1, alpha = 0.2, position = position_jitte
   theme(legend.position = "right") +  # Legend on the right
   guides(color = "none")  # Remove the legend for `ssp`
 
+ggsave(here("outputs","figs" ,"PitDiameter.png"), plot = PD_plot, dpi = 600, width = 10, height = 7)
 
 
 
-
-ggplot(data=pitOdata, aes(y=PitOpening, x=ssp, fill=parasitism))+
+PO_plot <- ggplot(data=pitOdata, aes(y=PitOpening, x=ssp, fill=parasitism))+
   geom_jitter(aes(color = label), size = 1, alpha = 0.2, position = position_jitter(width = 0.3)) +
   scale_fill_manual(
     values = c("Parasite" = "firebrick", "Host" = "grey"),
@@ -260,18 +260,18 @@ ggplot(data=pitOdata, aes(y=PitOpening, x=ssp, fill=parasitism))+
   ) +
   geom_boxplot(color = "black", alpha = 1, position = position_dodge(width = 0.8))+
   geom_vline(xintercept = c(2.5,4.5,6.5)) +
-  scale_y_continuous(limits=c(0,10))+
+  scale_y_continuous(limits=c(0,11))+
   theme_classic() +
   scale_x_discrete(labels = short_names) +
   labs(title = "Intervessel Pit Opening",
        x = "Species",
        y = "Intervessel Pit Opening (µm)") +
   annotate("text", x = seq_along(unique(pitOdata$ssp)),
-           y = max(pitOdata$PitOpening) + 1, label = c("A","B","A","A","A","B","A"), size = 4)+
+           y = 10.5, label = c("A","B","A","A","A","B","A"), size = 4)+
   theme(legend.position = "right") +  # Legend on the right
   guides(color = "none")  # Remove the legend for `ssp`
-
-
+PO_plot
+ggsave(here("outputs","figs" ,"PitOpening.png"), plot = PO_plot, dpi = 600, width = 10, height = 7)
 
 
 
