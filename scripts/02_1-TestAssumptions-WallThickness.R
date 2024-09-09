@@ -143,7 +143,5 @@ h
 ## save graph
 ggsave(here(output_dir_figs, "WthicknessVaricance.png"), plot = h, dpi = 600, width = 10, height = 7)
 
-h
-dev.off()
 #hogeneity of variance found inside pairs
 

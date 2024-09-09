@@ -12,6 +12,23 @@ source(here("scripts", "01-DataWrangling.R"))
 vdata <- read.csv(here("data", "processed", "vdata.csv"))
 vadata <- read.csv(here("data", "processed", "vadata.csv"))
 
+dataframes <- ls()
+
+# Relevel the factors for each data frame
+for (df_name in dataframes) {
+  df <- get(df_name) # Get the data frame by name
+  
+  if ("ssp" %in% colnames(df)) { # Check if 'ssp' column exists
+    df$ssp <- factor(df$ssp, levels = c(
+      "Psittacanthus robustus", "Vochysia thyrsoidea",
+      "Phoradendron perrotettii", "Tapirira guianensis",
+      "Struthanthus rhynchophyllus", "Tipuana tipu",
+      "Viscum album", "Populus nigra"
+    ))
+    assign(df_name, df) # Assign the modified data frame back to its name
+  }
+  rm(df, df_name) # remove duplicated dataframe
+}
 
 #creating a data frame with Hydraulic data
 # Create a data frame instead of a matrix

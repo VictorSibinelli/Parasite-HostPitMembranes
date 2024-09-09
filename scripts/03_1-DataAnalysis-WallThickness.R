@@ -207,7 +207,7 @@ for (pair in species_pairs) {
 
 
 # Print the results dataframe
-print(VWall_AIC)
+print(VWall_AIC) # No difference was found on wall thickness
 
 # Save the results dataframe to a CSV file
 fwrite(VWall_AIC, file = here("outputs", "tables", "Wdata_AIC.csv"))
