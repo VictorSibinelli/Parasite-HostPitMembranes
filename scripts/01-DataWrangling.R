@@ -52,7 +52,7 @@ vdata$indiv <- paste(vdata$ssp, vdata$indiv, sep = " ")
 vdata[740:747,3] <- "Phoradendeon perrotettii 2 - GC4841 x10 005-1.tif"
 vdata[3247:3881,3] <- gsub("(^[a-z])", "\\U\\1", vdata[3247:3881,3], perl = TRUE)
 # Replace the specific value in the 'Label' column
-vdata$Label[vdata$Label == "Phoradendeon perrotettii 2 - GC4841 x10 001-Recovered-1.tif"] <- 
+vdata$Label[vdata$pic == "Phoradendeon perrotettii 2 - GC4841 x10 001-Recovered-1.tif"] <- 
   "Phoradendeon perrotettii 2 - GC4841 x10 001-1.tif"
 
 
