@@ -12,7 +12,7 @@ source(here("scripts", "01-DataWrangling.R"))
 vdata <- read.csv(here("data", "processed", "vdata.csv"))
 vadata <- read.csv(here("data", "processed", "vadata.csv"))
 
-
+output_dir_figs <- here("outputs","figs","assumptions")
 # Create a data frame for Hydraulic data
 HydraulicData <- data.frame(
   ssp = NA,
@@ -39,6 +39,8 @@ for (i in seq_along(unique(vdata$pic))) {
   HydraulicData[i, "indiv"] <- as.character(filter_data$indiv[1])   # Convert to character if needed
   rm(filter_data)
 }
+
+HydraulicData <- merge(HydraulicData, vadata[, c("pic", "vdensity")], by = "pic", all.x = TRUE)
 # Update  to include the `parasitism` variable
 HydraulicData <- HydraulicData %>%
   mutate(parasitism = case_when(
@@ -48,8 +50,6 @@ HydraulicData <- HydraulicData %>%
                "Viscum album") ~ "Parasite",
     TRUE ~ "Host"
   )) %>% drop_na()
-
-HydraulicData <- merge(HydraulicData, vadata[, c("pic", "vdensity")], by = "pic", all.x = TRUE)
 
 # η is the viscosity index of water (1.002 × 10−9 MPa s at 20°C)
 n <- 1.002 * 10^-9
@@ -83,33 +83,53 @@ for (df_name in dataframes) {
   rm(df, df_name) # remove duplicated dataframe
 }
 
+# Set the layout for multiple plots per page
 
-
+png(filename = file.path(output_dir_figs, "VesselDiameterDensity.png"), 
+    width = 6400, height = 4800, res = 600)  # Increase image size for bigger graphs
+par(mfrow = c(2, 4), oma = c(4, 4, 4, 2), mar = c(2, 2, 2, 2))
 for (i in unique(vdata$ssp)) {
   plot(density(vdata$VesselDiameter[vdata$ssp == i]),
-       main = paste("Density of VesselDiameter for", i),
+       main = paste( i),
        xlab = "Vessel Diameter", ylab = "Density")
+  mtext("Vessel Diameter", side = 3, line = 0, outer = TRUE)
 }
+dev.off()
 
+
+png(filename = file.path(output_dir_figs, "VesselDensityDensity.png"), 
+    width = 6400, height = 4800, res = 600)  # Increase image size for bigger graphs
+par(mfrow = c(2, 4), oma = c(4, 4, 4, 2), mar = c(2, 2, 2, 2))
 for (i in unique(vadata$ssp)) {
   plot(density(vadata$vdensity[vadata$ssp == i]),
        main = paste("Density of Vessel Density for", i),
        xlab = "Vessel Diameter", ylab = "Density")
+  mtext("Vessel Density", side = 3, line = 0, outer = TRUE)
 }
+dev.off()
 
+
+png(filename = file.path(output_dir_figs, "KmaxDensity.png"), 
+    width = 6400, height = 4800, res = 600)  # Increase image size for bigger graphs
+par(mfrow = c(2, 4), oma = c(4, 4, 4, 2), mar = c(2, 2, 2, 2))
 for (i in unique(HydraulicData$ssp)) {
   plot(density(HydraulicData$Kmax[HydraulicData$ssp == i]),
        main = paste("Kmax", i),
        xlab = "Vessel Diameter", ylab = "Density")
+  mtext("Kmax", side = 3, line = 0, outer = TRUE)
 }
+dev.off()
 
-HydraulicData %>% ggplot(aes(x=ssp,y=HydraulicDiameter))+
+h <- HydraulicData %>% ggplot(aes(x=ssp,y=HydraulicDiameter))+
   geom_boxplot()
+ggsave(here(output_dir_figs, "VesselDiameterVaricance.png"), plot = h, dpi = 600, width = 10, height = 7)
 
-
-HydraulicData %>% ggplot(aes(x=ssp,y=vdensity))+
+h <- HydraulicData %>% ggplot(aes(x=ssp,y=vdensity))+
   geom_boxplot()
+ggsave(here(output_dir_figs, "VesseldensityVaricance.png"), plot = h, dpi = 600, width = 10, height = 7)
 
-HydraulicData %>% ggplot(aes(x=ssp,y=Kmax))+
+
+h <- HydraulicData %>% ggplot(aes(x=ssp,y=Kmax))+
   geom_boxplot()
+ggsave(here(output_dir_figs, "KmaxVaricance.png"), plot = h, dpi = 600, width = 10, height = 7)
 #Non normality and no homocedasticity for all traits
