@@ -1,4 +1,44 @@
 
+
+
+# Summarize the hydraulic data by individual
+Hydraulic_means <- HydraulicData %>%
+  group_by(indiv) %>%
+  summarise(
+    ssp = first(ssp),  # Or use any other summary function if needed
+    HydraulicDiameter = mean(HydraulicDiameter, na.rm = TRUE),
+    vdensity = mean(vdensity, na.rm = TRUE),
+    Kmax = mean(Kmax, na.rm = TRUE),
+    parasitism = first(parasitism),  # This assumes the same for each individual
+    .groups = "drop"
+  )
+
+# Number of iterations for the permutation test
+iterations <- 1000000
+
+# Function to perform one iteration of shuffling and calculating differences
+shuffle_calculation <- function() {
+  # Shuffle numeric columns and the parasitism column
+  shuffled <- Hydraulic_means
+  shuffled[, 3:5] <- apply(shuffled[, 3:5], 2, sample)  # Shuffle numeric columns
+  shuffled$parasitism <- sample(shuffled$parasitism)   # Shuffle parasitism column
+  
+  # Calculate differences in medians
+  VD <- diff(tapply(shuffled$HydraulicDiameter, shuffled$parasitism, median))
+  Vdens <- diff(tapply(shuffled$vdensity, shuffled$parasitism, median))
+  K <- diff(tapply(shuffled$Kmax, shuffled$parasitism, median))
+  
+  return(c(VD, Vdens, K))
+}
+
+# Use replicate to vectorize the permutations and calculations
+Hydraulic_Results <- t(replicate(iterations, shuffle_calculation()))
+
+# Assign column names to the result matrix
+colnames(Hydraulic_Results) <- colnames(Hydraulic_means)[3:5]
+
+
+
 # List of species pairs
 species_pairs <- list(
   c("Psittacanthus robustus", "Vochysia thyrsoidea"),
@@ -70,7 +110,7 @@ grouped_means <- HydraulicData %>%
 species_pairs <- list(
   c("Psittacanthus robustus", "Vochysia thyrsoidea"),
   c("Phoradendron perrotettii", "Tapirira guianensis"),
-  c("Struthanthus rhynchophyllus", "Tipuana tipu")  #,
+  c("Struthanthus rhynchophyllus", "Tipuana tipu") ) #,
   #c("Viscum album", "Populus nigra")
   
   

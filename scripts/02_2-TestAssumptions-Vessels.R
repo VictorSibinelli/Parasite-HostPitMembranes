@@ -133,3 +133,5 @@ h <- HydraulicData %>% ggplot(aes(x=ssp,y=Kmax))+
   geom_boxplot()
 ggsave(here(output_dir_figs, "KmaxVaricance.png"), plot = h, dpi = 600, width = 10, height = 7)
 #Non normality and no homocedasticity for all traits
+
+write.csv(HydraulicData, file = file.path(here("data","processed","HydraulicData.csv")), row.names = FALSE)
