@@ -43,6 +43,7 @@ species_data <- list(
   "Populus nigra" = wdata_clean[wdata_clean$ssp == "Populus nigra", ]
 )
 
+
 # List of species pairs for comparison
 species_pairs <- list(
   c("Psittacanthus robustus", "Vochysia thyrsoidea"),
@@ -120,7 +121,7 @@ bootstrap_calculation <- function(x, cols, cat) {
 
 
 # Number of iterations for the permutation test
-iterations <- 100000
+iterations <- 100
 
 WT_obs <- diff(tapply(WT_avg$wthickness,WT_avg$parasitism, FUN = mean))
 
@@ -160,6 +161,47 @@ CI_95 <- apply(Bootstrap_Results, 2, quantile, probs = c(0.025, 0.975))
 plot(density(Bootstrap_Results), main = "Bootstrap - WThickness", xlab = "Difference in means")
 abline(v = VD_obs, col = "red", lwd = 2)
 abline(v=CI_95[,1],col="blue",lwd=2)
+
+###pair-wise comparison
+
+
+
+## Initialize a matrix to store results
+results_matrix <- matrix(NA, nrow = iterations, ncol = length(species_pairs))
+colnames(results_matrix) <- sapply(species_pairs, paste, collapse = "_vs_")
+
+# Loop through each species pair
+for (i in seq_along(species_pairs)) {
+  pair <- species_pairs[[i]]
+  
+  # Filter the data for the current species pair
+  x_filtered <- WT_avg %>% filter(ssp %in% pair)
+  
+  # Ensure both species are present
+  if (length(unique(x_filtered$ssp)) == 2) {
+    # Perform the shuffling calculation for the filtered data
+    shuffle_results <- replicate(
+      iterations, 
+      shuffle_calculation(x = x_filtered, cols = "wthickness", cat = "ssp"),
+      simplify = "matrix"
+    )
+    
+    # Convert results to a matrix and remove NA values
+    results_matrix[, i] <- shuffle_results[, "wthickness"]
+  } else {
+    # If not both species are present, fill the column with NA
+    results_matrix[, i] <- NA
+  }
+}
+
+
+shuffled <- WT_avg
+shuffled [,"wthickness"]<- apply(shuffled[,"wthickness"], 2, sample)
+for (pair in species_pairs){
+  
+}
+
+
 
 fwrite(Hydraulic_Results,file=here("outputs","tables","Hydraulic_MonteCarlo_results.csv"))
 
