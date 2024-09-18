@@ -37,20 +37,46 @@ Hydraulic_means <- HydraulicData %>%
 
 
 
-# Function to perform one iteration of shuffling and calculating differences
-shuffle_calculation <- function() {
-  # Shuffle numeric columns and the parasitism column
-  shuffled <- Hydraulic_means
-  shuffled[, 3:5] <- apply(shuffled[, 3:5], 2, sample)  # Shuffle numeric columns
-  shuffled$parasitism <- sample(shuffled$parasitism)   # Shuffle parasitism column
+shuffle_calculation <- function(x, cols, cat) {
+  # Copy the data frame
+  shuffled <- x
   
-  # Calculate differences in medians
-  VD <- diff(tapply(shuffled$HydraulicDiameter, shuffled$parasitism, median))
-  Vdens <- diff(tapply(shuffled$vdensity, shuffled$parasitism, median))
-  K <- diff(tapply(shuffled$Kmax, shuffled$parasitism, median))
+  # Shuffle numeric columns (cols) using apply
+  shuffled[, cols] <- apply(shuffled[, cols], 2, sample)
   
-  return(c(VD, Vdens, K))
+  # Shuffle the categorical column
+  shuffled[, cat] <- sample(shuffled[[cat]])
+  
+  # Initialize a numeric vector to store the results
+  results <- numeric(length(cols))
+  
+  # Loop through each numeric column to calculate differences in means
+  for (i in seq_along(cols)) {
+    # Calculate the difference in means for the current numeric column
+    results[i] <- diff(tapply(shuffled[[cols[i]]], shuffled[[cat]], mean))
+  }
+  
+  # Assign names to the results vector based on the column names
+  names(results) <- cols
+  return(results)
 }
+
+
+# 
+# # Function to perform one iteration of shuffling and calculating differences
+# shuffle_calculation <- function() {
+#   # Shuffle numeric columns and the parasitism column
+#   shuffled <- Hydraulic_means
+#   shuffled[, 3:5] <- apply(shuffled[, 3:5], 2, sample)  # Shuffle numeric columns
+#   shuffled$parasitism <- sample(shuffled$parasitism)   # Shuffle parasitism column
+#   
+#   # Calculate differences in medians
+#   VD <- diff(tapply(shuffled$HydraulicDiameter, shuffled$parasitism, median))
+#   Vdens <- diff(tapply(shuffled$vdensity, shuffled$parasitism, median))
+#   K <- diff(tapply(shuffled$Kmax, shuffled$parasitism, median))
+#   
+#   return(c(VD, Vdens, K))
+# }
 
 
 # Function to perform one bootstrap resample and calculate differences
@@ -67,7 +93,7 @@ bootstrap_calculation <- function() {
 }
 
 # Number of iterations for the permutation test
-iterations <- 100000
+iterations <- 100
 
 
 # Use replicate to vectorize the permutations and calculations

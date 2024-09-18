@@ -7,29 +7,10 @@
 library(here)
 source(here("scripts", "02_1-TestAssumptions-WallThickness.R"))
 rm(list=ls())
-
 wdata <- read.csv(here("data", "processed", "wdata.csv"))
 wdata_clean <- read.csv(here("data", "processed", "wdata_clean.csv"))
 
 
-
-# List of data frame names
-dataframes <- ls()
-# Relevel the factors for each data frame
-for (df_name in dataframes) {
-  df <- get(df_name) # Get the data frame by name
-  
-  if ("ssp" %in% colnames(df)) { # Check if 'ssp' column exists
-    df$ssp <- factor(df$ssp, levels = c(
-      "Psittacanthus robustus", "Vochysia thyrsoidea",
-      "Phoradendron perrotettii", "Tapirira guianensis",
-      "Struthanthus rhynchophyllus", "Tipuana tipu",
-      "Viscum album", "Populus nigra"
-    ))
-    assign(df_name, df) # Assign the modified data frame back to its name
-  }
-  rm(df, df_name) # remove duplicated dataframe
-}
 
 # Data subsets by species
 species_data <- list(
@@ -68,140 +49,131 @@ WT_avg <- WT_avg %>%
     TRUE ~ "Host"
   ))
 
-shuffle_calculation <- function(x, cols, cat) {
-  # Copy the data frame
-  shuffled <- x
+# List of data frame names
+dataframes <- ls()
+# Relevel the factors for each data frame
+for (df_name in dataframes) {
+  df <- get(df_name) # Get the data frame by name
   
-  # Shuffle numeric columns (cols) using apply
-  shuffled[, cols] <- apply(shuffled[, cols], 2, sample)
-  
-  # Shuffle the categorical column
-  shuffled[, cat] <- sample(shuffled[[cat]])
-  
-  # Initialize a numeric vector to store the results
-  results <- numeric(length(cols))
-  
-  # Loop through each numeric column to calculate differences in means
-  for (i in seq_along(cols)) {
-    # Calculate the difference in means for the current numeric column
-    results[i] <- diff(tapply(shuffled[[cols[i]]], shuffled[[cat]], mean))
+  if ("ssp" %in% colnames(df)) { # Check if 'ssp' column exists
+    df$ssp <- factor(df$ssp, levels = c(
+      "Psittacanthus robustus", "Vochysia thyrsoidea",
+      "Phoradendron perrotettii", "Tapirira guianensis",
+      "Struthanthus rhynchophyllus", "Tipuana tipu",
+      "Viscum album", "Populus nigra"
+    ))
+    assign(df_name, df) # Assign the modified data frame back to its name
   }
-  
-  # Assign names to the results vector based on the column names
-  names(results) <- cols
-  return(results)
+  rm(df, df_name) # remove duplicated dataframe
 }
-
-
-bootstrap_calculation <- function(x, cols, cat) {
-  # Resample the data frame with replacement
-  resampled_data <- x[sample(nrow(x), replace = TRUE), ]
-  
-  # Initialize a numeric vector to store the results
-  results <- numeric(length(cols))
-  
-  # Loop through each numeric column to calculate differences in means
-  for (i in seq_along(cols)) {
-    column_name <- cols[i]
-    group_means <- tapply(resampled_data[[column_name]], resampled_data[[cat]], mean)
-    
-    
-    # Check if we have more than one group
-    if (length(group_means) > 1) {
-      results[i] <- diff(group_means)
-    } else {
-      results[i] <- NA  # Assign NA if not enough groups for diff
-    }
-  }
-  
-  # Return the results as a named vector
-  names(results) <- cols
-  return(results)
-}
-
 
 # Number of iterations for the permutation test
-iterations <- 100
+iterations <- 1000
 
-WT_obs <- diff(tapply(WT_avg$wthickness,WT_avg$parasitism, FUN = mean))
 
+
+
+WT_obs <- tapply(WT_avg$wthickness,WT_avg$parasitism, FUN = mean)
 WT_resample <- t(replicate(iterations,
-                           shuffle_calculation(
-                             x=WT_avg,cols ="wthickness",cat = "parasitism"))) %>%
-  matrix(ncol = 1)
-colnames(WT_resample) <- "wthickness"
-WT_resample[1] <- WT_obs
+                           shuffle_means(
+                             x=WT_avg,cols ="wthickness",cat = "parasitism")))
+WT_obs
+head(WT_resample)
+WT_resample[1,] <- WT_obs
+WT_diff <- WT_resample[,1]-WT_resample[,2]
+
 #calculate p-values
-WT_pvalue <- sum( WT_resample <=  WT_resample[1]|
-                    WT_resample >= ( WT_resample[1]*-1))/
+WT_pvalue <- sum( WT_diff <=  WT_diff[1]|
+                    WT_diff >= ( WT_diff[1]*-1))/
   length(WT_resample)
 #vessel density
-plot(density(WT_resample))
-abline(v = WT_resample[1], col = "red")
-abline(v = WT_resample[1]*-1, col = "red")
+plot(density(WT_diff))
+abline(v = WT_diff[1], col = "red")
+abline(v = WT_diff[1]*-1, col = "red")
 text(x=0.5,y=0.5,paste("p-value=",WT_pvalue))
 
+bootstrap_result <- t(replicate(iterations,
+                                shuffle_means(
+                                  x=WT_avg,cols ="wthickness",cat = "parasitism",rcol=T)))
+boot_diff <- bootstrap_result[,1]-bootstrap_result[,2]
+CI_95 <- quantile(boot_diff,c(0.025,0.975))
 
 
-# Perform the bootstrap calculation multiple times and store results
-Bootstrap_Results <- replicate(
-  iterations, bootstrap_calculation(x = WT_avg, cols = "wthickness", cat = "parasitism"))
-
-# Convert to a matrix and assign column names
-Bootstrap_Results <- matrix(Bootstrap_Results, ncol = 1) %>% na.rm()
-colnames(Bootstrap_Results) <- "wthickness"
-Bootstrap_Results[1] <- WT_obs
-# View the result
-View(Bootstrap_Results)
 
 
-# Calculate bootstrap confidence intervals
-CI_95 <- apply(Bootstrap_Results, 2, quantile, probs = c(0.025, 0.975)) 
 
-plot(density(Bootstrap_Results), main = "Bootstrap - WThickness", xlab = "Difference in means")
-abline(v = VD_obs, col = "red", lwd = 2)
-abline(v=CI_95[,1],col="blue",lwd=2)
 
 ###pair-wise comparison
+Wssp_resample <- t(replicate(iterations,
+                           shuffle_means(
+                             x=WT_avg,cols ="wthickness",cat = "ssp")))
+WTssp_obs <- tapply(WT_avg$wthickness,WT_avg$ssp,mean)
+WTssp_obs
+head(Wssp_resample)
+Wssp_resample[1,] <- WTssp_obs
+
+PrvsVt <- Wssp_resample[,"Psittacanthus robustus"]-Wssp_resample[,"Vochysia thyrsoidea"]
+#calculate p-values
+PrVtpvalue <- sum( PrvsVt <= PrvsVt[1]|
+                      PrvsVt >= ( PrvsVt[1]*-1))/
+  length(PrvsVt)
+plot(density(PrvsVt))
+abline(v = PrvsVt[1], col = "red")
+abline(v = PrvsVt[1]*-1, col = "red")
+text(x=0.5,y=0.5,paste("p-value=",PrVtpvalue))
+
+PpvsTg <- Wssp_resample[,"Phoradendron perrotettii"]-Wssp_resample[,"Tapirira guianensis"]
+#calculate p-values
+PvTgpvalue <- sum( PpvsTg <= PpvsTg[1]|
+                     PpvsTg >= ( PpvsTg[1]*-1))/
+  length(PpvsTg)
+plot(density(PpvsTg))
+abline(v = PpvsTg[1], col = "red")
+abline(v = PpvsTg[1]*-1, col = "red")
+text(x=0.5,y=0.5,paste("p-value=",PvTgpvalue))
+
+StvsTt <- Wssp_resample[,"Struthanthus rhynchophyllus"]-Wssp_resample[,"Tipuana tipu"]
+#calculate p-values
+
+StTtpvalue <- sum( StvsTt <= StvsTt[1]|
+                     StvsTt >= ( StvsTt[1]*-1))/
+  length(StvsTt)
+plot(density(StvsTt))
+abline(v = StvsTt[1], col = "red")
+abline(v = StvsTt[1]*-1, col = "red")
+text(x=0.5,y=0.5,paste("p-value=",StTtpvalue))
+
+VavsPn <- Wssp_resample[,"Viscum album"]-Wssp_resample[,"Vopulus nigra"]
+#calculate p-values
+VaPnpvalue <- sum( VavsPn <= VavsPn[1]|
+                     VavsPn >= ( VavsPn[1]*-1))/
+  length(VavsPn)
+plot(density(VavsPn))
+abline(v = VavsPn[1], col = "red")
+abline(v = VavsPn[1]*-1, col = "red")
+text(x=0.5,y=0.5,paste("p-value=",VaPnpvalue))
 
 
 
-## Initialize a matrix to store results
-results_matrix <- matrix(NA, nrow = iterations, ncol = length(species_pairs))
-colnames(results_matrix) <- sapply(species_pairs, paste, collapse = "_vs_")
-
-# Loop through each species pair
-for (i in seq_along(species_pairs)) {
-  pair <- species_pairs[[i]]
-  
-  # Filter the data for the current species pair
-  x_filtered <- WT_avg %>% filter(ssp %in% pair)
-  
-  # Ensure both species are present
-  if (length(unique(x_filtered$ssp)) == 2) {
-    # Perform the shuffling calculation for the filtered data
-    shuffle_results <- replicate(
-      iterations, 
-      shuffle_calculation(x = x_filtered, cols = "wthickness", cat = "ssp"),
-      simplify = "matrix"
-    )
-    
-    # Convert results to a matrix and remove NA values
-    results_matrix[, i] <- shuffle_results[, "wthickness"]
-  } else {
-    # If not both species are present, fill the column with NA
-    results_matrix[, i] <- NA
-  }
-}
-
-
-shuffled <- WT_avg
-shuffled [,"wthickness"]<- apply(shuffled[,"wthickness"], 2, sample)
-for (pair in species_pairs){
-  
-}
 
 
 
-fwrite(Hydraulic_Results,file=here("outputs","tables","Hydraulic_MonteCarlo_results.csv"))
+
+WTssp_pvalue
+#vessel density
+plot(density(WTssp_resample[,1]))
+abline(v = WTssp_resample[1,1], col = "red")
+abline(v = WTssp_resample[1,1]*-1, col = "red")
+text(x=0.5,y=0.5,paste("p-value=",WTssp_pvalue[1]))
+
+plot(density(WTssp_resample[,2]))
+abline(v = WTssp_resample[1,2], col = "red")
+abline(v = WTssp_resample[1,2]*-1, col = "red")
+text(x=0.5,y=0.5,paste("p-value=",WTssp_pvalue[2]))
+
+plot(density(WTssp_resample[,3]))
+abline(v = WTssp_resample[1,3], col = "red")
+abline(v = WTssp_resample[1,3]*-1, col = "red")
+text(x=0.5,y=0.5,paste("p-value=",WTssp_pvalue[3]))
+
 
