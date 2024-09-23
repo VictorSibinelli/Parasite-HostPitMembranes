@@ -17,6 +17,7 @@ shuffle_means <- function(x, cols, cat, rcat = FALSE, rcol = FALSE) {
   
   # Calculate the mean for each level of the categorical variable
   results <- tapply(shuffled[[cols]], shuffled[[cat]], mean, na.rm = TRUE)
+  results <- results[!is.na(results)]
   
   return(results)
 }
@@ -63,5 +64,4 @@ shuffle_subset <- function(x, cols, index, pairs, shuffle = TRUE) {
   
   return(ssp_diff)  # Return the result
 }
-
 
