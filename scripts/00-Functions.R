@@ -1,6 +1,28 @@
 ###Functions
 
-
+shuffle_calculation <- function(x, cols, cat) {
+  # Copy the data frame
+  shuffled <- x
+  
+  # Shuffle numeric columns (cols) using apply
+  shuffled[, cols] <- apply(shuffled[, cols], 2, sample)
+  
+  # Shuffle the categorical column
+  shuffled[, cat] <- sample(shuffled[[cat]])
+  
+  # Initialize a numeric vector to store the results
+  results <- numeric(length(cols))
+  
+  # Loop through each numeric column to calculate differences in means
+  for (i in seq_along(cols)) {
+    # Calculate the difference in means for the current numeric column
+    results[i] <- diff(tapply(shuffled[[cols[i]]], shuffled[[cat]], mean))
+  }
+  
+  # Assign names to the results vector based on the column names
+  names(results) <- cols
+  return(results)
+}
 
 #functions for shufling data than taking averages by cat
 shuffle_means <- function(x, cols, cat, rcat = FALSE, rcol = FALSE) {
