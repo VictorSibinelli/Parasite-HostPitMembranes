@@ -18,9 +18,13 @@ shuffle_means <- function(x, cols, cat, rcat = FALSE, rcol = FALSE) {
   # Calculate the mean for each level of the categorical variable
   results <- tapply(shuffled[[cols]], shuffled[[cat]], mean, na.rm = TRUE)
   results <- results[!is.na(results)]
+  if (!is.numeric(results)) {
+    results <- as.numeric(results) }
   
   return(results)
 }
+
+
 
 
 ####Same as shuffle_means 

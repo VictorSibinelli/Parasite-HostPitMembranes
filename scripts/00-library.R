@@ -23,3 +23,5 @@ invisible(lapply(packages, library, character.only = TRUE))
 # If you desire to run the analysis with the same package versions, remove the comments in the lines below and run it
 
 # groundhog.library(packages, "2024-07-01")
+
+rm(list=ls())

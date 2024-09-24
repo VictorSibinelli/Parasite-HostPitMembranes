@@ -6,12 +6,23 @@
 #################################################################
 library(here)
 source(here("scripts", "03_1-DataAnalysis-WallThickness.R"))
+source(here("scripts", "03_1_2-DataAnalysis-WallThickness-Ressampling.R"))
 
-
+# Define short names
+short_names <- c(
+  "Psittacanthus robustus" = expression(italic("P. robustus")),
+  "Vochysia thyrsoidea" = expression(italic("V. thyrsoidea")),
+  "Phoradendron perrotettii" = expression(italic("P. perrotettii")),
+  "Tapirira guianensis" = expression(italic("T. guianensis")),
+  "Struthanthus rhynchophyllus" = expression(italic("S. rhynchophyllus")),
+  "Tipuana tipu" = expression(italic("T. tipu")),
+  "Viscum album" = expression(italic("V. album")),
+  "Populus nigra" = expression(italic("P. nigra"))
+)
 x_pos <- c(1, 3, 5, 7, 9, 11, 13, 15)
 par(mar = c(7, 6, 1, 2) + 0.1, mgp = c(3, 1, 0), mfrow = c(1, 1))
 
-
+#######For student T test
 boxplot(
   data = wdata_clean, wthickness~ ssp, na.rm = T, las = 2, cex = 1,
   ylab = "", xlab = NA, tcl = T, xaxt = "n",
@@ -45,18 +56,8 @@ wdata <- wdata %>%
     TRUE ~ "Host"
   ))
 
-# Define short names
-short_names <- c(
-  "Psittacanthus robustus" = expression(italic("P. robustus")),
-  "Vochysia thyrsoidea" = expression(italic("V. thyrsoidea")),
-  "Phoradendron perrotettii" = expression(italic("P. perrotettii")),
-  "Tapirira guianensis" = expression(italic("T. guianensis")),
-  "Struthanthus rhynchophyllus" = expression(italic("S. rhynchophyllus")),
-  "Tipuana tipu" = expression(italic("T. tipu")),
-  "Viscum album" = expression(italic("V. album")),
-  "Populus nigra" = expression(italic("P. nigra"))
-)
 
+########for LMEM
 # Create the plot
 library("viridis")
 g <- ggplot(wdata, aes(x = ssp, y = wthickness, fill = parasitism)) +
@@ -80,4 +81,68 @@ g <- ggplot(wdata, aes(x = ssp, y = wthickness, fill = parasitism)) +
   guides(color = "none")  # Remove the legend for `ssp`
 g
 ggsave(here("outputs","figs","vessel_wall_thickness_plot.png"), plot = g, dpi = 600, width = 10, height = 7)
+
+
+
+
+##################For ressampling
+
+g <- ggplot(wdata, aes(x = ssp, y = wthickness, fill = parasitism)) +
+  geom_jitter(aes(color = label),
+              size = 1, alpha = 0.4, position = position_jitter(width = 0.3)) +
+  geom_boxplot(color = "black", alpha = 1, position = position_dodge(width = 0.8)) +
+  scale_fill_manual(
+    values = c("Parasite" = "firebrick", "Host" = "grey"),
+    name = "Parasitism"
+  ) +
+  scale_color_viridis_d(option = "D") +
+  geom_vline(xintercept = c(2.5,4.5,6.5)) +
+  theme_classic() +
+  scale_x_discrete(labels = short_names) +
+  labs(title = "Vessel Wall Thickness",
+       x = "Species",
+       y = "Vessel Wall Thickness (µm)") +
+  annotate("text", x = seq_along(unique(wdata$ssp)),
+           y = max(wdata$wthickness) + 5, label = c("A","A","A","A","A","B","A"), size = 6)+
+  theme(legend.position = "right") +  # Legend on the right
+  guides(color = "none")  # Remove the legend for `ssp`
+g
+
+
+
+
+# Create bostrap for each species WT
+for (pair in species_pairs) {
+  # Subset the data for the current pair
+  subset_data <- boot_sspWT_long %>%
+    filter(species %in% pair)
+  
+  # Get the 95% CI for each species in the current pair
+  ci_data <- ssp_95ci %>%
+    as.data.frame() %>%
+    mutate(species = rownames(ssp_95ci)) %>%  # Add rownames as a column
+    filter(species %in% pair)  # Ensure only pairs are retained
+  
+  # Create the density plot for the current pair
+  plot <- ggplot(subset_data, aes(x = wthickness, fill = parasitism)) +
+    geom_density(alpha = 0.5) +
+    scale_fill_manual(values = c("Parasite" = "red", "Host" = "grey")) +
+    
+    # Vlines for Parasite
+    geom_vline(data = subset(ci_data, species == pair[1]), aes(xintercept = lower), linetype = "dashed", color = "red") +
+    geom_vline(data = subset(ci_data, species == pair[1]), aes(xintercept = upper), linetype = "dashed", color = "red") +
+    
+    # Vlines for Host
+    geom_vline(data = subset(ci_data, species == pair[2]), aes(xintercept = lower), linetype = "dashed", color = "black") +
+    geom_vline(data = subset(ci_data, species == pair[2]), aes(xintercept = upper), linetype = "dashed", color = "black") +
+    
+    labs(title = paste("Density Plot for", pair[1], "and", pair[2]),
+         x = "Vessel Wall Thickness",
+         y = "Density") +
+    
+    scale_x_continuous(limits = c(min(subset_data$wthickness) - 0.1, max(subset_data$wthickness) + 0.1)) +
+    theme_classic()
+  
+  print(plot)  # Print the plot for each pair
+}
 
