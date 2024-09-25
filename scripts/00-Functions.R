@@ -1,5 +1,5 @@
 ###Functions
-
+source(here("scripts","00-library.R"))
 shuffle_calculation <- function(x, cols, cat) {
   # Copy the data frame
   shuffled <- x

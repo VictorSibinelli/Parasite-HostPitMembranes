@@ -5,8 +5,9 @@
 # Script 03.2 - Data Analysis - Vessels
 #################################################################
 library(here)
-source(here("scripts", "02_2-TestAssumptions-Vessels.R"))
+#source(here("scripts", "02_2-TestAssumptions-Vessels.R"))
 rm(list = ls())
+
 source(here("scripts", "00-Functions.R"))
 #load data
 HydraulicData <- read.csv(here("data", "processed", "HydraulicData.csv"))
@@ -19,7 +20,7 @@ vadata <- read.csv(here("data", "processed", "vadata.csv"))
 species_pairs <- list(
   c("Psittacanthus robustus", "Vochysia thyrsoidea"),
   c("Phoradendron perrotettii", "Tapirira guianensis"),
-  c("Struthanthus rhynchophyllus", "Tipuana tipu")  ,
+  c("Struthanthus rhynchophyllus", "Tipuana tipu") ,
   c("Viscum album", "Populus nigra")
 )
 
@@ -35,9 +36,26 @@ Hydraulic_means <- HydraulicData %>%
     .groups = "drop"
   )
 
+dataframes <- ls()  # List all objects in the environment
 
+for (df_name in dataframes) {
+  df <- get(df_name)  # Get the object by name
+  
+  if ("ssp" %in% colnames(df)) {  # If the object contains the 'ssp' column
+    df$ssp <- factor(df$ssp, levels = c(
+      "Psittacanthus robustus", "Vochysia thyrsoidea",
+      "Phoradendron perrotettii", "Tapirira guianensis",
+      "Struthanthus rhynchophyllus", "Tipuana tipu",
+      "Viscum album", "Populus nigra"
+    ))
+    if ("parasitism" %in% colnames(df)) {  # If the object contains the 'ssp' column
+      df$parasitism <- factor(df$parasitism, levels = c("Parasite","Host"))
+      assign(df_name, df)  # Save the modified data frame
+    }
+    rm(df, df_name)  # Remove temporary variables
+  }}
 # Number of iterations for the permutation test
-iterations <- 10
+iterations <- 1000
 set.seed(42)
 # Specify the columns for which you want to calculate bootstrap values
 vars <- colnames(Hydraulic_means)[3:5]
@@ -51,8 +69,11 @@ for (v in vars) {
   
   # Store the results in the list using the variable name as the key
   bootstrap_results[[name]] <- t(replicate(iterations,
-                                           shuffle_means(Hydraulic_means, cols = v, cat = "parasitism",rcol = T)))
+                                           shuffle_means(
+                                             Hydraulic_means, cols = v, cat = "parasitism",rcol = T)))
 }
+
+head(bootstrap_results)
 
 Obs_values <-  Hydraulic_means %>% group_by(parasitism) %>% 
   summarize(HydraulicDiameter = mean(HydraulicDiameter, na.rm = TRUE),
@@ -70,7 +91,7 @@ Kmax_bootstrap <- bootstrap_results[[3]]
 #adding observed value
 HD_bootstrap[1,] <- t(Obs_values[,2])
 VesselDensity_bootstrap[1,] <- t(Obs_values[,3])
-Kmax_boostrap[1,] <- t(Obs_values[,4])
+Kmax_bootstrap[1,] <- t(Obs_values[,4])
 
 # Create a list of the bootstrap matrices
 boot_frames <- list(HD_bootstrap = HD_bootstrap, 
@@ -80,18 +101,18 @@ boot_frames <- list(HD_bootstrap = HD_bootstrap,
 # Calculate differences using lapply and bind the results into a data frame
 boot_diffs <- lapply(boot_frames, function(matrix) {
   matrix[, 1] - matrix[, 2]
-})
+}) %>% do.call(what=cbind,)
 
-# Combine the differences into a single data frame
-boot_diffs <- do.call(cbind, boot_diffs)
 colnames(boot_diffs) <- names(boot_frames) 
 
-## Create a vector of column names
-column_names <- colnames(boot_diffs_df)
 
+
+
+## Create a vector of column names
+column_names <- colnames(boot_diffs)
 # Loop through each column in the boot_diffs data frame using lapply
-lapply(seq_along(column_names), function(i) {
-  x <- boot_diffs_df[, i]  # Get the current column data
+sapply(seq_along(column_names), function(i) {
+  x <- boot_diffs[, i]  # Get the current column data
   col_name <- column_names[i]  # Get the current column name
   
   # Create a density plot
@@ -104,194 +125,190 @@ lapply(seq_along(column_names), function(i) {
   abline(v = x[1], col = "red", lwd = 2)
   
   # Calculate p-value and display it on the plot
-  p_value <- sum(x >= abs(x[1]), na.rm = TRUE) / length(x)
-  text(x = mean(x, na.rm = TRUE), y = max(density(x)$y, na.rm = TRUE) * 0.9, paste("p-value =", round(p_value, 4)))
+  p_value <- sum(abs(x) >= abs(x[1]), na.rm = TRUE) / length(x)
+  text(x = mean(x, na.rm = TRUE), y = max(density(x)$y, na.rm = TRUE) * 0.9, paste("p-value =",p_value))
   
   # Title for the plot using the current column name
   title(main = col_name)
 })
 
+p_values <- apply(boot_diffs,2,function(x){
+  sum(abs(x) >= abs(x[1]), na.rm = TRUE) / length(x)
+})
+
+
+# Function to shuffle and calculate means for each variable (Host)
+host_boot <- replicate(n = iterations, {
+  sapply(vars, function(var) {
+    Hydraulic_means %>%
+      subset(parasitism == "Host") %>%
+      shuffle_means(cols = var, cat = "parasitism", rcol = TRUE)
+  })
+}, simplify = TRUE)
+
+# Convert results to a data frame for each variable
+host_boot <- as.data.frame(t(host_boot))
+colnames(host_boot) <- vars
+
+# Convert to a matrix (if needed)
+host_boot <- as.matrix(host_boot)
+
+# Function to shuffle and calculate means for each variable (Parasite)
+para_boot <- replicate(n = iterations, {
+  sapply(vars, function(var) {
+    Hydraulic_means %>%
+      subset(parasitism == "Parasite") %>%
+      shuffle_means(cols = var, cat = "parasitism", rcol = TRUE)
+  })
+}, simplify = TRUE)
+
+# Convert results to a data frame for each variable
+para_boot <- as.data.frame(t(para_boot))
+colnames(para_boot) <- vars
+
+# Convert to a matrix (if needed)
+para_boot <- as.matrix(para_boot)
+
+# Calculate CI95 for each variable (using 2.5th and 97.5th percentiles)
+host_CI95 <- t(apply(host_boot, 2, function(x) {
+  quantile(x, c(0.025, 0.975), na.rm = TRUE)
+}))
+
+para_CI95 <- t(apply(para_boot, 2, function(x) {
+  quantile(x, c(0.025, 0.975), na.rm = TRUE)
+}))
+
+# Add the observed values to each as a new column
+para_CI95 <- cbind(para_CI95, Obs = as.numeric(Obs_values[1, 2:4]))
+host_CI95 <- cbind(host_CI95, Obs = as.numeric(Obs_values[2, 2:4]))
 
 
 
-# Initialize an empty list to store the long-format data
-long_data_list <- list()
+#########pair wise comparisson
+# Initialize an empty list to store results for each species pair
+ssp_obs <- apply(Hydraulic_means[,vars],2,function(x){
+  tapply(x,Hydraulic_means$ssp,mean)
+})
 
-# Loop through the matrices, making each long and adding to the list
-for (name in names(boot_frames)) {
+
+
+pair_boot=list()
+# Iterate through each species pair
+for (pair in species_pairs) {
+  # Subset the data for the current species pair
+  subset_data <- subset(Hydraulic_means, ssp %in% pair)
   
-  # Access each matrix by name
-  matrix_data <- boot_frames[[name]]
+  # Initialize an empty result data frame
+  result <- data.frame()
   
-  # Convert the matrix to a data frame and make it long format
-  long_data <- as.data.frame(matrix_data) %>%
-    mutate(iteration = row_number()) %>%
-    pivot_longer(cols = c("Host", "Parasite"), names_to = "parasitism", values_to = name) # Use the matrix name as the value column
+  # Loop through each variable in vars
+  for (v in vars) {
+    # Generate bootstrap samples for the current variable
+    resample_data <- as.data.frame(t(replicate(iterations, shuffle_means(subset_data, cols = v, cat = "ssp", rcol = TRUE))))
+    
+    # Add a bootstrap identifier
+    resample_data$bootstrap_id <- 1:nrow(resample_data)
+    
+    # Transform to long format
+    resample_data_long <- resample_data %>%
+      pivot_longer(cols = -bootstrap_id,  # Exclude the identifier column
+                   names_to = "ssp",       # New column for species names
+                   values_to = "value")    # New column for values
+    
+    # Rename the value column to the variable name
+    resample_data_long <- resample_data_long %>%
+      rename(!!v := value)  # Using the variable name as the column name for values
+    
+    # Combine results
+    if (nrow(result) == 0) {
+      result <- resample_data_long  # If result is empty, initialize it with the first variable's data
+    } else {
+      result <- left_join(result, resample_data_long, by = c("bootstrap_id", "ssp"))  # Join by bootstrap_id and ssp
+    }
+  }
   
-  # Store the long data frame in the list
-  long_data_list[[name]] <- long_data
+  pair_boot[[paste(pair,collapse = "vs")]] <- result
 }
 
-# Combine all the long-format data frames into a single data frame
-long_df <- reduce(long_data_list, full_join, by = c("iteration", "parasitism"))
+# Initialize an empty list to store the results
+ssp_diffs_list <- vector("list", length = length(pair_boot))
 
-
-
-# Ensure long_df contains the necessary columns
-colnames(long_df)
-
-# Create a dataframe for confidence intervals
-ci_data <- data.frame(
-  parasitism = rep(c("Host", "Parasite"), times = 3),
-  variable = rep(c("HD_bootstrap", "VesselDensity_bootstrap", "Kmax_bootstrap"), each = 2),
-  lower = c(HD_CI95[, 1], VD_CI95[, 1], Kmax_CI95[, 1]),
-  upper = c(HD_CI95[, 2], VD_CI95[, 2], Kmax_CI95[, 2])
-)
-
-# List of variable names to loop over
-vars <- c("HD_bootstrap", "VesselDensity_bootstrap", "Kmax_bootstrap")
-
-# Loop through variables and create density plots
-for (v in vars) {
-  # Extract the data for parasitism and the current variable
-  data <- long_df[, c("parasitism", v)]
+# Calculate differences between species in pair_boot
+ssp_diffs_list <- sapply(pair_boot, simplify = FALSE, function(x) {
+  # Split the data frame by 'ssp'
+  split_data <- split(x, x$ssp)
   
-  # Dynamically assign the variable name for x
-  var_name <- v
+  # Print the names of the split data for debugging
+  print(names(split_data))
   
-  # Create the plot using aes()
-  p <- ggplot(data, aes(x = .data[[var_name]], fill = parasitism)) +
-    geom_density(alpha = 0.5) +
-    scale_fill_manual(values = c("Parasite" = "red", "Host" = "grey")) +
-    # Add dashed lines for confidence intervals from ci_data
-    geom_vline(data = ci_data[ci_data$variable == var_name & ci_data$parasitism == "Parasite", ],
-               aes(xintercept = lower), linetype = "dashed", color = "red") +
-    geom_vline(data = ci_data[ci_data$variable == var_name & ci_data$parasitism == "Parasite", ],
-               aes(xintercept = upper), linetype = "dashed", color = "red") +
-    geom_vline(data = ci_data[ci_data$variable == var_name & ci_data$parasitism == "Host", ],
-               aes(xintercept = lower), linetype = "dashed", color = "black") +
-    geom_vline(data = ci_data[ci_data$variable == var_name & ci_data$parasitism == "Host", ],
-               aes(xintercept = upper), linetype = "dashed", color = "black") +
-    scale_x_continuous(limits = c(min(data[[var_name]]) * 0.2, max(data[[var_name]]) * 1.5))+
-    theme_classic() +
-    labs(title = paste("Density Plot for", var_name))
-  
-  # Print the plot
-  print(p)
+  # Check if there are exactly 2 species
+  if (length(split_data) == 2) {
+    # Calculate the difference between the first and second species
+    diff_result <- split_data[[1]][, vars] - split_data[[2]][, vars]
+    return(as.data.frame(diff_result))  # Convert to data frame
+  } else {
+    # Print a warning message for pairs that do not have exactly two species
+    warning(paste("Expected 2 species, but found:", length(split_data)))
+    return(NULL)  # Return NULL if there are not exactly 2 species
+  }
+})
+
+# Name the list elements for clarity
+names(ssp_diffs_list) <- names(pair_boot)
+
+
+
+## Check pair_obs_diff structure and make sure they are data frames
+pair_obs_diff <- setNames(list(
+  as.data.frame(t(as.matrix(ssp_obs[1, ] - ssp_obs[2, ]))),  # Convert to data frame
+  as.data.frame(t(as.matrix(ssp_obs[3, ] - ssp_obs[4, ]))),  # Convert to data frame
+  as.data.frame(t(as.matrix(ssp_obs[5, ] - ssp_obs[6, ]))),  # Convert to data frame
+  as.data.frame(t(as.matrix(ssp_obs[7, ] - ssp_obs[8, ])))   # Convert to data frame
+), species_pairs)
+
+# Assign the named vectors to the first row of each element in ssp_diffs_list
+ssp_diffs_list$`Psittacanthus robustusvsVochysia thyrsoidea`[1, ] <- pair_obs_diff[[1]]
+ssp_diffs_list$`Phoradendron perrotettiivsTapirira guianensis`[1, ] <- pair_obs_diff[[2]]
+ssp_diffs_list$`Struthanthus rhynchophyllusvsTipuana tipu`[1, ] <- pair_obs_diff[[3]]
+
+# Remove any NULL elements from ssp_diffs_list before calculating p-values
+valid_diffs_list <- Filter(Negate(is.null), ssp_diffs_list)
+
+# Calculate p-values for each element in the valid ssp_diffs_list
+ssp_pvalues <- sapply(valid_diffs_list, simplify = TRUE, function(x) {
+  apply(x, 2, function(y) {
+    sum(abs(y) >= abs(y[1]), na.rm = TRUE) / length(y)
+  })
+}) %>% t()
+
+# Print the results to verify
+print(ssp_pvalues)
+
+
+# Initialize an empty list to store the results for each species
+ssp_CI95 <- list()
+
+# Calculate confidence intervals for each species
+for (y in pair_boot) {
+  if (ncol(y) >= 5 && "ssp" %in% colnames(y)) {
+    # Split the data by 'ssp' and calculate confidence intervals
+    split_data <- split(y[, 3:5], y$ssp)
+    for (ssp_name in names(split_data)) {
+      ci_df <- as.data.frame(t(apply(split_data[[ssp_name]], 2, function(col) {
+        quantile(col, c(0.025, 0.975), na.rm = TRUE)
+      })))
+      # Add variable names and reorder columns
+      ci_df <- cbind(variable = rownames(ci_df), ci_df)
+      colnames(ci_df) <- c("variable", "lower", "upper")
+      rownames(ci_df) <- NULL
+      
+      # Combine results for the current species
+      ssp_CI95[[ssp_name]] <- rbind(ssp_CI95[[ssp_name]], ci_df)
+    }
+  } else {
+    warning("Data frame does not have expected structure or 'ssp' column is missing.")
+  }
 }
 
-
-# The results are now stored in the bootstrap_results list, accessible by name
-
-
-hydrHydraulic_Results <- t(replicate(iterations,
-                                     shuffle_means(Hydraulic_means,cols = v,cat = "parasitism")))
-
-
-
-
-
-
-
-
-
-
-
-
-# Use replicate to vectorize the permutations and calculations
-Hydraulic_Results <- t(replicate(iterations, shuffle_calculation()))
-# Assign column names to the result matrix
-colnames(Hydraulic_Results) <- colnames(Hydraulic_means)[3:5]
-
-#Calculate observed differences
-VD_obs <- diff(
-  tapply(Hydraulic_means$HydraulicDiameter, Hydraulic_means$parasitism, median))
-
-Vdens_obs <- diff(
-  tapply(Hydraulic_means$vdensity, Hydraulic_means$parasitism, median))
-
-K_obs <- diff(
-  tapply(Hydraulic_means$Kmax, Hydraulic_means$parasitism, median))
-
-#add observed diferences to the dataframe
-Hydraulic_Results[1,] <- c(VD_obs,Vdens_obs,K_obs) 
-
-
-#vessel diameter
-plot(density(Hydraulic_Results[,1]))
-abline(v = Hydraulic_Results[1,1], col = "red")
-abline(v = Hydraulic_Results[1,1]*-1, col = "red")
-
-#vessel density
-plot(density(Hydraulic_Results[,2]))
-abline(v = Hydraulic_Results[1,2], col = "red")
-abline(v = Hydraulic_Results[1,2]*-1, col = "red")
-
-
-#Kmax
-plot(density(Hydraulic_Results[,3]))
-abline(v = Hydraulic_Results[1,3], col = "red")
-abline(v = Hydraulic_Results[1,3]*-1, col = "red")
-
-
-#calculate p-values
-HD_pvalue <- sum(Hydraulic_Results[,1] <= Hydraulic_Results[1,1]|
-                  Hydraulic_Results[,1] >= (Hydraulic_Results[1,1]*-1))/
-  length(Hydraulic_Results[,1])
-
-Vdens_pvalue <- sum(Hydraulic_Results[,2] >= Hydraulic_Results[1,2]|
-                  Hydraulic_Results[,2] <= (Hydraulic_Results[1,2]*-1))/
-  length(Hydraulic_Results[,2])
-
-Kmax_pvalue <- sum(Hydraulic_Results[,3] <= Hydraulic_Results[1,3]|
-                  Hydraulic_Results[,3] >= (Hydraulic_Results[1,3]*-1))/
-  length(Hydraulic_Results[,3])
-
-
-
-# Use replicate to perform the bootstrap resampling
-Bootstrap_Results <- t(replicate(iterations, bootstrap_calculation()))
-
-
-# Add observed differences to the results
-Bootstrap_Results <- rbind(c(VD_obs, Vdens_obs, K_obs), Bootstrap_Results)
-
-
-# Calculate bootstrap confidence intervals
-CI_95 <- apply(Bootstrap_Results[-1, ], 2, quantile, probs = c(0.025, 0.975)) 
-colnames(CI_95) <- colnames(Hydraulic_means)[3:5]
-
-# Calculate bootstrap p-values
-HD_pvalue_bootstrap <- mean(abs(Bootstrap_Results[-1, 1]) >= abs(Bootstrap_Results[1, 1]))
-Vdens_pvalue_bootstrap <- mean(abs(Bootstrap_Results[-1, 2]) >= abs(Bootstrap_Results[1, 2]))
-Kmax_pvalue_bootstrap <- mean(abs(Bootstrap_Results[-1, 3]) >= abs(Bootstrap_Results[1, 3]))
-
-# Display bootstrap p-values and confidence intervals
-list(
-  HD_pvalue_bootstrap = HD_pvalue_bootstrap,
-  Vdens_pvalue_bootstrap = Vdens_pvalue_bootstrap,
-  Kmax_pvalue_bootstrap = Kmax_pvalue_bootstrap,
-  CI_95 = CI_95
-)
-# Assign column names to the result matrix
-colnames(Bootstrap_Results) <- colnames(Hydraulic_means)[3:5]
-(HD_CI <- quantile(Bootstrap_Results[,1], prob = c(0.025, 0.975)))
-(VDens_CI <- quantile(Bootstrap_Results[,2], prob = c(0.025, 0.975)))
-(Kmax_CI <- quantile(Bootstrap_Results[,3], prob = c(0.025, 0.975)))
-
-# Plot Bootstrap Distributions
-
-plot(density(Bootstrap_Results[, 1]), main = "Bootstrap - Vessel Diameter", xlab = "Difference in Medians")
-abline(v = VD_obs, col = "red", lwd = 2)
-abline(v=CI_95[,1],col="blue",lwd=2)
-
-plot(density(Bootstrap_Results[, 2]), main = "Bootstrap - Vessel Density", xlab = "Difference in Medians")
-abline(v = Vdens_obs, col = "red", lwd = 2)
-abline(v=CI_95[,2],col="blue",lwd=2)
-
-plot(density(Bootstrap_Results[, 3]), main = "Bootstrap - Kmax", xlab = "Difference in Medians")
-abline(v = K_obs, col = "red", lwd = 2)
-abline(v=CI_95[,3],col="blue",lwd=2)
-
-fwrite(Hydraulic_Results,file=here("outputs","tables","Hydraulic_MonteCarlo_results.csv"))
+ssp_CI95
 
