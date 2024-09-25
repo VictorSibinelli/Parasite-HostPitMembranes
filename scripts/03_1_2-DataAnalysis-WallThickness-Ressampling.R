@@ -56,10 +56,12 @@ for (df_name in dataframes) {
       "Struthanthus rhynchophyllus", "Tipuana tipu",
       "Viscum album", "Populus nigra"
     ))
+    if ("parasitism" %in% colnames(df)) {  # If the object contains the 'ssp' column
+      df$ssp <- factor(df$parasitism, levels = c("Parasite","Host"))
     assign(df_name, df)  # Save the modified data frame
   }
   rm(df, df_name)  # Remove temporary variables
-}
+}}
 
 # Define species pairs for comparison
 species_pairs <- list(
