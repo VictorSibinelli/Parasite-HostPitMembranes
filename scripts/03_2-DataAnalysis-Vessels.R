@@ -55,7 +55,7 @@ for (df_name in dataframes) {
     rm(df, df_name)  # Remove temporary variables
   }}
 # Number of iterations for the permutation test
-iterations <- 1000
+iterations <- 100000
 set.seed(42)
 # Specify the columns for which you want to calculate bootstrap values
 vars <- colnames(Hydraulic_means)[3:5]
@@ -73,7 +73,7 @@ for (v in vars) {
                                              Hydraulic_means, cols = v, cat = "parasitism",rcol = T)))
 }
 
-head(bootstrap_results)
+lapply(bootstrap_results,head)
 
 Obs_values <-  Hydraulic_means %>% group_by(parasitism) %>% 
   summarize(HydraulicDiameter = mean(HydraulicDiameter, na.rm = TRUE),
@@ -235,11 +235,14 @@ ssp_diffs_list <- vector("list", length = length(pair_boot))
 
 # Calculate differences between species in pair_boot
 ssp_diffs_list <- sapply(pair_boot, simplify = FALSE, function(x) {
+  # Skip if the data frame is empty
+  if (nrow(x) == 0) {
+    warning("Skipping empty data frame.")
+    return(NULL)  # Return NULL for empty data frames
+  }
+  
   # Split the data frame by 'ssp'
   split_data <- split(x, x$ssp)
-  
-  # Print the names of the split data for debugging
-  print(names(split_data))
   
   # Check if there are exactly 2 species
   if (length(split_data) == 2) {
@@ -253,8 +256,10 @@ ssp_diffs_list <- sapply(pair_boot, simplify = FALSE, function(x) {
   }
 })
 
-# Name the list elements for clarity
-names(ssp_diffs_list) <- names(pair_boot)
+# Print the resulting list to verify
+print(lapply(ssp_diffs_list, head))
+
+
 
 
 
