@@ -32,3 +32,10 @@ sapply(seq_along(column_names), function(i) {
   # Title for the plot using the current column name
   title(main = col_name)
 })
+
+##graph of ci95
+
+
+##graph os ssp test and p value
+
+### graph of ssp ci95

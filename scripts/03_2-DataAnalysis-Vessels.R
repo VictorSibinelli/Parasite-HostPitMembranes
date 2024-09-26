@@ -55,7 +55,7 @@ for (df_name in dataframes) {
     rm(df, df_name)  # Remove temporary variables
   }}
 # Number of iterations for the permutation test
-iterations <- 1000
+iterations <- 100
 set.seed(42)
 # Specify the columns for which you want to calculate bootstrap values
 vars <- colnames(Hydraulic_means)[3:5]
@@ -73,7 +73,7 @@ for (v in vars) {
                                              Hydraulic_means, cols = v, cat = "parasitism",rcol = T)))
 }
 
-head(bootstrap_results)
+lapply(bootstrap_results,head)
 
 Obs_values <-  Hydraulic_means %>% group_by(parasitism) %>% 
   summarize(HydraulicDiameter = mean(HydraulicDiameter, na.rm = TRUE),
@@ -235,11 +235,14 @@ ssp_diffs_list <- vector("list", length = length(pair_boot))
 
 # Calculate differences between species in pair_boot
 ssp_diffs_list <- sapply(pair_boot, simplify = FALSE, function(x) {
+  # Skip if the data frame is empty
+  if (nrow(x) == 0) {
+    warning("Skipping empty data frame.")
+    return(NULL)  # Return NULL for empty data frames
+  }
+  
   # Split the data frame by 'ssp'
   split_data <- split(x, x$ssp)
-  
-  # Print the names of the split data for debugging
-  print(names(split_data))
   
   # Check if there are exactly 2 species
   if (length(split_data) == 2) {
@@ -253,8 +256,10 @@ ssp_diffs_list <- sapply(pair_boot, simplify = FALSE, function(x) {
   }
 })
 
-# Name the list elements for clarity
-names(ssp_diffs_list) <- names(pair_boot)
+# Print the resulting list to verify
+print(lapply(ssp_diffs_list, head))
+
+
 
 
 
@@ -285,30 +290,43 @@ ssp_pvalues <- sapply(valid_diffs_list, simplify = TRUE, function(x) {
 print(ssp_pvalues)
 
 
-# Initialize an empty list to store the results for each species
+# Initialize an empty list to store results
 ssp_CI95 <- list()
 
 # Calculate confidence intervals for each species
 for (y in pair_boot) {
-  if (ncol(y) >= 5 && "ssp" %in% colnames(y)) {
-    # Split the data by 'ssp' and calculate confidence intervals
-    split_data <- split(y[, 3:5], y$ssp)
-    for (ssp_name in names(split_data)) {
-      ci_df <- as.data.frame(t(apply(split_data[[ssp_name]], 2, function(col) {
-        quantile(col, c(0.025, 0.975), na.rm = TRUE)
-      })))
-      # Add variable names and reorder columns
-      ci_df <- cbind(variable = rownames(ci_df), ci_df)
-      colnames(ci_df) <- c("variable", "lower", "upper")
-      rownames(ci_df) <- NULL
-      
-      # Combine results for the current species
-      ssp_CI95[[ssp_name]] <- rbind(ssp_CI95[[ssp_name]], ci_df)
+  # Use tryCatch to handle potential errors
+  tryCatch({
+    if (ncol(y) >= 5 && "ssp" %in% colnames(y)) {
+      # Split the data by 'ssp' and calculate confidence intervals
+      split_data <- split(y[, 3:5], y$ssp)
+      for (ssp_name in names(split_data)) {
+        ci_df <- as.data.frame(t(apply(split_data[[ssp_name]], 2, function(col) {
+          quantile(col, c(0.025, 0.975), na.rm = TRUE)
+        })))
+        # Add variable names and reorder columns
+        ci_df <- cbind(variable = rownames(ci_df), ci_df)
+        colnames(ci_df) <- c("variable", "lower", "upper")
+        rownames(ci_df) <- NULL
+        
+        # Combine results for the current species
+        if (is.null(ssp_CI95[[ssp_name]])) {
+          ssp_CI95[[ssp_name]] <- ci_df  # Initialize if NULL
+        } else {
+          ssp_CI95[[ssp_name]] <- rbind(ssp_CI95[[ssp_name]], ci_df)  # Combine results
+        }
+      }
+    } else {
+      warning("Data frame does not have expected structure or 'ssp' column is missing.")
     }
-  } else {
-    warning("Data frame does not have expected structure or 'ssp' column is missing.")
-  }
+  }, error = function(e) {
+    # Print a message and continue if there's an error
+    message("Error processing one of the data frames: ", conditionMessage(e))
+  })
 }
 
-ssp_CI95
+# Print the resulting list of data frames
+print(ssp_CI95)
 
+
+print("Data analysis - vessels completed. Head to Graphics vessels")
