@@ -9,11 +9,13 @@ rm(list = ls())  # Remove all objects from memory
 
 library(here)
 source(here("scripts", "00-library.R"))  # Load packages
-source(here("scripts", "00-Functions.R"))  # Load custom functions
+source(here("scripts", "Functions.R"))  # Load custom functions
 
 # Load data
 wdata <- read.csv(here("data", "processed", "wdata.csv"))
-
+##### COrrigir ordenação de fatores 
+######################################
+###########################################
 
 # --------------------------------------------------------
 # Calculate mean wall thickness per label and species
@@ -57,7 +59,7 @@ for (df_name in dataframes) {
       "Viscum album", "Populus nigra"
     ))
     if ("parasitism" %in% colnames(df)) {  # If the object contains the 'ssp' column
-      df$ssp <- factor(df$parasitism, levels = c("Parasite","Host"))
+      df$parasitism <- factor(df$parasitism, levels = c("Parasite","Host"))
     assign(df_name, df)  # Save the modified data frame
   }
   rm(df, df_name)  # Remove temporary variables
@@ -68,23 +70,23 @@ species_pairs <- list(
   c("Psittacanthus robustus", "Vochysia thyrsoidea"),
   c("Phoradendron perrotettii", "Tapirira guianensis"),
   c("Struthanthus rhynchophyllus", "Tipuana tipu"),
-  c("Viscum album", "Populus nigra")
+ c("Viscum album", "Populus nigra")
 )
 
 # --------------------------------------------------------
 # Permutation test setup
 # --------------------------------------------------------
 set.seed(42)  # Set seed for reproducibility
-iterations <- 100000 # Number of iterations for resampling
+iterations <- 1000 # Number of iterations for resampling
 
 # Calculate observed difference in mean wall thickness by parasitism
 WT_obs <- tapply(WT_avg$wthickness, WT_avg$parasitism, mean)
 WT_obsdiff <- WT_obs[1] - WT_obs[2]  # Observed difference
 
 # #####Perform resampling to create null distribution
-WT_resample <- read.csv(file = here("data","processed","ressampled","WallThickness_ressampled.csv"))
-# WT_resample <- t(replicate(iterations,
-#                            shuffle_means(x = WT_avg, cols = "wthickness", cat = "parasitism")))
+#WT_resample <- read.csv(file = here("data","processed","ressampled","WallThickness_ressampled.csv"))
+ WT_resample <- t(replicate(iterations,
+                        shuffle_means(x = WT_avg, cols = "wthickness", cat = "parasitism")))
 
 
 WT_resample[1, ] <- WT_obs  # First row: observed values
@@ -109,10 +111,10 @@ text(x = 0.5, y = 0.5, paste("p-value =", WT_pvalue))
 # Bootstrap test for resampling with replacement
 # --------------------------------------------------------
 
-# bootstrap_result <- t(replicate(iterations,
-#                                  shuffle_means(x = WT_avg, cols = "wthickness", 
-#                                                cat = "parasitism", rcol = TRUE, rcat = TRUE)))
-# head(bootstrap_result)
+bootstrap_result <- t(replicate(iterations,
+                                 shuffle_means(x = WT_avg, cols = "wthickness", 
+                                               cat = "parasitism", rcol = TRUE, rcat = TRUE)))
+ head(bootstrap_result)
 
 
 bootstrap_result[1, ] <- WT_obs  # Observed values in the first row
@@ -145,14 +147,15 @@ WTssp_diff_obs <- c(
 
 # Initialize a list to store results for each pair
 pair_results <- list()
-iterations <- 50000
+
+iterations <- 50
 # Loop through each species pair and perform resampling
 for (pair in species_pairs) {
   subset_data <- subset(WT_avg, ssp %in% pair)
   boot_resample <- t(replicate(iterations, shuffle_means(x = subset_data, cols = "wthickness", cat = "ssp", rcol = TRUE)))
   pair_results[[paste(pair, collapse = "_vs_")]] <- boot_resample
 }
-
+pair_results[[1]]
 # Calculate the differences for each pair
 diff_matrix <- do.call(cbind, lapply(pair_results, function(x) {
   x[, 1] - x[, 2]

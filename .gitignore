@@ -55,3 +55,6 @@ outputs/.csv
 
 #png files
 .png
+
+#unused scripts
+Unused/

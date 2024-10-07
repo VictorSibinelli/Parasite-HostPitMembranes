@@ -11,7 +11,7 @@ rm(list=ls())
 # Load data
 pitO <- read.csv(here("data", "processed", "PitOdata.csv"))
 pitdata <- read.csv(here("data", "processed", "pitdata.csv"))
-
+source(here("scripts","Functions.R"))
 # Relevel the factors for each data frame
 dataframes <- ls()
 for (df_name in dataframes) {
@@ -39,57 +39,9 @@ for (df_name in dataframes) {
 
 
 
-## Function to plot density before and after outlier removal on the same graph
-plot_density_comparison <- function(original_density, updated_density, species, variable) {
-  plot(original_density, main = paste(species, "-", variable), 
-       xlab = variable, ylab = "Density", lwd = 2, col = "red", 
-       xlim = range(c(original_density$x, updated_density$x), na.rm = TRUE), 
-       cex.main = 1.2, cex.lab = 1.0, cex.axis = 0.8)  # Adjusted text sizes
-  lines(updated_density, lwd = 2, col = "blue")
-  legend("topright", legend = c("Before", "After"), col = c("red", "blue"), lwd = 2, cex = 0.8)  # Smaller legend text
-}
 
-# Function to replace outliers with NA and test for normality
-replace_outliers_test_normality <- function(data, variable, species, max_iter = 10) {
-  outlier_count <- 0
-  
-  original_data <- data[[variable]][data$ssp == species]
-  shapiro_p <- NA
-  
-  for (i in 1:max_iter) {
-    outliers <- boxplot.stats(data[[variable]][data$ssp == species])$out
-    if (length(outliers) == 0) break
-    # Update outliers count
-    outlier_count <- length(outliers)
-    data[[variable]][data[[variable]] %in% outliers & data$ssp == species] <- NA
-    shapiro_test <- shapiro.test(data[[variable]][data$ssp == species])
-    shapiro_p <- shapiro_test$p.value
-    if (shapiro_p > 0.05) break
-  }
-  
-  original_density <- density(original_data, na.rm = TRUE)
-  updated_density <- density(data[[variable]][data$ssp == species], na.rm = TRUE)
-  
-  return(list(data = data, outlier_count = outlier_count, shapiro_p = shapiro_p, 
-              original_density = original_density, updated_density = updated_density))
-}
 
-# Function to perform normality test across species and variables
-perform_normality_test <- function(data, species_list, variables) {
-  results <- data.frame(species = character(), stringsAsFactors = FALSE)
-  for (ssp in species_list) {
-    shapiro_results <- sapply(variables, function(var) {
-      if (sum(!is.na(data[[var]][data$ssp == ssp])) > 2) {
-        return(shapiro.test(data[[var]][data$ssp == ssp])$p.value)
-      } else {
-        return(NA)
-      }
-    })
-    results <- rbind(results, c(ssp, shapiro_results))
-  }
-  colnames(results) <- c("species", variables)
-  return(results)
-}
+
 
 # Variables of interest for the first dataframe
 variables1 <- c("pitavg", "pcavg", "peavg", "pcd")
@@ -112,8 +64,7 @@ print(pitresults1)
 # Directory for saving plots and table
 output_dir_figs <- here("outputs", "figs", "assumptions")
 output_dir_tables <- here("outputs", "tables", "assumptions")
-dir.create(output_dir_figs, recursive = TRUE, showWarnings = FALSE)
-dir.create(output_dir_tables, recursive = TRUE, showWarnings = FALSE)
+
 
 ## Iterate over variables to replace outliers with NA and check for normality in the first dataframe
 for (var in variables1) {

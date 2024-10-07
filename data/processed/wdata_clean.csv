@@ -21,7 +21,7 @@ Phoradendron perrotettii 1,Phoradendron perrotettii,-114.727,6.748,3.374
 Phoradendron perrotettii 1,Phoradendron perrotettii,-96.546,4.952,2.476
 Phoradendron perrotettii 1,Phoradendron perrotettii,-73.369,6.481,3.2405
 Phoradendron perrotettii 1,Phoradendron perrotettii,-23.429,5.273,2.6365
-Phoradendron perrotettii 1,Phoradendron perrotettii,26.03,7.718,3.859
+Phoradendron perrotettii 1,Phoradendron perrotettii,26.03,7.718,
 Phoradendron perrotettii 1,Phoradendron perrotettii,-101.31,6.579,3.2895
 Phoradendron perrotettii 1,Phoradendron perrotettii,-36.87,5.242,2.621
 Phoradendron perrotettii 1,Phoradendron perrotettii,-98.427,5.87,2.935
@@ -279,7 +279,7 @@ Tapirira guianensis 1,Tapirira guianensis,-97.97,8.117,4.0585
 Tapirira guianensis 1,Tapirira guianensis,-106.46,7.376,3.688
 Tapirira guianensis 1,Tapirira guianensis,-109.44,5.797,2.8985
 Tapirira guianensis 1,Tapirira guianensis,-85.236,5.808,2.904
-Tapirira guianensis 1,Tapirira guianensis,-72.582,8.593,4.2965
+Tapirira guianensis 1,Tapirira guianensis,-72.582,8.593,
 Tapirira guianensis 1,Tapirira guianensis,-112.751,5.404,2.702
 Tapirira guianensis 1,Tapirira guianensis,-23.199,7.346,3.673
 Tapirira guianensis 1,Tapirira guianensis,-123.934,7.848,3.924
@@ -297,7 +297,7 @@ Tapirira guianensis 1,Tapirira guianensis,-1.909,4.826,2.413
 Tapirira guianensis 1,Tapirira guianensis,-96.17,5.983,2.9915
 Tapirira guianensis 1,Tapirira guianensis,-78.69,4.919,2.4595
 Tapirira guianensis 1,Tapirira guianensis,10.125,4.573,2.2865
-Tapirira guianensis 1,Tapirira guianensis,-113.199,8.571,4.2855
+Tapirira guianensis 1,Tapirira guianensis,-113.199,8.571,
 Tapirira guianensis 1,Tapirira guianensis,-106.39,5.698,2.849
 Tapirira guianensis 2,Tapirira guianensis,-90.49,6.27,3.135
 Tapirira guianensis 2,Tapirira guianensis,-94.259,5.051,2.5255
@@ -321,7 +321,7 @@ Tapirira guianensis 2,Tapirira guianensis,-102.758,5.824,2.912
 Tapirira guianensis 2,Tapirira guianensis,-86.424,7.732,3.866
 Tapirira guianensis 2,Tapirira guianensis,-94.362,6.342,3.171
 Tapirira guianensis 2,Tapirira guianensis,-99.071,6.458,3.229
-Tapirira guianensis 2,Tapirira guianensis,-77.943,8.466,4.233
+Tapirira guianensis 2,Tapirira guianensis,-77.943,8.466,
 Tapirira guianensis 2,Tapirira guianensis,135,0.057,
 Tapirira guianensis 2,Tapirira guianensis,-90,5.707,2.8535
 Tapirira guianensis 2,Tapirira guianensis,-68.199,6.06,3.03
@@ -332,7 +332,7 @@ Tapirira guianensis 2,Tapirira guianensis,-95.194,5.919,2.9595
 Tapirira guianensis 3,Tapirira guianensis,-108.886,6.457,3.2285
 Tapirira guianensis 3,Tapirira guianensis,-135,6.442,3.221
 Tapirira guianensis 3,Tapirira guianensis,-62.063,4.004,2.002
-Tapirira guianensis 3,Tapirira guianensis,135.764,2.842,1.421
+Tapirira guianensis 3,Tapirira guianensis,135.764,2.842,
 Tapirira guianensis 3,Tapirira guianensis,-141.203,3.507,1.7535
 Tapirira guianensis 3,Tapirira guianensis,-121.535,4.15,2.075
 Tapirira guianensis 3,Tapirira guianensis,-119.604,4.068,2.034
@@ -402,7 +402,7 @@ Tipuana tipu 2,Tipuana tipu,179.145,5.386,2.693
 Tipuana tipu 2,Tipuana tipu,-177.739,6.114,3.057
 Tipuana tipu 2,Tipuana tipu,-173.157,6.072,3.036
 Tipuana tipu 2,Tipuana tipu,173.66,1.456,
-Tipuana tipu 2,Tipuana tipu,-167.471,1.482,0.741
+Tipuana tipu 2,Tipuana tipu,-167.471,1.482,
 Tipuana tipu 2,Tipuana tipu,-80.727,7.982,3.991
 Tipuana tipu 2,Tipuana tipu,-87.455,7.242,3.621
 Tipuana tipu 2,Tipuana tipu,101.31,8.198,4.099
@@ -464,7 +464,7 @@ Viscum album 1,Viscum album,-96.981,3.968,1.984
 Viscum album 1,Viscum album,-108.726,5.008,2.504
 Viscum album 1,Viscum album,-71.03,5.44,2.72
 Viscum album 1,Viscum album,-47.779,5.862,2.931
-Viscum album 1,Viscum album,-68.962,8.957,4.4785
+Viscum album 1,Viscum album,-68.962,8.957,
 Viscum album 1,Viscum album,-37.747,6.303,3.1515
 Viscum album 1,Viscum album,58.57,5.087,2.5435
 Viscum album 1,Viscum album,129.472,5.311,2.6555
@@ -600,14 +600,14 @@ Vochysia thyrsoidea 2,Vochysia thyrsoidea,40.272,7.586,3.793
 Vochysia thyrsoidea 2,Vochysia thyrsoidea,-105.524,6.007,3.0035
 Vochysia thyrsoidea 2,Vochysia thyrsoidea,-115.408,7.119,3.5595
 Vochysia thyrsoidea 3,Vochysia thyrsoidea,-31.504,5.846,2.923
-Vochysia thyrsoidea 3,Vochysia thyrsoidea,-58.276,10.396,5.198
+Vochysia thyrsoidea 3,Vochysia thyrsoidea,-58.276,10.396,
 Vochysia thyrsoidea 3,Vochysia thyrsoidea,-100.784,6.874,3.437
 Vochysia thyrsoidea 3,Vochysia thyrsoidea,-60.018,4.826,2.413
 Vochysia thyrsoidea 3,Vochysia thyrsoidea,-36.87,11.254,
 Vochysia thyrsoidea 3,Vochysia thyrsoidea,-105.255,7.332,3.666
 Vochysia thyrsoidea 3,Vochysia thyrsoidea,-50.793,7.884,3.942
 Vochysia thyrsoidea 3,Vochysia thyrsoidea,-45,6.821,3.4105
-Vochysia thyrsoidea 3,Vochysia thyrsoidea,-106.39,2.849,1.4245
+Vochysia thyrsoidea 3,Vochysia thyrsoidea,-106.39,2.849,
 Vochysia thyrsoidea 3,Vochysia thyrsoidea,-124.695,5.084,2.542
 Vochysia thyrsoidea 3,Vochysia thyrsoidea,-65.659,7.411,3.7055
 Vochysia thyrsoidea 3,Vochysia thyrsoidea,-67.751,7.643,3.8215
