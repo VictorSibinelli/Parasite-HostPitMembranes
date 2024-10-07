@@ -37,12 +37,6 @@ for (df_name in dataframes) {
   rm(df)
 }
 
-
-
-
-
-
-
 # Variables of interest for the first dataframe
 variables1 <- c("pitavg", "pcavg", "peavg", "pcd")
 species <- unique(pitdata$ssp)

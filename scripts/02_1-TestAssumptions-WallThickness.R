@@ -5,7 +5,6 @@
 # Script 02.2 - Test assumptions test
 ######################################################################
 
-
 # Load the data wrangling script
 library(here)
 source(here("scripts", "01-DataWrangling.R"))
@@ -15,7 +14,7 @@ rm(list = ls())
 
 # Load data
 wdata <- read.csv(here("data", "processed", "wdata.csv"))
-source(here("scripts","Functions.R"))
+source(here("scripts", "Functions.R"))
 dataframes <- ls()
 
 # Relevel the factors for each data frame
@@ -31,7 +30,7 @@ for (df_name in dataframes) {
     ))
     assign(df_name, df) # Assign the modified data frame back to its name
   }
-  rm(df, df_name) # remove duplicated dataframe
+  rm(df, df_name) # Remove duplicated dataframe
 }
 
 # Variables of interest
@@ -40,7 +39,7 @@ variables <- c("wthickness")
 # Perform Shapiro-Wilk test for each species and variable
 species <- unique(wdata$ssp)
 
-# Directory for saving plots and table
+# Directory for saving plots and tables
 output_dir_figs <- here("outputs", "figs", "assumptions")
 output_dir_tables <- here("outputs", "tables", "assumptions")
 
@@ -102,10 +101,11 @@ h <- ggplot(wdata, aes(x = ssp, y = wthickness)) +
     y = "Wall Thickness"
   ) +
   theme(
-    axis.text.x = element_text(angle = 45, hjust = 1))
+    axis.text.x = element_text(angle = 45, hjust = 1)
+  )
 h
-## save graph
-ggsave(here(output_dir_figs, "WthicknessVaricance.png"), plot = h, dpi = 600, width = 10, height = 7)
 
-#hogeneity of variance found inside pairs
+# Save graph
+ggsave(here(output_dir_figs, "WthicknessVariance.png"), plot = h, dpi = 600, width = 10, height = 7)
 
+# Homogeneity of variance found inside pairs

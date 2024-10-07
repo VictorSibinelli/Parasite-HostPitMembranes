@@ -2,24 +2,26 @@
 #
 # Victor Sibinelli (victor.sibinelli@usp.br / sibinelli95@gmail.com)
 # 13/07/2024
-# Scrpt 02.3 - Test assumptions test - Vessels
-#################################################################
-# load packages
+# Script 02.3 - Test assumptions test - Vessels
+#####################################################################
+
+# Load packages
 library(here)
 source(here("scripts", "01-DataWrangling.R"))
 
-# load data
+# Load data
 vdata <- read.csv(here("data", "processed", "vdata.csv"))
 vadata <- read.csv(here("data", "processed", "vadata.csv"))
 
-output_dir_figs <- here("outputs","figs","assumptions")
+output_dir_figs <- here("outputs", "figs", "assumptions")
+
 # Create a data frame for Hydraulic data
 HydraulicData <- data.frame(
   ssp = NA,
   indiv = NA,
   pic = unique(vdata$pic),
   HydraulicDiameter = NA,
-  stringsAsFactors = F
+  stringsAsFactors = FALSE
 )
 
 # Ensure the 'ssp' column is a factor and use its value correctly
@@ -40,8 +42,10 @@ for (i in seq_along(unique(vdata$pic))) {
   rm(filter_data)
 }
 
+# Merge with vessel density data
 HydraulicData <- merge(HydraulicData, vadata[, c("pic", "vdensity")], by = "pic", all.x = TRUE)
-# Update  to include the `parasitism` variable
+
+# Update to include the `parasitism` variable
 HydraulicData <- HydraulicData %>%
   mutate(parasitism = case_when(
     ssp %in% c("Psittacanthus robustus", 
@@ -49,21 +53,17 @@ HydraulicData <- HydraulicData %>%
                "Struthanthus rhynchophyllus", 
                "Viscum album") ~ "Parasite",
     TRUE ~ "Host"
-  )) %>% drop_na()
+  )) %>%
+  drop_na()
 
-# η is the viscosity index of water (1.002 × 10−9 MPa s at 20°C)
-n <- 1.002 * 10^-9
+# Constants for hydraulic conductivity calculation
+n <- 1.002 * 10^-9  # Viscosity index of water (MPa s at 20°C)
+pw <- 998.2         # Density of water at 20°C (kg/m³)
 
-#ρw is the density of water at 20°C (998.2*kg*m−3 at 20°C)
-pw <- 998.2
-
-#Max hydraulic conductivity
-HydraulicData$Kmax <- ((pi*pw)/(n*128)) * #constants
-  (HydraulicData$vdensity*1e+6) * #Vessel density in vessels/ meter2 (converted from vessel/mm2)
-  ((HydraulicData$HydraulicDiameter*10e-6)^4) #Vessel diameter in meters to the power of 4
-
-
-
+# Max hydraulic conductivity calculation
+HydraulicData$Kmax <- ((pi * pw) / (n * 128)) * # Constants
+  (HydraulicData$vdensity * 1e+6) *           # Vessel density in vessels/m² (converted from vessels/mm²)
+  ((HydraulicData$HydraulicDiameter * 10e-6)^4) # Vessel diameter in meters to the power of 4
 
 dataframes <- ls()
 
@@ -80,58 +80,63 @@ for (df_name in dataframes) {
     ))
     assign(df_name, df) # Assign the modified data frame back to its name
   }
-  rm(df, df_name) # remove duplicated dataframe
+  rm(df, df_name) # Remove duplicated dataframe
 }
 
-# Set the layout for multiple plots per page
-
+# Set up plotting for Vessel Diameter Density
 png(filename = file.path(output_dir_figs, "VesselDiameterDensity.png"), 
     width = 6400, height = 4800, res = 600)  # Increase image size for bigger graphs
 par(mfrow = c(2, 4), oma = c(4, 4, 4, 2), mar = c(2, 2, 2, 2))
+
 for (i in unique(vdata$ssp)) {
   plot(density(vdata$VesselDiameter[vdata$ssp == i]),
-       main = paste( i),
-       xlab = "Vessel Diameter", ylab = "Density")
+       main = paste(i),
+       xlab = "Vessel Diameter", 
+       ylab = "Density")
   mtext("Vessel Diameter", side = 3, line = 0, outer = TRUE)
 }
 dev.off()
 
-
+# Set up plotting for Vessel Density Density
 png(filename = file.path(output_dir_figs, "VesselDensityDensity.png"), 
     width = 6400, height = 4800, res = 600)  # Increase image size for bigger graphs
 par(mfrow = c(2, 4), oma = c(4, 4, 4, 2), mar = c(2, 2, 2, 2))
+
 for (i in unique(vadata$ssp)) {
   plot(density(vadata$vdensity[vadata$ssp == i]),
        main = paste("Density of Vessel Density for", i),
-       xlab = "Vessel Diameter", ylab = "Density")
+       xlab = "Vessel Density", 
+       ylab = "Density")
   mtext("Vessel Density", side = 3, line = 0, outer = TRUE)
 }
 dev.off()
 
-
+# Set up plotting for Kmax Density
 png(filename = file.path(output_dir_figs, "KmaxDensity.png"), 
     width = 6400, height = 4800, res = 600)  # Increase image size for bigger graphs
 par(mfrow = c(2, 4), oma = c(4, 4, 4, 2), mar = c(2, 2, 2, 2))
+
 for (i in unique(HydraulicData$ssp)) {
   plot(density(HydraulicData$Kmax[HydraulicData$ssp == i]),
        main = paste("Kmax", i),
-       xlab = "Vessel Diameter", ylab = "Density")
+       xlab = "Vessel Diameter", 
+       ylab = "Density")
   mtext("Kmax", side = 3, line = 0, outer = TRUE)
 }
 dev.off()
 
-h <- HydraulicData %>% ggplot(aes(x=ssp,y=HydraulicDiameter))+
+# Boxplots for HydraulicDiameter, vdensity, and Kmax
+h <- HydraulicData %>% ggplot(aes(x = ssp, y = HydraulicDiameter)) +
   geom_boxplot()
-ggsave(here(output_dir_figs, "VesselDiameterVaricance.png"), plot = h, dpi = 600, width = 10, height = 7)
+ggsave(here(output_dir_figs, "VesselDiameterVariance.png"), plot = h, dpi = 600, width = 10, height = 7)
 
-h <- HydraulicData %>% ggplot(aes(x=ssp,y=vdensity))+
+h <- HydraulicData %>% ggplot(aes(x = ssp, y = vdensity)) +
   geom_boxplot()
-ggsave(here(output_dir_figs, "VesseldensityVaricance.png"), plot = h, dpi = 600, width = 10, height = 7)
+ggsave(here(output_dir_figs, "VesselDensityVariance.png"), plot = h, dpi = 600, width = 10, height = 7)
 
-
-h <- HydraulicData %>% ggplot(aes(x=ssp,y=Kmax))+
+h <- HydraulicData %>% ggplot(aes(x = ssp, y = Kmax)) +
   geom_boxplot()
-ggsave(here(output_dir_figs, "KmaxVaricance.png"), plot = h, dpi = 600, width = 10, height = 7)
-#Non normality and no homocedasticity for all traits
+ggsave(here(output_dir_figs, "KmaxVariance.png"), plot = h, dpi = 600, width = 10, height = 7)
 
-write.csv(HydraulicData, file = file.path(here("data","processed","HydraulicData.csv")), row.names = FALSE)
+# Non-normality and no homoscedasticity for all traits
+write.csv(HydraulicData, file = file.path(here("data", "processed", "HydraulicData.csv")), row.names = FALSE)
