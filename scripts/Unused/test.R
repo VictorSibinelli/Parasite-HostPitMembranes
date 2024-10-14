@@ -39,3 +39,32 @@ print(VWall_results)
 
 # Write results to a CSV file
 fwrite(VWall_results, file = here("outputs", "tables", "VWall_results.csv"))
+
+
+
+
+# Perform resampling to create null distribution --> If it is the first time runing this script,
+#uncoment lines 54-59
+WT_resample <- t(replicate(iterations,
+                           shuffle_means(x = WT_EV, cols = "wthickness", cat = "parasitism")))
+
+
+WT_resample[1, ] <- WT_obs  # First row: observed values
+fwrite(WT_resample, file = here("data", "processed", "ressampled", "WallThickness_ressampled.csv")) 
+
+WT_resample <- as.matrix(read.csv(file = here(
+  "data", "processed", "ressampled", "WallThickness_ressampled.csv")))
+
+# Calculate differences between groups
+WT_diff <- WT_resample[, 1] - WT_resample[, 2]  
+
+# --------------------------------------------------------
+# Calculate p-value from resampling distribution
+# --------------------------------------------------------
+WT_pvalue <- sum(abs(WT_diff) >= abs(WT_diff[1])) / length(WT_diff)
+
+# Plot resampling density and mark the observed difference
+plot(density(WT_diff), main = "Resampling Density Plot")
+abline(v = WT_diff[1], col = "red")  # Observed difference line
+abline(v = quantile(WT_diff, c(0.025, 0.975)), col = "black", lty = 2)  # 95% CI
+text(x = 0.45, y = 0.5,cex=0.9, paste("p-value =", round(WT_pvalue,digits = 3)))

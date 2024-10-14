@@ -77,6 +77,19 @@ ggsave(here("outputs","figs","vessel_wall_thickness_plot.png"), plot = g, dpi = 
 
 
 ##################For ressampling
+boot_sspWT_long <- boot_sspWT %>%
+  pivot_longer(cols = everything(), 
+               names_to = "species", 
+               values_to = "wthickness") %>%
+  mutate(parasitism = case_when(
+    species %in% c("Psittacanthus robustus", 
+                   "Phoradendron perrotettii", 
+                   "Struthanthus rhynchophyllus", 
+                   "Viscum album") ~ "Parasite",
+    TRUE ~ "Host"
+  ))
+
+
 
 g <- ggplot(wdata, aes(x = ssp, y = wthickness, fill = parasitism)) +
   geom_jitter(aes(color = label),
@@ -109,9 +122,9 @@ for (pair in species_pairs) {
     filter(species %in% pair)
   
   # Get the 95% CI for each species in the current pair
-  ci_data <- ssp_95ci %>%
+  ci_data <- CI_95 %>%
     as.data.frame() %>%
-    mutate(species = rownames(ssp_95ci)) %>%  # Add rownames as a column
+    mutate(species = rownames(CI_95)) %>%  # Add rownames as a column
     filter(species %in% pair)  # Ensure only pairs are retained
   
   # Create the density plot for the current pair
@@ -136,4 +149,28 @@ for (pair in species_pairs) {
   
   print(plot)  # Print the plot for each pair
 }
+
+# Prepare data
+bootstrap_result_lg <- bootstrap_result %>%
+  pivot_longer(cols = everything(), 
+               names_to = "group", 
+               values_to = "wthickness") 
+
+# Create the density plot with vertical lines
+bootstrap_result_lg %>% 
+  ggplot(aes(x = wthickness, fill = group)) +
+  geom_density(alpha = 0.5) +
+  scale_fill_manual(values = c("Parasite" = "firebrick", "Host" = "grey")) + 
+  labs(title = "Density Plot of Parasites vs Hosts",
+       x = "Vessel Wall Thickness",
+       y = "Density") +
+  # Vlines for Parasite
+  geom_vline(xintercept = c(CI_95[1, "Lower"], CI_95[1, "Upper"]), 
+             linetype = "dashed", color = "firebrick") +
+  # Vlines for Host
+  geom_vline(xintercept = c(CI_95[2, "Lower"], CI_95[2, "Upper"]), 
+             linetype = "dashed", color = "black") +
+  theme_minimal()
+
+
 

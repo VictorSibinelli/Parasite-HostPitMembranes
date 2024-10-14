@@ -125,9 +125,6 @@ shuffle_calculation <- function(x, cols, cat) {
   return(results)
 }
 
-# ------------------------------------------------------
-# Function for shuffling data and taking averages by category
-# ------------------------------------------------------
 shuffle_means <- function(x, cols, cat, rcat = FALSE, rcol = FALSE) {
   shuffled <- x
   
@@ -141,11 +138,12 @@ shuffle_means <- function(x, cols, cat, rcat = FALSE, rcol = FALSE) {
   
   # Calculate the mean for each level of the categorical variable
   results <- tapply(shuffled[[cols]], shuffled[[cat]], mean, na.rm = TRUE)
-  results <- results[!is.na(results)]
   
-  if (!is.numeric(results)) {
-    results <- as.numeric(results)
-  }
+  # Ensure the results are numeric and return as a matrix
+  results <- as.matrix(results)
+  
+  # Remove NA values, if needed
+  results <- results[!is.na(results)]
   
   return(results)
 }

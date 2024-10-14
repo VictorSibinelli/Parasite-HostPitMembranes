@@ -10,7 +10,7 @@
 packages <- c(
   "tidyverse", "here", "plotly", "data.table",
   "groundhog", "car", "htmlwidgets","DHARMa",
-  "lattice", "lme4", "nlme", "predictmeans"
+  "lattice", "lme4", "nlme", "predictmeans", "parallel"
 )
 
 # Install packages not yet installed
