@@ -15,23 +15,10 @@ rm(list = ls())
 # Load data
 wdata <- read.csv(here("data", "processed", "wdata.csv"))
 source(here("scripts", "Functions.R"))
-dataframes <- ls()
+
 
 # Relevel the factors for each data frame
-for (df_name in dataframes) {
-  df <- get(df_name) # Get the data frame by name
-  
-  if ("ssp" %in% colnames(df)) { # Check if 'ssp' column exists
-    df$ssp <- factor(df$ssp, levels = c(
-      "Psittacanthus robustus", "Vochysia thyrsoidea",
-      "Phoradendron perrotettii", "Tapirira guianensis",
-      "Struthanthus rhynchophyllus", "Tipuana tipu",
-      "Viscum album", "Populus nigra"
-    ))
-    assign(df_name, df) # Assign the modified data frame back to its name
-  }
-  rm(df, df_name) # Remove duplicated dataframe
-}
+relevel_factors(ls())
 
 # Variables of interest
 variables <- c("wthickness")
@@ -86,8 +73,10 @@ for (ssp in species) {
 dev.off()
 
 # Save the outlier information as a CSV file
-write.csv(outlier_info, file = file.path(output_dir_tables, "w_outlier.csv"), row.names = FALSE)
+row.names(outlier_info) <- NULL
 print(outlier_info)
+write.csv(outlier_info, file = file.path(output_dir_tables, "w_outlier.csv"), row.names = FALSE)
+
 
 # Save the cleaned data after outlier replacement
 fwrite(wdata, file = here("data", "processed", "wdata_clean.csv"))
@@ -109,3 +98,7 @@ h
 ggsave(here(output_dir_figs, "WthicknessVariance.png"), plot = h, dpi = 600, width = 10, height = 7)
 
 # Homogeneity of variance found inside pairs
+ rm(list=ls())
+
+ cat("Wall Thickness Test assumptions Complete\nSummary:\n1. Slight deviation from normality\n2. Homoscedasticity observed\n")
+ 

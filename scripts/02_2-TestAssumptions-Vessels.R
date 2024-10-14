@@ -8,7 +8,7 @@
 # Load packages
 library(here)
 source(here("scripts", "01-DataWrangling.R"))
-
+source(here("scripts", "functions.R"))
 # Load data
 vdata <- read.csv(here("data", "processed", "vdata.csv"))
 vadata <- read.csv(here("data", "processed", "vadata.csv"))
@@ -65,23 +65,10 @@ HydraulicData$Kmax <- ((pi * pw) / (n * 128)) * # Constants
   (HydraulicData$vdensity * 1e+6) *           # Vessel density in vessels/m² (converted from vessels/mm²)
   ((HydraulicData$HydraulicDiameter * 10e-6)^4) # Vessel diameter in meters to the power of 4
 
-dataframes <- ls()
 
-# Relevel the factors for each data frame
-for (df_name in dataframes) {
-  df <- get(df_name) # Get the data frame by name
-  
-  if ("ssp" %in% colnames(df)) { # Check if 'ssp' column exists
-    df$ssp <- factor(df$ssp, levels = c(
-      "Psittacanthus robustus", "Vochysia thyrsoidea",
-      "Phoradendron perrotettii", "Tapirira guianensis",
-      "Struthanthus rhynchophyllus", "Tipuana tipu",
-      "Viscum album", "Populus nigra"
-    ))
-    assign(df_name, df) # Assign the modified data frame back to its name
-  }
-  rm(df, df_name) # Remove duplicated dataframe
-}
+####relevel factors
+relevel_factors(ls())
+head(HydraulicData)
 
 # Set up plotting for Vessel Diameter Density
 png(filename = file.path(output_dir_figs, "VesselDiameterDensity.png"), 
@@ -89,11 +76,13 @@ png(filename = file.path(output_dir_figs, "VesselDiameterDensity.png"),
 par(mfrow = c(2, 4), oma = c(4, 4, 4, 2), mar = c(2, 2, 2, 2))
 
 for (i in unique(vdata$ssp)) {
-  plot(density(vdata$VesselDiameter[vdata$ssp == i]),
+ p <-  plot(density(vdata$VesselDiameter[vdata$ssp == i]),
        main = paste(i),
        xlab = "Vessel Diameter", 
        ylab = "Density")
   mtext("Vessel Diameter", side = 3, line = 0, outer = TRUE)
+  p
+  print(p)
 }
 dev.off()
 
@@ -103,11 +92,12 @@ png(filename = file.path(output_dir_figs, "VesselDensityDensity.png"),
 par(mfrow = c(2, 4), oma = c(4, 4, 4, 2), mar = c(2, 2, 2, 2))
 
 for (i in unique(vadata$ssp)) {
-  plot(density(vadata$vdensity[vadata$ssp == i]),
+ p <-  plot(density(vadata$vdensity[vadata$ssp == i]),
        main = paste("Density of Vessel Density for", i),
        xlab = "Vessel Density", 
        ylab = "Density")
   mtext("Vessel Density", side = 3, line = 0, outer = TRUE)
+  print(p)
 }
 dev.off()
 
@@ -117,11 +107,12 @@ png(filename = file.path(output_dir_figs, "KmaxDensity.png"),
 par(mfrow = c(2, 4), oma = c(4, 4, 4, 2), mar = c(2, 2, 2, 2))
 
 for (i in unique(HydraulicData$ssp)) {
-  plot(density(HydraulicData$Kmax[HydraulicData$ssp == i]),
+  p <- plot(density(HydraulicData$Kmax[HydraulicData$ssp == i]),
        main = paste("Kmax", i),
        xlab = "Vessel Diameter", 
        ylab = "Density")
   mtext("Kmax", side = 3, line = 0, outer = TRUE)
+  print(p)
 }
 dev.off()
 
@@ -129,14 +120,24 @@ dev.off()
 h <- HydraulicData %>% ggplot(aes(x = ssp, y = HydraulicDiameter)) +
   geom_boxplot()
 ggsave(here(output_dir_figs, "VesselDiameterVariance.png"), plot = h, dpi = 600, width = 10, height = 7)
+print(h)
 
 h <- HydraulicData %>% ggplot(aes(x = ssp, y = vdensity)) +
   geom_boxplot()
 ggsave(here(output_dir_figs, "VesselDensityVariance.png"), plot = h, dpi = 600, width = 10, height = 7)
+print(h)
 
 h <- HydraulicData %>% ggplot(aes(x = ssp, y = Kmax)) +
   geom_boxplot()
 ggsave(here(output_dir_figs, "KmaxVariance.png"), plot = h, dpi = 600, width = 10, height = 7)
+print(h)
 
 # Non-normality and no homoscedasticity for all traits
 write.csv(HydraulicData, file = file.path(here("data", "processed", "HydraulicData.csv")), row.names = FALSE)
+
+
+cat("Vessel Traits Test assumptions Complete 
+    \nSummary:
+    \n1. Great deviation from normality in Vessel diameter
+    \n2. Small deviation from normality in Vessel Density and Kmax
+    \n3.Major heteroscedasticity observed in all vessel traits")

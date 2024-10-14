@@ -9,7 +9,7 @@
 # Package names
 packages <- c(
   "tidyverse", "here", "plotly", "data.table",
-  "groundhog", "car", "htmlwidgets",
+  "groundhog", "car", "htmlwidgets","DHARMa",
   "lattice", "lme4", "nlme", "predictmeans"
 )
 

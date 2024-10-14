@@ -13,29 +13,7 @@ pitO <- read.csv(here("data", "processed", "PitOdata.csv"))
 pitdata <- read.csv(here("data", "processed", "pitdata.csv"))
 source(here("scripts","Functions.R"))
 # Relevel the factors for each data frame
-dataframes <- ls()
-for (df_name in dataframes) {
-  df <- get(df_name) # Get the data frame by name
-  
-  # Check if 'ssp' column exists and is a factor or character
-  if ("ssp" %in% colnames(df)) {
-    if (!is.factor(df$ssp)) {
-      df$ssp <- as.factor(df$ssp) # Convert to factor if not already
-    }
-    
-    # Relevel the factor with the specified levels
-    df$ssp <- factor(df$ssp, levels = c(
-      "Psittacanthus robustus", "Vochysia thyrsoidea",
-      "Phoradendron perrotettii", "Tapirira guianensis",
-      "Struthanthus rhynchophyllus", "Tipuana tipu",
-      "Viscum album", "Populus nigra"
-    ))
-    
-    # Assign the modified data frame back to its name
-    assign(df_name, df, envir = .GlobalEnv)
-  }
-  rm(df)
-}
+relevel_factors(ls())
 
 # Variables of interest for the first dataframe
 variables1 <- c("pitavg", "pcavg", "peavg", "pcd")
@@ -75,8 +53,9 @@ for (var in variables1) {
     pitdata <- result$data
     
     # Plot density comparison
-    plot_density_comparison(result$original_density, result$updated_density, ssp, var)
-    
+    p <- plot_density_comparison(result$original_density, result$updated_density, ssp, var)
+    p
+  
     # Update outlier_info1 with the count of replaced data points
     outlier_info1[outlier_info1$species == ssp, var] <- result$outlier_count
   }
@@ -147,7 +126,10 @@ rm(list=ls())
 
 ##Re-upload original data , can be done with cleanes data
 pitO <- read.csv(here("data", "processed", "PitOdata.csv"))
-pitdata <- read.csv(here("data", "processed", "pitdata.csv"))
+pitdata <- read.csv(here("data", "processed", "pitdata_clean.csv"))
+source(here("scripts","Functions.R"))
+# Relevel the factors for each data frame
+relevel_factors(ls())
 
 variables1 <- c("pitavg", "pcavg", "peavg", "pcd")
 variables2 <- c("PitOpening", "PitDiameter")
@@ -185,4 +167,9 @@ for (var in variables2) {
   plot_name <- paste(var,"_Variance.png",sep="")
   ggsave(here("outputs","figs","assumptions",plot_name), plot = p, dpi = 600, width = 10, height = 7)
 }
+cat("Wall Thickness Test assumptions Complete
+    \nSummary:
+    \n1. Small deviation from normality for most of traits
+    \n2. Aprox. homocesdasticity observed in pitAVG and pitOpening
+    \n3. Heteroscedasticity observed in pcd and pit DIameter")
 

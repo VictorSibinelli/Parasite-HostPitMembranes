@@ -26,19 +26,31 @@ plot_density_comparison <- function(original_density, updated_density, species, 
 # Function to relevel factors in data frames
 relevel_factors <- function(dataframes) {
   for (df_name in dataframes) {
-    df <- get(df_name)  # Get the data frame by name
-    if ("ssp" %in% colnames(df)) {  # Check if 'ssp' column exists
+    df <- get(df_name)  # Get the object by name
+    
+    if (!is.data.frame(df)) next  # Skip non-data frames
+    
+    # Check for the 'ssp' column and reorder factors
+    if ("ssp" %in% colnames(df)) {  
       df$ssp <- factor(df$ssp, levels = c(
         "Psittacanthus robustus", "Vochysia thyrsoidea",
         "Phoradendron perrotettii", "Tapirira guianensis",
         "Struthanthus rhynchophyllus", "Tipuana tipu",
         "Viscum album", "Populus nigra"
       ))
-      assign(df_name, df)  # Assign the modified data frame back to its name
     }
-    rm(df)
+    
+    # Check for 'parasitism' column and reorder factors
+    if ("parasitism" %in% colnames(df)) {  
+      df$parasitism <- factor(df$parasitism, levels = c("Parasite", "Host"))
+    }
+    
+    assign(df_name, df, envir = .GlobalEnv)  # Save the modified data frame
   }
 }
+# Now pass the list of data frame names to the function
+
+
 # ------------------------------------------------------
 # Function to replace outliers with NA and test for normality
 # ------------------------------------------------------

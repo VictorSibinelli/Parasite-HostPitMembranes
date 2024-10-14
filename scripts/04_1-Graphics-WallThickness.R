@@ -46,15 +46,6 @@ text(x = c(2, 6, 10, 14) + 0.3, y = (VWall_results$ParasiteMean+VWall_results$Ho
 
 
 
-# Update `wdata` to include the `parasitism` variable
-wdata <- wdata %>%
-  mutate(parasitism = case_when(
-    ssp %in% c("Psittacanthus robustus", 
-               "Phoradendron perrotettii", 
-               "Struthanthus rhynchophyllus", 
-               "Viscum album") ~ "Parasite",
-    TRUE ~ "Host"
-  ))
 
 
 ########for LMEM

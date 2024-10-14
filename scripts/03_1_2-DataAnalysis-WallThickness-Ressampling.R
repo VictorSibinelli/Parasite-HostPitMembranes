@@ -15,63 +15,21 @@ source(here("scripts", "Functions.R"))    # Load custom functions
 # Load data
 wdata <- read.csv(here("data", "processed", "wdata.csv"))
 
-##### Correct Factor Ordering #####
-######################################
-###########################################
 
 # --------------------------------------------------------
 # Calculate mean wall thickness per label and species
 # --------------------------------------------------------
-WT_avg <- wdata %>%
-  group_by(label, ssp) %>%
+WT_EV <- wdata %>%
+  group_by(label, ssp,parasitism) %>%
   summarise(
-    wthickness = mean(wthickness, na.rm = TRUE),
+    wthickness = median(wthickness, na.rm = TRUE),
     .groups = "drop"  # Drop grouping after summarising
   )
 
-# Add parasitism information based on species name
-WT_avg <- WT_avg %>%
-  mutate(parasitism = case_when(
-    ssp %in% c("Psittacanthus robustus", "Phoradendron perrotettii", 
-               "Struthanthus rhynchophyllus", "Viscum album") ~ "Parasite",
-    TRUE ~ "Host"
-  ))
-
-# Apply the same parasitism classification to the original dataset
-wdata <- wdata %>%
-  mutate(parasitism = case_when(
-    ssp %in% c("Psittacanthus robustus", "Phoradendron perrotettii", 
-               "Struthanthus rhynchophyllus", "Viscum album") ~ "Parasite",
-    TRUE ~ "Host"
-  ))
 
 # --------------------------------------------------------
 # Factor level reordering across all data frames
-# --------------------------------------------------------
-dataframes <- ls()  # List all objects in the environment
-
-for (df_name in dataframes) {
-  df <- get(df_name)  # Get the object by name
-  
-  # Check for the 'ssp' column and reorder factors
-  if ("ssp" %in% colnames(df)) {  
-    df$ssp <- factor(df$ssp, levels = c(
-      "Psittacanthus robustus", "Vochysia thyrsoidea",
-      "Phoradendron perrotettii", "Tapirira guianensis",
-      "Struthanthus rhynchophyllus", "Tipuana tipu",
-      "Viscum album", "Populus nigra"
-    ))
-    
-    # Check for 'parasitism' column and reorder factors
-    if ("parasitism" %in% colnames(df)) {  
-      df$parasitism <- factor(df$parasitism, levels = c("Parasite", "Host"))
-    }
-    
-    assign(df_name, df)  # Save the modified data frame
-  }
-  
-  rm(df, df_name)  # Remove temporary variables
-}
+relevel_factors(ls())
 
 # Define species pairs for comparison
 species_pairs <- list(
@@ -85,23 +43,26 @@ species_pairs <- list(
 # Permutation test setup
 # --------------------------------------------------------
 set.seed(42)  # Set seed for reproducibility
-iterations <- 1000  # Number of iterations for resampling
+iterations <- 1000000  # Number of iterations for resampling
 
 # Calculate observed difference in mean wall thickness by parasitism
-WT_obs <- tapply(WT_avg$wthickness, WT_avg$parasitism, mean)
+WT_obs <- tapply(WT_EV$wthickness, WT_EV$parasitism, median)
 WT_obsdiff <- WT_obs[1] - WT_obs[2]  # Observed difference
 
-# Perform resampling to create null distribution
-WT_resample <- t(replicate(iterations,
-                           shuffle_means(x = WT_avg, cols = "wthickness", cat = "parasitism")))
+# Perform resampling to create null distribution --> If it is the first time runing this script,
+#uncoment lines 54-59
+# WT_resample <- t(replicate(iterations,
+#                             shuffle_means(x = WT_EV, cols = "wthickness", cat = "parasitism")))
+# 
+# 
+# WT_resample[1, ] <- WT_obs  # First row: observed values
+# fwrite(WT_resample, file = here("data", "processed", "ressampled", "WallThickness_ressampled.csv")) 
 
-WT_resample[1, ] <- WT_obs  # First row: observed values
+WT_resample <- as.matrix(read.csv(file = here(
+  "data", "processed", "ressampled", "WallThickness_ressampled.csv")))
 
 # Calculate differences between groups
 WT_diff <- WT_resample[, 1] - WT_resample[, 2]  
-
-# Write resampling results to CSV
-fwrite(WT_resample, file = here("data", "processed", "ressampled", "WallThickness_ressampled.csv")) 
 
 # --------------------------------------------------------
 # Calculate p-value from resampling distribution
@@ -112,14 +73,14 @@ WT_pvalue <- sum(abs(WT_diff) >= abs(WT_diff[1])) / length(WT_diff)
 plot(density(WT_diff), main = "Resampling Density Plot")
 abline(v = WT_diff[1], col = "red")  # Observed difference line
 abline(v = quantile(WT_diff, c(0.025, 0.975)), col = "black", lty = 2)  # 95% CI
-text(x = 0.5, y = 0.5, paste("p-value =", WT_pvalue))
+text(x = 0.45, y = 0.5,cex=0.9, paste("p-value =", round(WT_pvalue,digits = 3)))
 
 
 # --------------------------------------------------------
 # Bootstrap test for resampling with replacement
 # --------------------------------------------------------
 bootstrap_result <- t(replicate(iterations,
-                                shuffle_means(x = WT_avg, cols = "wthickness", 
+                                shuffle_means(x = WT_EV, cols = "wthickness", 
                                               cat = "parasitism", rcol = TRUE, rcat = TRUE)))
 
 # Store observed values in the first row
@@ -140,7 +101,7 @@ text(x = 0.5, y = 0.5, paste("p-value =", bootp))
 # --------------------------------------------------------
 # Pair-wise species comparisons
 # --------------------------------------------------------
-WTssp_obs <- tapply(WT_avg$wthickness, WT_avg$ssp, mean)  # Observed species means
+WTssp_obs <- tapply(WT_EV$wthickness, WT_EV$ssp, mean)  # Observed species means
 WTssp_diff_obs <- c(
   WTssp_obs[1] - WTssp_obs[2],  # P. robustus - V. thyrsoidea
   WTssp_obs[3] - WTssp_obs[4],  # P. perrotettii - T. guianensis
@@ -154,7 +115,7 @@ iterations <- 50  # Number of iterations for resampling
 
 # Loop through each species pair and perform resampling
 for (pair in species_pairs) {
-  subset_data <- subset(WT_avg, ssp %in% pair)  # Subset data for the current pair
+  subset_data <- subset(WT_EV, ssp %in% pair)  # Subset data for the current pair
   boot_resample <- t(replicate(iterations, 
                                shuffle_means(x = subset_data, 
                                              cols = "wthickness", 
@@ -206,7 +167,7 @@ for (i in 1:length(species_pairs)) {
 # --------------------------------------------------------
 # Bootstrap CIs for each species
 # --------------------------------------------------------
-boot_sspWT <- tapply(WT_avg$wthickness, WT_avg$ssp, function(x) {
+boot_sspWT <- tapply(WT_EV$wthickness, WT_EV$ssp, function(x) {
   replicate(100, mean(sample(x, replace = TRUE), na.rm = TRUE))  # Generate 100 bootstrap means
 })
 
@@ -225,7 +186,7 @@ boot_sspWT_long <- boot_sspWT_df %>%
   pivot_longer(cols = everything(), 
                names_to = "species", 
                values_to = "wthickness") %>%
-  left_join(WT_avg %>% select(ssp, parasitism) %>% distinct(), 
+  left_join(WT_EV %>% select(ssp, parasitism) %>% distinct(), 
             by = c("species" = "ssp"))  # Join with species and parasitism info
 
 # Prepare results for Monte Carlo
