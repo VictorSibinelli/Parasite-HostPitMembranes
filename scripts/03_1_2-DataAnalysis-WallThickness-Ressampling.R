@@ -70,9 +70,6 @@ fwrite(bootstrap_result, file = here("data", "processed", "ressampled", "WallThi
 # Load bootstrap results and calculate differences
 bootstrap_result <- read.csv(file = here("data", "processed", "ressampled", "WallThickness_bootstrap.csv"))
 boot_diff <- bootstrap_result[, 1] - bootstrap_result[, 2]  # Difference in bootstrap results
-CI_95 <- bootstrap_result %>% apply(2,function(x){
-  quantile(x,probs = c(0.025,0.975))
-}) %>% t() # 95% confidence interval
 
 # Plot bootstrap density and mark observed difference and CI
 plot(density(boot_diff), main = "Bootstrap Density Plot")
@@ -80,6 +77,24 @@ abline(v = WT_obsdiff, col = "red", lwd = 2)  # Observed difference line
 abline(v = quantile(boot_diff, c(0.025, 0.975)), col = "black", lwd = 2)  # 95% CI lines
 bootp <- sum(boot_diff >= abs(WT_obsdiff)) / length(boot_diff)  # Calculate p-value
 text(x = 0.5, y = 0.5, paste("p-value =", bootp))
+
+
+para_boot <- replicate(n = 5, {
+  WT_EV %>%
+    filter(parasitism == "Parasite") %>% 
+    pull(wthickness) %>%  # Extract the wthickness column
+    sample(replace = TRUE) %>% mean()  # Sample with replacement and calculate mean
+})
+host_boot <- replicate(n = 5, {
+  WT_EV %>%
+    filter(parasitism == "Host") %>% 
+    pull(wthickness) %>%  # Extract the wthickness column
+    sample(replace = TRUE) %>% mean()  # Sample with replacement and calculate mean
+})
+host_CI <- host_boot %>% quantile(probs=c(0.025,0.975))
+para_CI <- para_boot %>% quantile(probs=c(0.025,0.975))
+
+
 
 # --------------------------------------------------------
 # Pair-wise species comparisons
@@ -94,7 +109,7 @@ text(x = 0.5, y = 0.5, paste("p-value =", bootp))
 #
 # # Initialize a list to store results for each pair
  pair_results <- list()
- iterations <- 200000  # Number of iterations for resampling
+ iterations <- 200  # Number of iterations for resampling
 
  # Loop through each species pair and perform resampling
 # for (pair in species_pairs) {
@@ -151,7 +166,7 @@ for (i in 1:length(species_pairs)) {
 # --------------------------------------------------------
 # Bootstrap CIs for each species
 # --------------------------------------------------------
-#boot_sspWT <- tapply(WT_EV$wthickness, WT_EV$ssp, function(x) {
+boot_sspWT <- tapply(WT_EV$wthickness, WT_EV$ssp, function(x) {
   replicate(iterations, mean(sample(x, replace = TRUE), na.rm = TRUE))  
 })
 
@@ -166,8 +181,10 @@ ssp_95ci <- as.data.frame(t(apply(boot_sspWT, MARGIN = 2, function(x) {
   quantile(x, probs = c(0.025, 0.975), na.rm = TRUE)  # Calculate CI
 })))
 
-
-
+CI95 <- rbind(para_CI,host_CI,ssp_95ci)
+row.names(CI95)[1:2] <- c("Parasite","Host")
+colname(CI95) <- c("Lower","Upper")
+CI95$Estimate <- na.omit(c(WT_obs, WTssp_obs))
 
 # Prepare results for Monte Carlo
 WT_MonteCarlo <- data.frame(
@@ -178,10 +195,9 @@ WT_MonteCarlo <- data.frame(
   Pvalue = numeric(5),
   stringsAsFactors = FALSE
 )
-CI_95 <- rbind(CI_95,ssp_95ci)
-colnames(CI_95) <- c("lower", "upper")
+
 WT_MonteCarlo$Observed_diff <- c(WT_obsdiff, WTssp_diff_obs)  # Add observed differences
 WT_MonteCarlo$Pvalue <- c(bootp, ssp_pvalues)  # Add p-values
 fwrite(WT_MonteCarlo, file = here("outputs", "tables", "WT_MonteCarlo_results.csv"))
-fwrite(CI_95, file = here("outputs", "tables", "WT_MonteCarlo_CI95.csv"))
+fwrite(CI95, file = here("outputs", "tables", "WT_MonteCarlo_CI95.csv"))
 

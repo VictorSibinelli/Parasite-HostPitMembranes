@@ -5,7 +5,7 @@
 # Script 03.2 - Data Analysis - Vessels
 #################################################################
 library(here)
-#source(here("scripts", "02_2-TestAssumptions-Vessels.R"))
+source(here("scripts", "02_2-TestAssumptions-Vessels.R"))
 rm(list = ls())
 
 source(here("scripts", "Functions.R"))
@@ -25,87 +25,64 @@ species_pairs <- list(
 )
 
 
-Hydraulic_means <- HydraulicData %>%
+Hydraulic_EV <- HydraulicData %>%
   group_by(indiv) %>%
   summarise(
     ssp = first(ssp),  # Or use any other summary function if needed
-    HydraulicDiameter = mean(HydraulicDiameter, na.rm = TRUE),
-    vdensity = mean(vdensity, na.rm = TRUE),
-    Kmax = mean(Kmax, na.rm = TRUE),
+    HydraulicDiameter = median(HydraulicDiameter, na.rm = TRUE),
+    vdensity = median(vdensity, na.rm = TRUE),
+    Kmax = median(Kmax, na.rm = TRUE),
     parasitism = first(parasitism),  # This assumes the same for each individual
     .groups = "drop"
   )
 
-dataframes <- ls()  # List all objects in the environment
-
-for (df_name in dataframes) {
-  df <- get(df_name)  # Get the object by name
-  
-  if ("ssp" %in% colnames(df)) {  # If the object contains the 'ssp' column
-    df$ssp <- factor(df$ssp, levels = c(
-      "Psittacanthus robustus", "Vochysia thyrsoidea",
-      "Phoradendron perrotettii", "Tapirira guianensis",
-      "Struthanthus rhynchophyllus", "Tipuana tipu",
-      "Viscum album", "Populus nigra"
-    ))
-    if ("parasitism" %in% colnames(df)) {  # If the object contains the 'ssp' column
-      df$parasitism <- factor(df$parasitism, levels = c("Parasite","Host"))
-      assign(df_name, df)  # Save the modified data frame
-    }
-    rm(df, df_name)  # Remove temporary variables
-  }}
+relevel_factors(ls())
 # Number of iterations for the permutation test
-iterations <- 100
+iterations <- 10
 set.seed(42)
 # Specify the columns for which you want to calculate bootstrap values
-vars <- colnames(Hydraulic_means)[3:5]
+vars <- colnames(Hydraulic_EV)[3:5]
 
 # Initialize a list to store results for each variable
 bootstrap_results <- list()
 
 # Loop through each variable to calculate bootstrap values
 for (v in vars) {
-  name <- paste(v, "bootstrap values", sep = " ")
   
-  # Store the results in the list using the variable name as the key
-  bootstrap_results[[name]] <- t(replicate(iterations,
-                                           shuffle_means(
-                                             Hydraulic_means, cols = v, cat = "parasitism",rcol = T)))
+  # Generate descriptive name for storing bootstrap values
+  bootstrap_results[[v]] <- t(replicate(iterations, 
+                                        shuffle_means(
+                                          Hydraulic_EV, 
+                                          cols = v, 
+                                          cat = "parasitism", 
+                                          rcol = TRUE)))
+  
+  # Assign column names based on parasitism levels
+  colnames(bootstrap_results[[v]]) <- levels(Hydraulic_EV$parasitism)
 }
 
 lapply(bootstrap_results,head)
 
-Obs_values <-  Hydraulic_means %>% group_by(parasitism) %>% 
+
+Obs_values <-  Hydraulic_EV %>% group_by(parasitism) %>% 
   summarize(HydraulicDiameter = mean(HydraulicDiameter, na.rm = TRUE),
             vdensity = mean(vdensity, na.rm = TRUE),
             Kmax = mean(Kmax, na.rm = TRUE),
             parasitism = first(parasitism),  # This assumes the same for each individual
             .groups = "drop")
 
+bootstrap_results[[1]][1,] <- t(Obs_values[,2])
+bootstrap_results[[2]][1,] <- t(Obs_values[,3])
+bootstrap_results[[3]][1,] <- t(Obs_values[,4])
 
-HD_bootstrap <- bootstrap_results[[1]]
-VesselDensity_bootstrap <-bootstrap_results[[2]] 
-Kmax_bootstrap <- bootstrap_results[[3]]
 
 
-#adding observed value
-HD_bootstrap[1,] <- t(Obs_values[,2])
-VesselDensity_bootstrap[1,] <- t(Obs_values[,3])
-Kmax_bootstrap[1,] <- t(Obs_values[,4])
-
-# Create a list of the bootstrap matrices
-boot_frames <- list(HD_bootstrap = HD_bootstrap, 
-                    VesselDensity_bootstrap = VesselDensity_bootstrap, 
-                    Kmax_bootstrap = Kmax_bootstrap)
 
 # Calculate differences using lapply and bind the results into a data frame
-boot_diffs <- lapply(boot_frames, function(matrix) {
-  matrix[, 1] - matrix[, 2]
-}) %>% do.call(what=cbind,)
-
-colnames(boot_diffs) <- names(boot_frames) 
-
-
+head(bootstrap_results)
+boot_diffs <- bootstrap_results %>% lapply(FUN = function(x){
+  x[,1]-x[,2]
+}) %>% do.call(what=cbind)
 
 
 ## Create a vector of column names
@@ -132,62 +109,56 @@ sapply(seq_along(column_names), function(i) {
   title(main = col_name)
 })
 
-p_values <- apply(boot_diffs,2,function(x){
+# Calculate p-values
+p_values <- apply(boot_diffs, 2, function(x) {
   sum(abs(x) >= abs(x[1]), na.rm = TRUE) / length(x)
-})
+}) %>% as.data.frame() %>% t()
+row.names(p_values) <- "Parasite vs Host"
+print(p_values)
 
 
 # Function to shuffle and calculate means for each variable (Host)
 host_boot <- replicate(n = iterations, {
   sapply(vars, function(var) {
-    Hydraulic_means %>%
+    Hydraulic_EV %>%
       subset(parasitism == "Host") %>%
       shuffle_means(cols = var, cat = "parasitism", rcol = TRUE)
   })
-}, simplify = TRUE)
+}, simplify = TRUE) %>% t()
 
-# Convert results to a data frame for each variable
-host_boot <- as.data.frame(t(host_boot))
-colnames(host_boot) <- vars
-
-# Convert to a matrix (if needed)
-host_boot <- as.matrix(host_boot)
 
 # Function to shuffle and calculate means for each variable (Parasite)
 para_boot <- replicate(n = iterations, {
   sapply(vars, function(var) {
-    Hydraulic_means %>%
+    Hydraulic_EV %>%
       subset(parasitism == "Parasite") %>%
       shuffle_means(cols = var, cat = "parasitism", rcol = TRUE)
   })
-}, simplify = TRUE)
+}, simplify = TRUE) %>% t()
 
-# Convert results to a data frame for each variable
-para_boot <- as.data.frame(t(para_boot))
-colnames(para_boot) <- vars
-
-# Convert to a matrix (if needed)
-para_boot <- as.matrix(para_boot)
 
 # Calculate CI95 for each variable (using 2.5th and 97.5th percentiles)
 host_CI95 <- t(apply(host_boot, 2, function(x) {
   quantile(x, c(0.025, 0.975), na.rm = TRUE)
-}))
+})) %>% as.data.frame()
 
 para_CI95 <- t(apply(para_boot, 2, function(x) {
   quantile(x, c(0.025, 0.975), na.rm = TRUE)
-}))
+})) %>% as.data.frame()
 
 # Add the observed values to each as a new column
 para_CI95 <- cbind(para_CI95, Obs = as.numeric(Obs_values[1, 2:4]))
 host_CI95 <- cbind(host_CI95, Obs = as.numeric(Obs_values[2, 2:4]))
-
+colnames(para_CI95) <- c("Lower","Upper","Mean")
+colnames(host_CI95) <- c("Lower","Upper","Mean")
+host_CI95$ssp <- "Host"
+para_CI95$ssp <- "Parasite"
 
 
 #########pair wise comparisson
 # Initialize an empty list to store results for each species pair
-ssp_obs <- apply(Hydraulic_means[,vars],2,function(x){
-  tapply(x,Hydraulic_means$ssp,mean)
+ssp_obs <- apply(Hydraulic_EV[,vars],2,function(x){
+  tapply(x,Hydraulic_EV$ssp,mean)
 })
 
 
@@ -196,7 +167,7 @@ pair_boot=list()
 # Iterate through each species pair
 for (pair in species_pairs) {
   # Subset the data for the current species pair
-  subset_data <- subset(Hydraulic_means, ssp %in% pair)
+  subset_data <- subset(Hydraulic_EV, ssp %in% pair)
   
   # Initialize an empty result data frame
   result <- data.frame()
@@ -284,51 +255,75 @@ ssp_pvalues <- sapply(valid_diffs_list, simplify = TRUE, function(x) {
   apply(x, 2, function(y) {
     sum(abs(y) >= abs(y[1]), na.rm = TRUE) / length(y)
   })
-}) %>% t()
+}) %>% t() %>% as.data.frame()
 
 # Print the results to verify
-print(ssp_pvalues)
+
+P_values <- rbind(p_values,ssp_pvalues)
+print(P_values)
+
+# Initialize a list to store bootstrap results
+ssp_CI95 <- vector("list", iterations)
+
+# Bootstrap sampling and calculation of CI95
+# Using replicate to perform bootstrap sampling
+ssp_CI95 <- replicate(
+  iterations,
+  Hydraulic_EV %>%
+    group_by(ssp) %>%
+    summarise(
+      HydraulicDiameter = mean(sample(HydraulicDiameter, replace = TRUE)),
+      VesselDensity = mean(sample(vdensity, replace = TRUE)),
+      Kmax = mean(sample(Kmax, replace = TRUE)),
+      .groups = 'drop'
+    ),
+  simplify = FALSE  # Ensure the result is a list
+)
 
 
-# Initialize an empty list to store results
-ssp_CI95 <- list()
+# Combine all bootstrap samples into a data frame
+ssp_CI95 <- bind_rows(bootstrap_results, .id = "iteration")
 
-# Calculate confidence intervals for each species
-for (y in pair_boot) {
-  # Use tryCatch to handle potential errors
-  tryCatch({
-    if (ncol(y) >= 5 && "ssp" %in% colnames(y)) {
-      # Split the data by 'ssp' and calculate confidence intervals
-      split_data <- split(y[, 3:5], y$ssp)
-      for (ssp_name in names(split_data)) {
-        ci_df <- as.data.frame(t(apply(split_data[[ssp_name]], 2, function(col) {
-          quantile(col, c(0.025, 0.975), na.rm = TRUE)
-        })))
-        # Add variable names and reorder columns
-        ci_df <- cbind(variable = rownames(ci_df), ci_df)
-        colnames(ci_df) <- c("variable", "lower", "upper")
-        rownames(ci_df) <- NULL
-        
-        # Combine results for the current species
-        if (is.null(ssp_CI95[[ssp_name]])) {
-          ssp_CI95[[ssp_name]] <- ci_df  # Initialize if NULL
-        } else {
-          ssp_CI95[[ssp_name]] <- rbind(ssp_CI95[[ssp_name]], ci_df)  # Combine results
-        }
-      }
-    } else {
-      warning("Data frame does not have expected structure or 'ssp' column is missing.")
-    }
-  }, error = function(e) {
-    # Print a message and continue if there's an error
-    message("Error processing one of the data frames: ", conditionMessage(e))
-  })
+# Create a list to hold CI95 for each variable
+CI95 <- list()
+variables <- c("HydraulicDiameter", "VesselDensity", "Kmax")
+
+# Calculate CI95 for each variable and store in the list
+for (var in variables) {
+  CI95[[var]] <- bootstrap_results_df %>%
+    group_by(ssp) %>%
+    summarise(
+      Lower = quantile(get(var), 0.025),
+      Mean = mean(get(var)),
+      Upper = quantile(get(var), 0.975),
+      .groups = 'drop'
+    )
 }
 
-# Print the resulting list of data frames
-print(ssp_CI95)
+# Loop through each variable and update CI95
+for (var in variables) {
+  # Extract rows for Parasite and Host
+  para_row <- para_CI95[which(para_CI95$ssp == "Parasite" & rownames(para_CI95) == var), ]
+  host_row <- host_CI95[which(host_CI95$ssp == "Host" & rownames(host_CI95) == var), ]
+  
+  # Combine the rows for Parasite and Host first
+  combined_rows <- bind_rows(
+    para_row %>% mutate(ssp = "Parasite", .before = 1),
+    host_row %>% mutate(ssp = "Host", .before = 1)
+  )
+  
+  # Update CI95 for the variable by combining combined_rows and remaining_rows
+  CI95[[var]] <- bind_rows(combined_rows, remaining_rows)
+  CI95[[var]] <- CI95[[var]] %>%
+    select(ssp, Lower, Mean, Upper)  # Ensure the order: ssp, Lower, Mean, Upper
+  
+  # Clean up the row names to avoid suffixes
+  rownames(CI95[[var]]) <- NULL
+}
 
-
+# Display the updated CI95 list
+print(CI95)
+fwrite(CI95,file=here("outputs","tables","Vessels_MonteCarlo_CI95.csv"))
 print("Data analysis - vessels completed. Head to Graphics vessels")
 
 
