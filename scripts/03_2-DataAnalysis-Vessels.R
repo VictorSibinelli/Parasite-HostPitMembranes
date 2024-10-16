@@ -282,7 +282,7 @@ ssp_CI95 <- replicate(
 
 
 # Combine all bootstrap samples into a data frame
-ssp_CI95 <- bind_rows(bootstrap_results, .id = "iteration")
+ssp_CI95 <- bind_rows(ssp_CI95, .id = "iteration")
 
 # Create a list to hold CI95 for each variable
 CI95 <- list()
@@ -290,7 +290,7 @@ variables <- c("HydraulicDiameter", "VesselDensity", "Kmax")
 
 # Calculate CI95 for each variable and store in the list
 for (var in variables) {
-  CI95[[var]] <- bootstrap_results_df %>%
+  CI95[[var]] <- ssp_CI95 %>%
     group_by(ssp) %>%
     summarise(
       Lower = quantile(get(var), 0.025),
@@ -302,24 +302,15 @@ for (var in variables) {
 
 # Loop through each variable and update CI95
 for (var in variables) {
-  # Extract rows for Parasite and Host
-  para_row <- para_CI95[which(para_CI95$ssp == "Parasite" & rownames(para_CI95) == var), ]
-  host_row <- host_CI95[which(host_CI95$ssp == "Host" & rownames(host_CI95) == var), ]
+  CI95[[var]] <- bind_rows(
+    para_CI95 %>% filter(rownames(para_CI95) == var) %>% mutate(ssp = "Parasite", .before = 1),
+    host_CI95 %>% filter(rownames(host_CI95) == var) %>% mutate(ssp = "Host", .before = 1),
+    CI95[[var]] %>% select(ssp, Lower, Mean, Upper)  # Reorder to ensure ssp is first
+  ) %>% select(ssp, Lower, Mean, Upper)
   
-  # Combine the rows for Parasite and Host first
-  combined_rows <- bind_rows(
-    para_row %>% mutate(ssp = "Parasite", .before = 1),
-    host_row %>% mutate(ssp = "Host", .before = 1)
-  )
-  
-  # Update CI95 for the variable by combining combined_rows and remaining_rows
-  CI95[[var]] <- bind_rows(combined_rows, remaining_rows)
-  CI95[[var]] <- CI95[[var]] %>%
-    select(ssp, Lower, Mean, Upper)  # Ensure the order: ssp, Lower, Mean, Upper
-  
-  # Clean up the row names to avoid suffixes
-  rownames(CI95[[var]]) <- NULL
+  rownames(CI95[[var]]) <- NULL  # Remove rownames
 }
+
 
 # Display the updated CI95 list
 print(CI95)
