@@ -32,7 +32,8 @@ relevel_factors(ls())
 species_pairs <- list(
   c("Psittacanthus robustus", "Vochysia thyrsoidea"),
   c("Phoradendron perrotettii", "Tapirira guianensis"),
-  c("Struthanthus rhynchophyllus", "Tipuana tipu")
+  c("Struthanthus rhynchophyllus", "Tipuana tipu"),
+  c("Viscum album","Populus nigra")
 )
 
 # Initialize result data frames
@@ -43,7 +44,7 @@ PitDiameter_results <- data.frame(PairTested = character(),
                                   REVariance = numeric(),
                                   PValue = numeric(),
                                   DeltaAIC = numeric(),
-                                  stringsAsFactors = FALSE)
+                                  stringsAsFactors = FALSE) %>% as.tibble
 
 PitOpening_results <- data.frame(PairTested = character(),
                                  ParasiteMean = numeric(),
@@ -52,7 +53,8 @@ PitOpening_results <- data.frame(PairTested = character(),
                                  REVariance = numeric(),
                                  PValue = numeric(),
                                  DeltaAIC = numeric(),
-                                 stringsAsFactors = FALSE)
+                                 stringsAsFactors = FALSE) %>% as.tibble()
+
 
 PitMembrane_results <- data.frame(Parasite = character(),
                                   Host = character(),
@@ -60,7 +62,7 @@ PitMembrane_results <- data.frame(Parasite = character(),
                                   HostMean = numeric(),
                                   MeanDifference = numeric(),
                                   pvalue = numeric(),
-                                  stringsAsFactors = FALSE)
+                                  stringsAsFactors = FALSE) %>% as.tible
 
 pcd_results <- data.frame(Parasite = character(),
                           Host = character(),
@@ -68,7 +70,7 @@ pcd_results <- data.frame(Parasite = character(),
                           HostMean = numeric(),
                           MeanDifference = numeric(),
                           pvalue = numeric(),
-                          stringsAsFactors = FALSE)
+                          stringsAsFactors = FALSE) %>% as.tibble()
 
 # Fit models for PitDiameter and perform ANOVA
 full_model_diameter <- lme(PitDiameter ~ parasitism, random = ~ 1 | ssp/label, data = pitOdata,
@@ -295,30 +297,90 @@ for (pair in species_pairs) {
 }
 
 ######Pit chamber
+ssps <- unlist(species_pairs)
+# Initialize empty data frame to store results
+PeXPc_df <- data.frame(Difference = numeric(), PValue = numeric(), stringsAsFactors = FALSE)
+
+for (s in ssps) {
+  subset_data <- pitdata[pitdata$ssp == s, ]
+  
+  if (nrow(subset_data) > 1) { # Ensure there's enough data for the t-test
+    t <- t.test(subset_data$peavg, subset_data$pcavg, var.equal = TRUE)
+    result <- data.frame(Difference = diff(t$estimate), PValue = t$p.value)
+    PeXPc_df <- rbind(PeXPc_df, result)
+    rownames(PeXPc_df)[nrow(PeXPc_df)] <- s
+  } else {
+    cat("Not enough data for species:", s, "\n")
+  }
+}
+# Display the result
+PeXPc_df
+
+
 full_model <- lme(pcd ~ parasitism, random = ~ 1 | ssp, data = pitdata)
 reduced_model <- lme(pcd ~ 1, random = ~ 1 | ssp, data = pitdata)
-anova(full_model,reduced_model)#non siginificant
+a <- anova(full_model,reduced_model)#non siginificant
+full_model$coefficients$fixed
+
+pcd_results <- rbind(pcd_results, data.frame(
+  Parasite = "Parasites",
+  Host = "Hosts",
+  ParasiteMean = full_model$coefficients$fixed[1]*1000,
+  HostMean = sum(full_model$coefficients$fixed) * 1000,
+  MeanDifference = full_model$coefficients$fixed[2] * 1000,
+  pvalue = a$`p-value`[2],
+  stringsAsFactors = FALSE
+))
+
 
 full_model <- lme(pitavg ~ parasitism, random = ~ 1 | ssp,na.omit(pitdata))
 reduced_model <- lme(pitavg ~ 1, random = ~ 1 | ssp,na.omit(pitdata))
-anova(full_model,reduced_model)#
+anova(full_model,reduced_model)#Significant
+PitMembrane_results <- rbind(PitMembrane_results, data.frame(
+  Parasite = "Parasites",
+  Host = "Hosts",
+  ParasiteMean = full_model$coefficients$fixed[1]*1000,
+  HostMean = sum(full_model$coefficients$fixed) * 1000,
+  MeanDifference = full_model$coefficients$fixed[2] * 1000,
+  pvalue = a$`p-value`[2],
+  stringsAsFactors = FALSE
+))
 
-full_model <- lme(I(pcavg - peavg) ~ parasitism, 
-                 random = ~ 1 | ssp, 
-                 data = na.omit(pitdata))
-reduced_model <-lme(I(pcavg - peavg) ~ 1, 
-    random = ~ 1 | ssp, 
-    data = na.omit(pitdata))
-anova(full_model,reduced_model)#non significant 
+for (pair in species_pairs) {
+  subset_data <- pitdata[pitdata$ssp %in% pair, ]
+  t1 <- t.test(pcd~ssp,var.equal=F,data=subset_data)
+  pcd_results <- rbind(pcd_results, data.frame(
+    Parasite = pair[1],
+    Host = pair[2],
+    ParasiteMean = t1$estimate[1] * 1000,
+    HostMean = t1$estimate[2] * 1000,
+    MeanDifference = diff(t1$estimate) * 1000,
+    pvalue = t1$p.value,
+    stringsAsFactors = FALSE
+  ))
+  t2 <- t.test(pitavg~ssp,var.equal=T,data = subset_data)
+  PitMembrane_results <- rbind(PitMembrane_results, data.frame(
+    Parasite = pair[1],
+    Host = pair[2],
+    ParasiteMean = t2$estimate[1],
+    HostMean = t2$estimate[2],
+    MeanDifference = diff(t2$estimate),
+    pvalue = t2$p.value,
+    stringsAsFactors = FALSE
+  ))
+}
 
 
+# Convert data frames to tibbles
+PitDiameter_results <- as_tibble(PitDiameter_results)
+PitOpening_results <- as_tibble(PitOpening_results)
+PitMembrane_results <- as_tibble(PitMembrane_results)
+pcd_results <- as_tibble(pcd_results)
 
-print(PitDiameter_results)
-print(PitOpening_results)
-
-###########################################################
-
+##########################################################
 
 #save result tables
 fwrite(PitDiameter_results, file=here("outputs","tables","PitDiameter_AIC")) #save data frame
 fwrite(PitOpening_results, file=here("outputs","tables","PitOpening_AIC")) #save data frame
+fwrite(pcd_results, file=here("outputs","tables","PCD_AIC")) #save data frame
+fwrite(PitMembrane_results, file=here("outputs","tables","PitMembrane_AIC")) #save data frame
