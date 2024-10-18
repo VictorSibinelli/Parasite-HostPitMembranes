@@ -3,24 +3,16 @@
 # 13/07/2024
 # Script 03.3 - Data Analysis - Pit membranes - Bootstrap
 #################################################################
-
+library(here)
 # Load script for testing assumptions of pit data and remove any existing objects from the environment
-source(here("scripts", "02_3-TestAssumptions-Pit.R"))
+#source(here("scripts", "02_3-TestAssumptions-Pit.R"))
 rm(list = ls())  # Clear environment
+source(here("scripts","00-library.R"))
 source(here("scripts", "Functions.R"))  # Load custom functions
 
-# Load pre-processed pit membrane data
-pitdata <- fread(here("data", "processed", "pitdata.csv")) %>% as.tibble()  # Load main pit data
-pitOdata <- fread(here("data", "processed", "pitOdata.csv")) %>% as.tibble()# Load pit opening data
-
-
-library(dplyr)
-
 # Load your data (assuming these lines are already included)
-pitdata <- fread(here("data", "processed", "pitdata.csv")) %>% as.tibble()  # Load main pit data
+pitdata <- fread(here("data", "processed", "pitdata.csv"))[,c(1,7,8,11)] %>% as.tibble()  # Load main pit data
 pitOdata <- fread(here("data", "processed", "pitOdata.csv")) %>% as.tibble()  # Load pit opening data
-
-# Keep only the first occurrence of each 'ssp' (assuming you want the first based on the order in the data)
 
 
 # Summarize data for each species and parasite/host
@@ -41,15 +33,58 @@ species_pairs <- list(
   c("Struthanthus rhynchophyllus", "Tipuana tipu"),     # Pair 3
   c("Viscum album", "Populus nigra")                    # Pair 4
 )
+
+# Summarize Pit_EV by parasitism
+Obs1 <- Pit_EV %>%
+  group_by(parasitism) %>%
+  summarize(
+    Grouping = first(parasitism),  # Rename parasitism to Grouping
+    PitDiameter = mean(PitDiameter, na.rm = TRUE),
+    PitOpening = mean(PitOpening, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%select(Grouping, PitDiameter, PitOpening) %>%
+  rbind(Pit_EV %>%
+          group_by(ssp) %>%
+          summarize(
+            Grouping = first(ssp),  # Rename ssp to Grouping
+            PitDiameter = mean(PitDiameter, na.rm = TRUE),
+            PitOpening = mean(PitOpening, na.rm = TRUE),
+            .groups = "drop")%>%select(Grouping, PitDiameter, PitOpening) 
+  )
+
+# Summarize pitdata by parasitism
+Obs2 <- pitdata %>%
+  group_by(parasitism) %>%
+  summarize(
+    Grouping = first(parasitism),  # Rename parasitism to Grouping
+    Pcd = mean(pcd, na.rm = TRUE),
+    Tpm = mean(pitavg, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%select(Grouping, Pcd, Tpm) %>%
+  rbind(pitdata %>%
+          group_by(ssp) %>%
+          summarize(
+            Grouping = first(ssp),  # Rename ssp to Grouping
+            Pcd = mean(pcd, na.rm = TRUE),
+            Tpm = mean(pitavg, na.rm = TRUE),
+            .groups = "drop") %>% select(Grouping, Pcd, Tpm)
+  )
+
+# Merge the two summarized data frames by the Grouping column
+Obs_values <- merge(Obs1, Obs2, by = "Grouping", all = TRUE)  # Change all=TRUE to all.x=TRUE for left join
+
+rm(list = c("Obs1", "Obs2", "pitOdata"))
+
+
 # Define the variables of interest for bootstrapping
 vars <- colnames(Pit_EV[4:5])  # For Pit_EV: PitDiameter and PitOpening
-vars2 <- colnames(pitdata[, c(7, 11)])  # For pitdata: columns 7, 10, and 11
+vars2 <- colnames(pitdata[, c(2, 4)])  # 
 
 # Relevel factors for analysis
 relevel_factors(ls())  # Reorder factors for categorical variables
 
 # Set the number of bootstrap iterations and random seed for reproducibility
-it <- 2  # Number of bootstrap replicates
+it <- 1000000 # Number of bootstrap replicates
 set.seed(42)  # Set seed for consistent random sampling
 
 # Bootstrap sampling function
@@ -92,17 +127,98 @@ CI_boot <- list(
 )
 
 # Combine species-specific results into the combined list
-CI_boot <- c(combined_boot, lapply(levels(Pit_EV$ssp), function(current_ssp) {
+CI_boot <- c(CI_boot, lapply(levels(Pit_EV$ssp), function(current_ssp) {
   cbind(
     ssp_boot[[current_ssp]],
     ssp_boot2[[current_ssp]]
   )
 }))
-
 # Name each species element appropriately
 names(CI_boot)[3:length(CI_boot)] <- levels(Pit_EV$ssp)
 
-boot_results <- list()
+rm(list = c("host_boot","host_boot2","para_boot","para_boot2","ssp_boot","ssp_boot2"))
+
+# Create a list of datasets and their corresponding variable sets
+data_list <- list(
+  list(data = Pit_EV, vars = vars),
+  list(data = pitdata, vars = vars2)
+)
+
+boot_results <- list()  # Initialize an empty list to store results
+
+# Loop over each dataset and its corresponding variables
+for (dataset in data_list) {
+  for (v in dataset$vars) {
+    boot_results[[v]] <- t(replicate(it, 
+                                     shuffle_means(
+                                       dataset$data, 
+                                       cols = v, 
+                                       cat = "parasitism", 
+                                       rcol = TRUE)))
+    
+    # Assign column names based on parasitism levels
+    colnames(boot_results[[v]]) <- levels(dataset$data$parasitism)
+  }
+}
+
+lapply(boot_results,head)
+
+# Initialize list to store results
+Ssp_bootstrap_result <- list()  
+
+for (data_item in data_list) {
+  dataset <- data_item$data  # Extract the dataset
+  vars <- data_item$vars      # Extract the corresponding variables
+  
+  for (pair in species_pairs) {
+    subset_data <- subset(dataset, ssp %in% pair)  # Subset for the current species pair
+    
+    for (v in vars) {
+      # Generate bootstrap samples for the current variable
+      pair_boot <- t(replicate(it, 
+                               shuffle_means(subset_data, cols = v, cat = "ssp", rcol = TRUE)))
+      
+      if (ncol(pair_boot) == length(pair)) {
+        colnames(pair_boot) <- pair
+        
+        # Combine results
+        Ssp_bootstrap_result[[v]] <- if (is.null(Ssp_bootstrap_result[[v]])) {
+          pair_boot
+        } else {
+          cbind(Ssp_bootstrap_result[[v]], pair_boot)
+        }
+      }
+    }
+  }
+}
 
 
+lapply(Ssp_bootstrap_result,head)
 
+
+boot_diff <- lapply(boot_results,function(x){
+  apply(x,1,diff)
+}) %>% do.call(what=cbind)
+
+# Calculate differences for each variable and species pair
+ssp_boot_diff <- lapply(Ssp_bootstrap_result, function(x) {
+  # Calculate differences for each species pair, handling missing pairs
+  pair_diff_df <- as.data.frame(do.call(cbind, lapply(species_pairs, function(pair) {
+    if (all(pair %in% colnames(x))) {
+      x[, pair[1]] - x[, pair[2]]  # Calculate differences
+    } else {
+      NA_real_  # Return NA if the pair is not found
+    }
+  })))
+  
+  # Name columns with species pair names
+  colnames(pair_diff_df) <- sapply(species_pairs, function(pair) paste(pair, collapse = " vs "))
+  
+  return(pair_diff_df)
+})
+
+# Name the list elements with variable names
+names(ssp_boot_diff) <- names(Ssp_bootstrap_result)
+
+# Resulting list of data frames
+lapply(ssp_boot_diff,head)
