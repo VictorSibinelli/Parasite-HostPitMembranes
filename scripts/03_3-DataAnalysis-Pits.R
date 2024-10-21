@@ -71,7 +71,8 @@ Obs2 <- pitdata %>%
   )
 
 # Merge the two summarized data frames by the Grouping column
-Obs_values <- merge(Obs1, Obs2, by = "Grouping", all = TRUE)  # Change all=TRUE to all.x=TRUE for left join
+Obs_values <- merge(Obs1, Obs2, by = "Grouping", all = TRUE) %>% as.tibble() %>%
+  arrange(Grouping)  # Change all=TRUE to all.x=TRUE for left join
 
 rm(list = c("Obs1", "Obs2", "pitOdata"))
 
@@ -84,7 +85,7 @@ vars2 <- colnames(pitdata[, c(2, 4)])  #
 relevel_factors(ls())  # Reorder factors for categorical variables
 
 # Set the number of bootstrap iterations and random seed for reproducibility
-it <- 1000000 # Number of bootstrap replicates
+it <- 1000# Number of bootstrap replicates
 set.seed(42)  # Set seed for consistent random sampling
 
 # Bootstrap sampling function
@@ -222,3 +223,54 @@ names(ssp_boot_diff) <- names(Ssp_bootstrap_result)
 
 # Resulting list of data frames
 lapply(ssp_boot_diff,head)
+
+###########################################################
+####testing
+
+CI95 <- CI_boot %>%
+  lapply(as.data.frame) %>%
+  lapply(function(df) {
+    # Replace non-numeric values with NA
+    df[] <- lapply(df, function(col) {
+      if (!is.numeric(col)) {
+        return(rep(NA, length(col)))  # Replace non-numeric columns with NA
+      } else {
+        return(col)  # Keep numeric columns as they are
+      }
+    })
+    # Apply quantile function to each column with NA handling
+    apply(df, 2, function(q) {
+      quantile(q, probs = c(0.025, 0.975), na.rm = TRUE)
+    })
+  })
+
+head(boot_diff)
+boot_diff[1,] <- as.matrix(Obs_values[1,2:5]-Obs_values[2,2:5])
+PH_pvalue <- apply(boot_diff,2,function(x){
+  sum(abs(x) >= abs(x[1]), na.rm = TRUE) / length(x)
+})
+
+
+# Calculate differences and combine as rows
+ssp_obs_diffs <- rbind(
+  Obs_values[3, 2:5] - Obs_values[4, 2:5],  # Difference between rows 3 and 4
+  Obs_values[5, 2:5] - Obs_values[6, 2:5],  # Difference between rows 5 and 6
+  Obs_values[7, 2:5] - Obs_values[8, 2:5],  # Difference between rows 7 and 8
+  Obs_values[9, 2:5] - Obs_values[10, 2:5]  # Difference between rows 9 and 10
+)
+ssp_obs_diffs <- as.data.frame(ssp_obs_diffs)
+
+colnames(ssp_obs_diffs) <- colnames(Obs_values)[2:5]
+row.names(ssp_obs_diffs) <-colnames(ssp_boot_diff[[1]])
+
+for (i in seq_along(ssp_boot_diff)) {
+  x <- t(ssp_obs_diffs)
+  ssp_boot_diff[[i]][1, ] <- x[i,]  # Assign first column of ssp_obs_diffs as the first row
+}
+
+Ssp_pvalue <- lapply(ssp_boot_diff, function(x) {
+  apply(x, 2, function(y) {
+    sum(abs(y) >= abs(y[1]), na.rm = TRUE) / length(y)
+  })
+}) %>% do.call(what=cbind) %>% rbind(PH_pvalue)
+

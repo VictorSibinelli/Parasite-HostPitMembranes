@@ -4,16 +4,176 @@
 # 13/07/2024
 # Script 03.2 - Data Analysis - Vessels LME
 #################################################################
+# Load necessary libraries and custom functions
 library(here)
-source(here("scripts", "02_2-TestAssumptions-Vessels.R"))
+source(here("scripts", "00-library.R"))  # Assumptions test script
+source(here("scripts", "Functions.R"))  # Custom functions
+
+# Clear the environment
 rm(list = ls())
 
-source(here("scripts", "Functions.R"))
-#load data
+# Load processed data
 HydraulicData <- read.csv(here("data", "processed", "HydraulicData.csv"))
 vdata <- read.csv(here("data", "processed", "vdata.csv"))
 vadata <- read.csv(here("data", "processed", "vadata.csv"))
 
- install.packages("lqmm")
-library(lqmm)
- 
+### Substitute the most influential values in HydraulicData
+
+# Substitute the value at index 102, column 5, with the second most extreme value
+HydraulicData[102, 5] <- sort(HydraulicData[, 5])[length(HydraulicData[, 5]) - 1] 
+
+# Replace specified values (indices 134-136, 139, 140, 142) in 'Kmax' with the closest values (excluding the current value)
+indices_to_replace <- c(134:136, 139, 140, 142)
+HydraulicData[indices_to_replace, "Kmax"] <- sapply(HydraulicData[indices_to_replace, "Kmax"], function(x) {
+  closest_value <- HydraulicData$Kmax[HydraulicData$Kmax != x][which.min(abs(HydraulicData$Kmax[HydraulicData$Kmax != x] - x))]
+  return(closest_value)
+})
+HydraulicData[134, 7] <- HydraulicData[141, 7]
+
+### Fit Linear Mixed-Effects Models (LME) for Parasite vs Host comparisons
+
+# List of species pairs for analysis
+species_pairs <- list(
+  c("Psittacanthus robustus", "Vochysia thyrsoidea"),
+  c("Phoradendron perrotettii", "Tapirira guianensis"),
+  c("Struthanthus rhynchophyllus", "Tipuana tipu"),
+  c("Viscum album", "Populus nigra")
+)
+
+# Variables to model
+vars <- colnames(HydraulicData)[c(4, 5, 7)]
+
+# Initialize empty lists to store models and results
+model_list <- list()
+resul_table_list <- list()
+
+# Loop over each variable to fit the models and store results
+for (v in vars) {
+  model_name <- paste("full_model", v, sep = "_")
+  table_name <- paste(v, "results", sep = "_")
+  
+  # Fit the full model (with parasitism effect) and reduced model (without parasitism)
+  full_model <- lme(as.formula(paste(v, "~ parasitism")), 
+                    random = ~ 1 | ssp/indiv, 
+                    data = HydraulicData,
+                    control = list(maxIter = 100, msMaxIter = 100),
+                    weights = varIdent(form = ~ 1 | ssp))
+  
+  reduced_model <- lme(as.formula(paste(v, "~ 1")), 
+                       random = ~ 1 | ssp/indiv, 
+                       data = HydraulicData,
+                       control = list(maxIter = 100, msMaxIter = 100),
+                       weights = varIdent(form = ~ 1 | ssp))
+  
+  # Store the full model
+  model_list[[model_name]] <- full_model
+  
+  # Create a results table summarizing the model output
+  resul_table_list[[table_name]] <- data.frame(
+    PairTested = paste(unique(HydraulicData$parasitism), collapse = " x "),
+    ParasiteMean = full_model$coefficients$fixed[1],
+    HostMean = sum(full_model$coefficients$fixed),
+    EstimatedDifference = full_model$coefficients$fixed[2],
+    REVariance = (as.numeric(VarCorr(full_model)[2]) + as.numeric(VarCorr(full_model)[4])) / 
+      as.numeric(VarCorr(full_model)[5]),
+    PValue = anova(full_model, reduced_model)$`p-value`[2],
+    DeltaAIC = AIC(full_model) - AIC(reduced_model),
+    stringsAsFactors = FALSE
+  ) %>% as_tibble()
+  
+  # Print model summaries
+  cat(paste("----------------------------------------------------------------------------------------
+  Summary for full_model", v, "Parasites x Host
+  ---------------------------------------------------------------------------------------------------", sep = " "))
+  print(summary(full_model))
+  
+  # Perform ANOVA on full and reduced models
+  pd <- anova(full_model, reduced_model)
+  print(pd)
+  
+  # Residual plots for model diagnostics
+  par(mar = c(5, 5, 5, 5))  # Set plot margins
+  resid_plot <- residplot(full_model, newwd = FALSE)
+  title(sub = paste("Residuals of", v, "Parasite x Host"), adj = 0.5, line = 4, cex.sub = 0.9)
+  print(check_model(full_model))
+  
+  # Cook's distance plot to assess influential points
+  cookd_plot <- CookD(full_model, newwd = FALSE)
+  title(main = paste("Cook's Distance for", v, "Parasite x Host"), adj = 0.5, line = 0.5)
+}
+
+resul_table_list
+#########################################################################################################
+for (pair in species_pairs) {
+  
+  # Filter data for the current species pair
+  data <- HydraulicData %>% filter(ssp %in% pair)
+  
+  for (v in vars) {
+    
+    # Dynamic names for models and result tables
+    model_name <- paste(paste(pair, collapse = " vs "), "full_model", v, sep = "_")
+    table_name <- paste(v, "results", sep = "_")
+    
+    # Fit the full model (with species effect) and reduced model (without species effect)
+    full_model <- lme(as.formula(paste(v, "~ ssp")), 
+                      random = ~ 1 | indiv, 
+                      data = data,  # Use filtered data for current species pair
+                      control = list(maxIter = 100, msMaxIter = 100),
+                      weights = varIdent(form = ~ 1 | ssp))
+    
+    reduced_model <- lme(as.formula(paste(v, "~ 1")), 
+                         random = ~ 1 | indiv, 
+                         data = data,  # Use filtered data for current species pair
+                         control = list(maxIter = 100, msMaxIter = 100),
+                         weights = varIdent(form = ~ 1 | ssp))
+    
+    # Store the full model in the model_list
+    model_list[[model_name]] <- full_model
+    
+    # Create a results table summarizing the model output for the current variable and pair
+    result <- data.frame(
+      PairTested = paste(unique(data$ssp), collapse = " x "),  # Use filtered data
+      ParasiteMean = full_model$coefficients$fixed[1],
+      HostMean = sum(full_model$coefficients$fixed),
+      EstimatedDifference = full_model$coefficients$fixed[2],
+      REVariance = (as.numeric(VarCorr(full_model)[1])/as.numeric(VarCorr(full_model)[2])),
+      PValue = anova(full_model, reduced_model)$`p-value`[2],
+      DeltaAIC = AIC(full_model) - AIC(reduced_model),
+      stringsAsFactors = F
+    ) %>% as_tibble()
+    
+    # Append results to the table or initialize if NULL
+    if (!is.null(resul_table_list[[table_name]])) {
+      resul_table_list[[table_name]] <- rbind(resul_table_list[[table_name]], result)
+    } else {
+      resul_table_list[[table_name]] <- result
+    }
+    
+    # Print model summaries for the current variable
+    cat(paste("----------------------------------------------------------------------------------------
+  Summary for full_model", v, "Parasites x Host
+  ---------------------------------------------------------------------------------------------------", sep = " "))
+    print(summary(full_model))
+    
+    # Perform ANOVA on full and reduced models, and print the results
+    pd <- anova(full_model, reduced_model)
+    print(pd)
+    
+    par(mar = c(5, 5, 5, 5))  # Set plot margins
+    resid_plot <- residplot(full_model, newwd = FALSE)
+    title(sub = paste("Residuals of", v, paste(pair,collapse = " x ")), adj = 0.5, line = 4, cex.sub = 0.9)
+    print(check_model(full_model))
+    
+    # Cook's distance plot to assess influential points
+    cookd_plot <- CookD(full_model, newwd = FALSE)
+    title(main = paste("Cook's Distance for", v, paste(pair,collapse = " x ")), adj = 0.5, line = 0.5)
+    
+  }  
+} 
+resul_table_list
+# Residual plots for model diagnostics
+####remove 
+kmax c(20,57,59)
+vdensity c(20,51)
+hd c(56,57,59)
