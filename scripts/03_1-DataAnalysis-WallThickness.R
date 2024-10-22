@@ -4,9 +4,7 @@
 # 13/07/2024
 # Script 03.1 - Data Analysis - Vessel walls
 #################################################################
-
 library(here)
-source(here("scripts", "02_1-TestAssumptions-WallThickness.R"))
 rm(list = ls())
 
 # Load data
@@ -155,7 +153,7 @@ desired_order <- c("Parasite", "Host",
 CI95$Group <- factor(CI95$Group, levels = desired_order)
 
 # Create the plot
-CI95 %>%
+CI95 %>% 
   ggplot(aes(Group, Estimate)) +
   geom_point(size = 4, aes(color = Group)) +
   geom_errorbar(aes(ymin = Lower, ymax = Upper), width = 0.2) +

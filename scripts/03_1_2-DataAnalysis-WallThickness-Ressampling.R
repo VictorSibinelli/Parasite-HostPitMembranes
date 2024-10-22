@@ -43,7 +43,7 @@ species_pairs <- list(
 # Permutation test setup
 # --------------------------------------------------------
 set.seed(42)  # Set seed for reproducibility
-iterations <- 1000000  # Number of iterations for resampling
+iterations <- 500000 # Number of iterations for resampling
 
 # Calculate observed difference in mean wall thickness by parasitism
 WT_obs <- tapply(WT_EV$wthickness, WT_EV$parasitism, mean)
@@ -91,8 +91,8 @@ host_boot <- replicate(n = 5, {
     pull(wthickness) %>%  # Extract the wthickness column
     sample(replace = TRUE) %>% mean()  # Sample with replacement and calculate mean
 })
-host_CI <- host_boot %>% quantile(probs=c(0.025,0.975))
-para_CI <- para_boot %>% quantile(probs=c(0.025,0.975))
+(host_CI <- host_boot %>% quantile(probs=c(0.025,0.975)))
+(para_CI <- para_boot %>% quantile(probs=c(0.025,0.975)))
 
 
 
@@ -109,18 +109,18 @@ para_CI <- para_boot %>% quantile(probs=c(0.025,0.975))
 #
 # # Initialize a list to store results for each pair
  pair_results <- list()
- iterations <- 200  # Number of iterations for resampling
+ iterations <- 250000 # Number of iterations for resampling
 
  # Loop through each species pair and perform resampling
-# for (pair in species_pairs) {
-   subset_data <- subset(WT_EV, ssp %in% pair)  # Subset data for the current pair
-   boot_resample <- t(replicate(iterations,
-                                shuffle_means(x = subset_data,
-                                              cols = "wthickness",
-                                              cat = "ssp",
-                                              rcol = TRUE)))
-   pair_results[[paste(pair, collapse = "_vs_")]] <- boot_resample  # Store results
- }
+ # for (pair in species_pairs) {
+ #   subset_data <- subset(WT_EV, ssp %in% pair)  # Subset data for the current pair
+ #   boot_resample <- t(replicate(iterations,
+ #                                shuffle_means(x = subset_data,
+ #                                              cols = "wthickness",
+ #                                              cat = "ssp",
+ #                                              rcol = TRUE)))
+ #   pair_results[[paste(pair, collapse = "_vs_")]] <- boot_resample  # Store results
+ # }
 
  # Calculate the differences for each pair
  diff_matrix <- do.call(cbind, lapply(pair_results, function(x) {
@@ -166,6 +166,7 @@ for (i in 1:length(species_pairs)) {
 # --------------------------------------------------------
 # Bootstrap CIs for each species
 # --------------------------------------------------------
+iterations <- 100000
 boot_sspWT <- tapply(WT_EV$wthickness, WT_EV$ssp, function(x) {
   replicate(iterations, mean(sample(x, replace = TRUE), na.rm = TRUE))  
 })

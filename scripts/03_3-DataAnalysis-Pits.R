@@ -85,7 +85,7 @@ vars2 <- colnames(pitdata[, c(2, 4)])  #
 relevel_factors(ls())  # Reorder factors for categorical variables
 
 # Set the number of bootstrap iterations and random seed for reproducibility
-it <- 1000# Number of bootstrap replicates
+it <- 500000# Number of bootstrap replicates
 set.seed(42)  # Set seed for consistent random sampling
 
 # Bootstrap sampling function

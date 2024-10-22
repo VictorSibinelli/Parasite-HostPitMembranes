@@ -38,7 +38,7 @@ Hydraulic_EV <- HydraulicData %>%
 
 relevel_factors(ls())
 # Number of iterations for the permutation test
-iterations <- 10
+iterations <- 500000
 set.seed(42)
 # Specify the columns for which you want to calculate bootstrap values
 vars <- colnames(Hydraulic_EV)[3:5]
@@ -76,10 +76,22 @@ bootstrap_results[[2]][1,] <- t(Obs_values[,3])
 bootstrap_results[[3]][1,] <- t(Obs_values[,4])
 
 
+# Loop through each table in bootstrap_results and save it
+for (t in seq_along(bootstrap_results)) {
+  # Create the file name for each table, appending "_bootstrap" before the file extension
+  table_name <- paste(names(bootstrap_results)[t], "_bootstrap", ".R", sep = "")
+  
+  # Use fwrite to save each table to the specified directory
+  fwrite(bootstrap_results[[t]], 
+         file = here("data", "processed", "ressampled", table_name))
+  
+  # Print a success message to the console
+  cat(paste(table_name, "successfully saved\n"))
+}
 
 
 # Calculate differences using lapply and bind the results into a data frame
-head(bootstrap_results)
+
 boot_diffs <- bootstrap_results %>% lapply(FUN = function(x){
   x[,1]-x[,2]
 }) %>% do.call(what=cbind)
@@ -135,8 +147,8 @@ para_boot <- replicate(n = iterations, {
       shuffle_means(cols = var, cat = "parasitism", rcol = TRUE)
   })
 }, simplify = TRUE) %>% t()
-
-
+fwrite(host_boot,file = here("data","processed","ressampled","Host_Vessels_boot.R"))
+fwrite(para_boot,file = here("data","processed","ressampled","Parasite_Vessels_boot.R"))
 # Calculate CI95 for each variable (using 2.5th and 97.5th percentiles)
 host_CI95 <- t(apply(host_boot, 2, function(x) {
   quantile(x, c(0.025, 0.975), na.rm = TRUE)
@@ -156,15 +168,17 @@ para_CI95$ssp <- "Parasite"
 
 
 #########pair wise comparisson
-# Initialize an empty list to store results for each species pair
+
 ssp_obs <- apply(Hydraulic_EV[,vars],2,function(x){
   tapply(x,Hydraulic_EV$ssp,mean)
 })
 
 
-
+iterations <- 250000
 pair_boot=list()
 # Iterate through each species pair
+system.time(
+
 for (pair in species_pairs) {
   # Subset the data for the current species pair
   subset_data <- subset(Hydraulic_EV, ssp %in% pair)
@@ -199,6 +213,20 @@ for (pair in species_pairs) {
   }
   
   pair_boot[[paste(pair,collapse = "vs")]] <- result
+}
+)
+lapply(pair_boot,head)
+# Loop through each table in bootstrap_results and save it
+for (t in seq_along(pair_boot)) {
+  # Create the file name for each table, appending "_bootstrap" before the file extension
+  table_name <- paste(names(pair_boot)[t], "_Vessels_bootstrap", ".R", sep = "")
+  
+  # Use fwrite to save each table to the specified directory
+  fwrite(pair_boot[[t]], 
+         file = here("data", "processed", "ressampled", table_name))
+  
+  # Print a success message to the console
+  cat(paste(table_name, "successfully saved\n"))
 }
 
 # Initialize an empty list to store the results
@@ -267,6 +295,7 @@ ssp_CI95 <- vector("list", iterations)
 
 # Bootstrap sampling and calculation of CI95
 # Using replicate to perform bootstrap sampling
+iterations <- 10000
 ssp_CI95 <- replicate(
   iterations,
   Hydraulic_EV %>%
