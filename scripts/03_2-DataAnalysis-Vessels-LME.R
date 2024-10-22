@@ -7,11 +7,9 @@
 # Load necessary libraries and custom functions
 library(here)
 source(here("scripts", "00-library.R"))  # Assumptions test script
-source(here("scripts", "Functions.R"))  # Custom functions
-
 # Clear the environment
 rm(list = ls())
-
+source(here("scripts", "Functions.R"))
 # Load processed data
 HydraulicData <- read.csv(here("data", "processed", "HydraulicData.csv"))
 vdata <- read.csv(here("data", "processed", "vdata.csv"))
@@ -29,6 +27,19 @@ HydraulicData[indices_to_replace, "Kmax"] <- sapply(HydraulicData[indices_to_rep
   return(closest_value)
 })
 HydraulicData[134, 7] <- HydraulicData[141, 7]
+#HD
+HydraulicData[HydraulicData$ssp == "Vochysia thyrsoidea", "HydraulicDiameter"][c(25, 26, 28)] <- sort(HydraulicData[HydraulicData$ssp == "Vochysia thyrsoidea", "HydraulicDiameter"], decreasing = F)[4]
+HydraulicData[HydraulicData$ssp == "Vochysia thyrsoidea", "HydraulicDiameter"][c(27)] <- sort(HydraulicData[HydraulicData$ssp == "Vochysia thyrsoidea", "HydraulicDiameter"], decreasing = T)[5]
+#vdesn
+HydraulicData[HydraulicData$ssp == "Psittacanthus robustus", 5][20] <- sort(unique(HydraulicData[HydraulicData$ssp == "Psittacanthus robustus", 5]), decreasing = TRUE)[2]
+HydraulicData[HydraulicData$ssp == "Vochysia thyrsoidea", 5][c(20)] <- sort(unique(HydraulicData[HydraulicData$ssp == "Vochysia thyrsoidea", 5]), decreasing = TRUE)[3]
+
+
+HydraulicData[HydraulicData$ssp == "Psittacanthus robustus", 7][20] <- sort(unique(HydraulicData[HydraulicData$ssp == "Psittacanthus robustus", 7]), decreasing = TRUE)[2]
+HydraulicData[HydraulicData$ssp == "Vochysia thyrsoidea", 7][c(26,28)] <- sort(unique(HydraulicData[HydraulicData$ssp == "Vochysia thyrsoidea", 7]), decreasing = F)[3]
+HydraulicData[HydraulicData$ssp == "Vochysia thyrsoidea", 7][c(5)] <- sort(unique(HydraulicData[HydraulicData$ssp == "Vochysia thyrsoidea", 7]), decreasing = T)[2]
+
+
 
 ### Fit Linear Mixed-Effects Models (LME) for Parasite vs Host comparisons
 
@@ -42,7 +53,7 @@ species_pairs <- list(
 
 # Variables to model
 vars <- colnames(HydraulicData)[c(4, 5, 7)]
-
+relevel_factors(ls())
 # Initialize empty lists to store models and results
 model_list <- list()
 resul_table_list <- list()
@@ -91,16 +102,17 @@ for (v in vars) {
   pd <- anova(full_model, reduced_model)
   print(pd)
   
-  # Residual plots for model diagnostics
-  par(mar = c(5, 5, 5, 5))  # Set plot margins
-  resid_plot <- residplot(full_model, newwd = FALSE)
-  title(sub = paste("Residuals of", v, "Parasite x Host"), adj = 0.5, line = 4, cex.sub = 0.9)
-  print(check_model(full_model))
-  
-  # Cook's distance plot to assess influential points
-  cookd_plot <- CookD(full_model, newwd = FALSE)
-  title(main = paste("Cook's Distance for", v, "Parasite x Host"), adj = 0.5, line = 0.5)
-}
+  # # Residual plots for model diagnostics
+  # par(mar = c(5, 5, 5, 5))  # Set plot margins
+  # resid_plot <- residplot(full_model, newwd = FALSE)
+  # title(sub = paste("Residuals of", v, "Parasite x Host"), adj = 0.5, line = 4, cex.sub = 0.9)
+  # print(check_model(full_model))
+  # 
+  # # Cook's distance plot to assess influential points
+  # cookd_plot <- CookD(full_model, newwd = FALSE)
+  # title(main = paste("Cook's Distance for", v, "Parasite x Host"), adj = 0.5, line = 0.5)
+
+  }
 
 resul_table_list
 #########################################################################################################
@@ -159,21 +171,29 @@ for (pair in species_pairs) {
     # Perform ANOVA on full and reduced models, and print the results
     pd <- anova(full_model, reduced_model)
     print(pd)
-    
-    par(mar = c(5, 5, 5, 5))  # Set plot margins
-    resid_plot <- residplot(full_model, newwd = FALSE)
-    title(sub = paste("Residuals of", v, paste(pair,collapse = " x ")), adj = 0.5, line = 4, cex.sub = 0.9)
-    print(check_model(full_model))
-    
-    # Cook's distance plot to assess influential points
-    cookd_plot <- CookD(full_model, newwd = FALSE)
-    title(main = paste("Cook's Distance for", v, paste(pair,collapse = " x ")), adj = 0.5, line = 0.5)
-    
+    # 
+    # par(mar = c(5, 5, 5, 5))  # Set plot margins
+    # resid_plot <- residplot(full_model, newwd = FALSE)
+    # title(sub = paste("Residuals of", v, paste(pair,collapse = " x ")), adj = 0.5, line = 4, cex.sub = 0.9)
+    # print(check_model(full_model))
+    # 
+    # # Cook's distance plot to assess influential points
+    # cookd_plot <- CookD(full_model, newwd = FALSE)
+    # title(main = paste("Cook's Distance for", v, paste(pair,collapse = " x ")), adj = 0.5, line = 0.5)
+    # 
   }  
 } 
 resul_table_list
-# Residual plots for model diagnostics
-####remove 
-kmax c(20,57,59)
-vdensity c(20,51)
-hd c(56,57,59)
+
+# Loop through each table and save it
+for (t in seq_along(resul_table_list)) {
+  # Create the file name for each table
+  table_name <- paste(names(resul_table_list)[t], ".R", sep = "")
+  
+  # Use fwrite to save each table to the specified directory
+  fwrite(resul_table_list[[t]], file = here("outputs", "tables", table_name))
+  
+  # Print a success message
+  cat(paste(table_name, "successfully saved\n"))
+}
+
