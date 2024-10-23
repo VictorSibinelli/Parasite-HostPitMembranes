@@ -85,7 +85,7 @@ vars2 <- colnames(pitdata[, c(2, 4)])  #
 relevel_factors(ls())  # Reorder factors for categorical variables
 
 # Set the number of bootstrap iterations and random seed for reproducibility
-it <- 500000# Number of bootstrap replicates
+it <- 100000# Number of bootstrap replicates
 set.seed(42)  # Set seed for consistent random sampling
 
 # Bootstrap sampling function
@@ -122,7 +122,7 @@ ssp_boot2 <- setNames(lapply(levels(pitdata$ssp), function(current_ssp) {
 }), levels(pitdata$ssp))  # Set species names as list element names
 
 # Combine bootstrap results into a single list
-CI_boot <- list(
+CI_boot <-list(
   Parasite = cbind(para_boot, para_boot2),  # Combine parasite results from both data sources
   Host = cbind(host_boot, host_boot2)       # Combine host results from both data sources
 )
@@ -139,12 +139,23 @@ names(CI_boot)[3:length(CI_boot)] <- levels(Pit_EV$ssp)
 
 rm(list = c("host_boot","host_boot2","para_boot","para_boot2","ssp_boot","ssp_boot2"))
 
+for (t in seq_along(CI_boot)){
+  # Create the file name for each table, appending "_bootstrap" before the file extension
+  table_name <- paste(names(CI_boot)[t], "_pits_CI_boot", ".R", sep = "")
+  
+  # Use fwrite to save each table to the specified directory
+  fwrite(CI_boot[[t]], 
+         file = here("data", "processed", "ressampled", table_name))
+  
+  # Print a success message to the console
+  cat(paste(table_name, "successfully saved\n"))
+}
 # Create a list of datasets and their corresponding variable sets
 data_list <- list(
   list(data = Pit_EV, vars = vars),
   list(data = pitdata, vars = vars2)
 )
-
+it <- 500000
 boot_results <- list()  # Initialize an empty list to store results
 
 # Loop over each dataset and its corresponding variables
@@ -164,9 +175,21 @@ for (dataset in data_list) {
 
 lapply(boot_results,head)
 
+for (t in seq_along(boot_results)){
+  # Create the file name for each table, appending "_bootstrap" before the file extension
+  table_name <- paste(names(boot_results)[t], "_pits_PxH_boot", ".R", sep = "")
+  
+  # Use fwrite to save each table to the specified directory
+  fwrite(boot_results[[t]], 
+         file = here("data", "processed", "ressampled", table_name))
+  
+  # Print a success message to the console
+  cat(paste(table_name, "successfully saved\n"))
+}
+
 # Initialize list to store results
 Ssp_bootstrap_result <- list()  
-
+it <- 250000
 for (data_item in data_list) {
   dataset <- data_item$data  # Extract the dataset
   vars <- data_item$vars      # Extract the corresponding variables
@@ -196,6 +219,17 @@ for (data_item in data_list) {
 
 lapply(Ssp_bootstrap_result,head)
 
+for (t in seq_along(Ssp_bootstrap_result)){
+  # Create the file name for each table, appending "_bootstrap" before the file extension
+  table_name <- paste(names(Ssp_bootstrap_result)[t], "_pits_ssp_boot", ".R", sep = "")
+  
+  # Use fwrite to save each table to the specified directory
+  fwrite(Ssp_bootstrap_result[[t]], 
+         file = here("data", "processed", "ressampled", table_name))
+  
+  # Print a success message to the console
+  cat(paste(table_name, "successfully saved\n"))
+}
 
 boot_diff <- lapply(boot_results,function(x){
   apply(x,1,diff)
@@ -273,4 +307,5 @@ Ssp_pvalue <- lapply(ssp_boot_diff, function(x) {
     sum(abs(y) >= abs(y[1]), na.rm = TRUE) / length(y)
   })
 }) %>% do.call(what=cbind) %>% rbind(PH_pvalue)
+
 
