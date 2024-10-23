@@ -108,7 +108,10 @@ g <- ggplot(wdata, aes(x = ssp, y = wthickness, fill = parasitism)) +
        y = "Vessel Wall Thickness (µm)") +
   annotate("text", x = seq_along(unique(wdata$ssp)),
            y = max(wdata$wthickness) + 5, label = c("A","A","A","A","A","B","A"), size = 6)+
-  theme(legend.position = "right") +  # Legend on the right
+  theme(legend.position = "right",
+        axis.text.x = element_text(size = 12),        # X-axis tick labels size
+        axis.text.y = element_text(size = 12)         # Y-axis tick labels size
+  ) +  # Legend on the right
   guides(color = "none")  # Remove the legend for `ssp`
 g
 

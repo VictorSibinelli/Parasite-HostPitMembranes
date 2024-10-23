@@ -46,48 +46,55 @@ vars <- colnames(Hydraulic_EV)[3:5]
 # Initialize a list to store results for each variable
 bootstrap_results <- list()
 
-# Loop through each variable to calculate bootstrap values
-for (v in vars) {
-  
-  # Generate descriptive name for storing bootstrap values
-  bootstrap_results[[v]] <- t(replicate(iterations, 
-                                        shuffle_means(
-                                          Hydraulic_EV, 
-                                          cols = v, 
-                                          cat = "parasitism", 
-                                          rcol = TRUE)))
-  
-  # Assign column names based on parasitism levels
-  colnames(bootstrap_results[[v]]) <- levels(Hydraulic_EV$parasitism)
-}
-
-lapply(bootstrap_results,head)
-
-
-Obs_values <-  Hydraulic_EV %>% group_by(parasitism) %>% 
+# # Loop through each variable to calculate bootstrap values
+# for (v in vars) {
+#   
+#   # Generate descriptive name for storing bootstrap values
+#   bootstrap_results[[v]] <- t(replicate(iterations, 
+#                                         shuffle_means(
+#                                           Hydraulic_EV, 
+#                                           cols = v, 
+#                                           cat = "parasitism", 
+#                                           rcol = TRUE)))
+#   
+#   # Assign column names based on parasitism levels
+#   colnames(bootstrap_results[[v]]) <- levels(Hydraulic_EV$parasitism)
+# }
+# 
+# lapply(bootstrap_results,head)
+# 
+# 
+Obs_values <-  Hydraulic_EV %>% group_by(parasitism) %>%
   summarize(HydraulicDiameter = mean(HydraulicDiameter, na.rm = TRUE),
             vdensity = mean(vdensity, na.rm = TRUE),
             Kmax = mean(Kmax, na.rm = TRUE),
             parasitism = first(parasitism),  # This assumes the same for each individual
             .groups = "drop")
 
-bootstrap_results[[1]][1,] <- t(Obs_values[,2])
-bootstrap_results[[2]][1,] <- t(Obs_values[,3])
-bootstrap_results[[3]][1,] <- t(Obs_values[,4])
+# bootstrap_results[[1]][1,] <- t(Obs_values[,2])
+# bootstrap_results[[2]][1,] <- t(Obs_values[,3])
+# bootstrap_results[[3]][1,] <- t(Obs_values[,4])
+# 
+# 
+# for (t in seq_along(bootstrap_results)){
+#   # Create the file name for each table, appending "_bootstrap" before the file extension
+#   table_name <- paste(names(bootstrap_results)[t], "_boot", ".csv", sep = "")
+#   
+#   # Use fwrite to save each table to the specified directory
+#   fwrite(bootstrap_results[[t]], 
+#          file = here("data", "processed", "ressampled", table_name))
+#   
+#   # Print a success message to the console
+#   cat(paste(table_name, "successfully saved\n"))
+# }
 
 
-# Loop through each table in bootstrap_results and save it
-for (t in seq_along(bootstrap_results)) {
-  # Create the file name for each table, appending "_bootstrap" before the file extension
-  table_name <- paste(names(bootstrap_results)[t], "_bootstrap", ".R", sep = "")
-  
-  # Use fwrite to save each table to the specified directory
-  fwrite(bootstrap_results[[t]], 
-         file = here("data", "processed", "ressampled", table_name))
-  
-  # Print a success message to the console
-  cat(paste(table_name, "successfully saved\n"))
-}
+# Read the CSV files into a list with specified names
+bootstrap_list <- list(
+  HydraulicDiameter = read.csv(here("data", "processed", "ressampled", "HydraulicDiameter_boot.csv")),
+  vdensity = read.csv(here("data", "processed", "ressampled", "vdensity_boot.csv")),
+  Kmax = read.csv(here("data", "processed", "ressampled", "Kmax_boot.csv"))
+)
 
 
 # Calculate differences using lapply and bind the results into a data frame
@@ -128,27 +135,32 @@ p_values <- apply(boot_diffs, 2, function(x) {
 row.names(p_values) <- "Parasite vs Host"
 print(p_values)
 
+# 
+# # Function to shuffle and calculate means for each variable (Host)
+# host_boot <- replicate(n = iterations, {
+#   sapply(vars, function(var) {
+#     Hydraulic_EV %>%
+#       subset(parasitism == "Host") %>%
+#       shuffle_means(cols = var, cat = "parasitism", rcol = TRUE)
+#   })
+# }, simplify = TRUE) %>% t()
+# 
+# 
+# # Function to shuffle and calculate means for each variable (Parasite)
+# para_boot <- replicate(n = iterations, {
+#   sapply(vars, function(var) {
+#     Hydraulic_EV %>%
+#       subset(parasitism == "Parasite") %>%
+#       shuffle_means(cols = var, cat = "parasitism", rcol = TRUE)
+#   })
+# }, simplify = TRUE) %>% t()
+# 
+# 
+# fwrite(host_boot,file = here("data","processed","ressampled","Host_Vessels_boot.csv"))
+# fwrite(para_boot,file = here("data","processed","ressampled","Parasite_Vessels_boot.csv"))
 
-# Function to shuffle and calculate means for each variable (Host)
-host_boot <- replicate(n = iterations, {
-  sapply(vars, function(var) {
-    Hydraulic_EV %>%
-      subset(parasitism == "Host") %>%
-      shuffle_means(cols = var, cat = "parasitism", rcol = TRUE)
-  })
-}, simplify = TRUE) %>% t()
-
-
-# Function to shuffle and calculate means for each variable (Parasite)
-para_boot <- replicate(n = iterations, {
-  sapply(vars, function(var) {
-    Hydraulic_EV %>%
-      subset(parasitism == "Parasite") %>%
-      shuffle_means(cols = var, cat = "parasitism", rcol = TRUE)
-  })
-}, simplify = TRUE) %>% t()
-fwrite(host_boot,file = here("data","processed","ressampled","Host_Vessels_boot.R"))
-fwrite(para_boot,file = here("data","processed","ressampled","Parasite_Vessels_boot.R"))
+para_boot <- fread(here("data","processed","ressampled","Parasite_Vessels_boot.csv"))
+host_boot <- fread(here("data","processed","ressampled","Host_Vessels_boot.csv"))
 # Calculate CI95 for each variable (using 2.5th and 97.5th percentiles)
 host_CI95 <- t(apply(host_boot, 2, function(x) {
   quantile(x, c(0.025, 0.975), na.rm = TRUE)
@@ -174,60 +186,77 @@ ssp_obs <- apply(Hydraulic_EV[,vars],2,function(x){
 })
 
 
-iterations <- 250000
-pair_boot=list()
-# Iterate through each species pair
-system.time(
+# iterations <- 250000
+# pair_boot=list()
+# # Iterate through each species pair
+# 
+# 
+# for (pair in species_pairs) {
+#   # Subset the data for the current species pair
+#   subset_data <- subset(Hydraulic_EV, ssp %in% pair)
+#   
+#   # Initialize an empty result data frame
+#   result <- data.frame()
+#   
+#   # Loop through each variable in vars
+#   for (v in vars) {
+#     # Generate bootstrap samples for the current variable
+#     resample_data <- as.data.frame(t(replicate(iterations, shuffle_means(subset_data, cols = v, cat = "ssp", rcol = TRUE))))
+#     
+#     # Add a bootstrap identifier
+#     resample_data$bootstrap_id <- 1:nrow(resample_data)
+#     
+#     # Transform to long format
+#     resample_data_long <- resample_data %>%
+#       pivot_longer(cols = -bootstrap_id,  # Exclude the identifier column
+#                    names_to = "ssp",       # New column for species names
+#                    values_to = "value")    # New column for values
+#     
+#     # Rename the value column to the variable name
+#     resample_data_long <- resample_data_long %>%
+#       rename(!!v := value)  # Using the variable name as the column name for values
+#     
+#     # Combine results
+#     if (nrow(result) == 0) {
+#       result <- resample_data_long  # If result is empty, initialize it with the first variable's data
+#     } else {
+#       result <- left_join(result, resample_data_long, by = c("bootstrap_id", "ssp"))  # Join by bootstrap_id and ssp
+#     }
+#   }
+#   
+#   pair_boot[[paste(pair,collapse = "vs")]] <- result
+# }
+# 
+# 
+# lapply(pair_boot,head)
+# # Loop through each table in bootstrap_results and save it
+# for (t in seq_along(pair_boot)) {
+#   # Create the file name for each table, appending "_bootstrap" before the file extension
+#   table_name <- paste(names(pair_boot)[t], "_Vessels_bootstrap", ".csv", sep = "")
+#   
+#   # Use fwrite to save each table to the specified directory
+#   fwrite(pair_boot[[t]], 
+#          file = here("data", "processed", "ressampled", table_name))
+#   
+#   # Print a success message to the console
+#   cat(paste(table_name, "successfully saved\n"))
+# }
 
-for (pair in species_pairs) {
-  # Subset the data for the current species pair
-  subset_data <- subset(Hydraulic_EV, ssp %in% pair)
-  
-  # Initialize an empty result data frame
-  result <- data.frame()
-  
-  # Loop through each variable in vars
-  for (v in vars) {
-    # Generate bootstrap samples for the current variable
-    resample_data <- as.data.frame(t(replicate(iterations, shuffle_means(subset_data, cols = v, cat = "ssp", rcol = TRUE))))
-    
-    # Add a bootstrap identifier
-    resample_data$bootstrap_id <- 1:nrow(resample_data)
-    
-    # Transform to long format
-    resample_data_long <- resample_data %>%
-      pivot_longer(cols = -bootstrap_id,  # Exclude the identifier column
-                   names_to = "ssp",       # New column for species names
-                   values_to = "value")    # New column for values
-    
-    # Rename the value column to the variable name
-    resample_data_long <- resample_data_long %>%
-      rename(!!v := value)  # Using the variable name as the column name for values
-    
-    # Combine results
-    if (nrow(result) == 0) {
-      result <- resample_data_long  # If result is empty, initialize it with the first variable's data
-    } else {
-      result <- left_join(result, resample_data_long, by = c("bootstrap_id", "ssp"))  # Join by bootstrap_id and ssp
-    }
-  }
-  
-  pair_boot[[paste(pair,collapse = "vs")]] <- result
-}
+# Create a list of species pairs with their respective file names
+pair_boot <- list(
+  "Psittacanthus robustus vs Vochysia thyrsoidea" =
+    read.csv(here("data", "processed", "ressampled", 
+                  "Psittacanthus robustus vs Vochysia thyrsoidea_Vessels_bootstrap.csv")),
+  "Phoradendron perrottetii vs Tapirira guianensis" =
+    read.csv(here("data", "processed", "ressampled",
+                  "Phoradendron perrottetii vs Tapirira guianensis_Vessels_bootstrap.csv")),
+  "Struthanthus rhynchophyllus vs Tipuana tipu" =
+    read.csv(here("data", "processed", "ressampled", "Struthanthus rhynchophyllus vs Tipuana tipu_Vessels_bootstrap.csv")),
+  "Viscum album vs Populus nigra" =
+    read.csv(here("data", "processed", "ressampled",
+                  "Viscum album vs Populus nigra_Vessels_bootstrap.csv"))
 )
-lapply(pair_boot,head)
-# Loop through each table in bootstrap_results and save it
-for (t in seq_along(pair_boot)) {
-  # Create the file name for each table, appending "_bootstrap" before the file extension
-  table_name <- paste(names(pair_boot)[t], "_Vessels_bootstrap", ".R", sep = "")
-  
-  # Use fwrite to save each table to the specified directory
-  fwrite(pair_boot[[t]], 
-         file = here("data", "processed", "ressampled", table_name))
-  
-  # Print a success message to the console
-  cat(paste(table_name, "successfully saved\n"))
-}
+
 
 # Initialize an empty list to store the results
 ssp_diffs_list <- vector("list", length = length(pair_boot))
@@ -258,7 +287,7 @@ ssp_diffs_list <- sapply(pair_boot, simplify = FALSE, function(x) {
 # Print the resulting list to verify
 print(lapply(ssp_diffs_list, head))
 
-
+names(ssp_diffs_list)
 
 
 
@@ -271,9 +300,10 @@ pair_obs_diff <- setNames(list(
 ), species_pairs)
 
 # Assign the named vectors to the first row of each element in ssp_diffs_list
-ssp_diffs_list$`Psittacanthus robustusvsVochysia thyrsoidea`[1, ] <- pair_obs_diff[[1]]
-ssp_diffs_list$`Phoradendron perrotettiivsTapirira guianensis`[1, ] <- pair_obs_diff[[2]]
-ssp_diffs_list$`Struthanthus rhynchophyllusvsTipuana tipu`[1, ] <- pair_obs_diff[[3]]
+ssp_diffs_list$`Psittacanthus robustus vs Vochysia thyrsoidea`[1, ] <- pair_obs_diff[[1]]
+ssp_diffs_list$`Phoradendron perrottetii vs Tapirira guianensis`[1, ] <- pair_obs_diff[[2]]
+ssp_diffs_list$`Struthanthus rhynchophyllus vs Tipuana tipu`[1, ] <- pair_obs_diff[[3]]
+#ssp_diffs_list$`Viscum album vs Populus nigra`[1, ] <- pair_obs_diff[[4]]
 
 # Remove any NULL elements from ssp_diffs_list before calculating p-values
 valid_diffs_list <- Filter(Negate(is.null), ssp_diffs_list)

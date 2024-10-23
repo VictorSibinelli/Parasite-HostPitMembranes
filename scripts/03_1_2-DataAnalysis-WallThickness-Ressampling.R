@@ -184,7 +184,7 @@ ssp_95ci <- as.data.frame(t(apply(boot_sspWT, MARGIN = 2, function(x) {
 
 CI95 <- rbind(para_CI,host_CI,ssp_95ci)
 row.names(CI95)[1:2] <- c("Parasite","Host")
-colname(CI95) <- c("Lower","Upper")
+colnames(CI95) <- c("Lower","Upper")
 CI95$Estimate <- na.omit(c(WT_obs, WTssp_obs))
 
 # Prepare results for Monte Carlo

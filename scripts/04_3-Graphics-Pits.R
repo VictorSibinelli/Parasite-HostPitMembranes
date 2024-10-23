@@ -8,28 +8,12 @@ library(here)
 source(here("scripts", "03_3-DataAnalysis-Pits.R"))
 rm(list=ls())
 
-pitdata_clean <- read.csv(here("data", "processed", "pitdata_clean.csv"))
+
 pitOdata <- read.csv(here("data", "processed", "pitOdata.csv"))
 PitMembrane_results <- read.csv(here("outputs","tables","pit_membrane_diff.csv"))
 pcd_results <- read.csv(here("outputs","tables","pcd_results.csv"))
 
-# List of data frame names
-dataframes <- ls()
-# Relevel the factors for each data frame
-for (df_name in dataframes) {
-  df <- get(df_name) # Get the data frame by name
-  
-  if ("ssp" %in% colnames(df)) { # Check if 'ssp' column exists
-    df$ssp <- factor(df$ssp, levels = c(
-      "Psittacanthus robustus", "Vochysia thyrsoidea",
-      "Phoradendron perrotettii", "Tapirira guianensis",
-      "Struthanthus rhynchophyllus", "Tipuana tipu",
-      "Viscum album", "Populus nigra"
-    ))
-    assign(df_name, df) # Assign the modified data frame back to its name
-  }
-  rm(df, df_name) # remove duplicated dataframe
-}
+relevel_factors(ls())
 
 pitOdata <- pitOdata %>%
   mutate(parasitism = case_when(
@@ -332,3 +316,32 @@ wave <- plot_ly(
   )
 wave
 saveWidget(wave, here("outputs", "figs", "interactive_wave_plot.html"))
+
+
+
+vars <- colnames(Pit_EV[4:5])  # For Pit_EV: PitDiameter and PitOpening
+vars2 <- colnames(pitdata[, c(2, 4)]) 
+
+for (v in vars) {
+  g <-   pitOdata %>%  
+    ggplot(aes_string(x = "ssp", y = v, fill = "parasitism")) +
+    geom_jitter(aes(color = label),
+                size = 1, alpha = 0.4, position = position_jitter(width = 0.3)) +
+    geom_boxplot(color = "black", alpha = 1, position = position_dodge(width = 0.8)) +
+    scale_fill_manual(
+      values = c("Parasite" = "firebrick", "Host" = "grey"),
+      name = "Parasitism"
+    ) +
+    scale_color_viridis_d(option = "D") +
+    geom_vline(xintercept = c(2.5, 4.5, 6.5)) +
+    theme_classic() +
+    scale_x_discrete(labels = short_names) +
+    labs(title = v,
+         x = "Species",
+         y = "Vessel Wall Thickness (µm)") +
+    theme(legend.position = "right",
+          axis.text.x = element_text(size = 12),        # X-axis tick labels size
+          axis.text.y = element_text(size = 12)) +      # Y-axis tick labels size
+    guides(color = "none")  # Remove the legend for `ssp`
+  print(g)
+}
