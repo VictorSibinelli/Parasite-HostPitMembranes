@@ -26,7 +26,6 @@ WT_EV <- wdata %>%
     .groups = "drop"  # Drop grouping after summarising
   )
 
-
 # --------------------------------------------------------
 # Factor level reordering across all data frames
 relevel_factors(ls())
@@ -78,14 +77,14 @@ abline(v = quantile(boot_diff, c(0.025, 0.975)), col = "black", lwd = 2)  # 95% 
 bootp <- sum(boot_diff >= abs(WT_obsdiff)) / length(boot_diff)  # Calculate p-value
 text(x = 0.5, y = 0.5, paste("p-value =", bootp))
 
-
-para_boot <- replicate(n = 5, {
+iterations <- 100000
+para_boot <- replicate(n = iterations, {
   WT_EV %>%
     filter(parasitism == "Parasite") %>% 
     pull(wthickness) %>%  # Extract the wthickness column
     sample(replace = TRUE) %>% mean()  # Sample with replacement and calculate mean
 })
-host_boot <- replicate(n = 5, {
+host_boot <- replicate(n = iterations, {
   WT_EV %>%
     filter(parasitism == "Host") %>% 
     pull(wthickness) %>%  # Extract the wthickness column
@@ -112,15 +111,15 @@ host_boot <- replicate(n = 5, {
  iterations <- 250000 # Number of iterations for resampling
 
  # Loop through each species pair and perform resampling
- # for (pair in species_pairs) {
- #   subset_data <- subset(WT_EV, ssp %in% pair)  # Subset data for the current pair
- #   boot_resample <- t(replicate(iterations,
- #                                shuffle_means(x = subset_data,
- #                                              cols = "wthickness",
- #                                              cat = "ssp",
- #                                              rcol = TRUE)))
- #   pair_results[[paste(pair, collapse = "_vs_")]] <- boot_resample  # Store results
- # }
+ for (pair in species_pairs) {
+   subset_data <- subset(WT_EV, ssp %in% pair)  # Subset data for the current pair
+   boot_resample <- t(replicate(iterations,
+                                shuffle_means(x = subset_data,
+                                              cols = "wthickness",
+                                              cat = "ssp",
+                                              rcol = TRUE)))
+   pair_results[[paste(pair, collapse = "_vs_")]] <- boot_resample  # Store results
+ }
 
  # Calculate the differences for each pair
  diff_matrix <- do.call(cbind, lapply(pair_results, function(x) {
@@ -133,6 +132,7 @@ host_boot <- replicate(n = 5, {
 fwrite(diff_matrix, file = here("data", "processed", "ressampled", "WT_ssp_Diffbootstrap.csv"))
 
 diff_matrix <- read.csv(file = here("data", "processed", "ressampled", "WT_ssp_Diffbootstrap.csv"))
+lapply(diff_matrix,head)
 # Calculate p-values for each species pair
 ssp_pvalues <- apply(diff_matrix, MARGIN = 2, function(x) {
   sum(abs(x) >= abs(x[1])) / length(x)  # Calculate p-value
@@ -200,5 +200,10 @@ WT_MonteCarlo <- data.frame(
 WT_MonteCarlo$Observed_diff <- c(WT_obsdiff, WTssp_diff_obs)  # Add observed differences
 WT_MonteCarlo$Pvalue <- c(bootp, ssp_pvalues)  # Add p-values
 fwrite(WT_MonteCarlo, file = here("outputs", "tables", "WT_MonteCarlo_results.csv"))
+CI95<- CI95 %>%
+  mutate(Group = rownames(CI95)) %>%
+  select(Group, everything())  # Move the "Group" column to the beginning
+
+# Save with row names as "Group" column
 fwrite(CI95, file = here("outputs", "tables", "WT_MonteCarlo_CI95.csv"))
 

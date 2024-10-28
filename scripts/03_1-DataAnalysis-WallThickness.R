@@ -9,7 +9,6 @@ rm(list = ls())
 
 # Load data
 wdata <- read.csv(here("data", "processed", "wdata.csv"))
-wdata_clean <- read.csv(here("data", "processed", "wdata_clean.csv"))
 source(here("scripts", "Functions.R"))
 
 # List of species pairs for comparison

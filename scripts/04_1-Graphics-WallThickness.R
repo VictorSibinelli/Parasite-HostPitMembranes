@@ -5,9 +5,24 @@
 # Scrpt 04.3 -Graphics- Pits
 #################################################################
 library(here)
-source(here("scripts", "03_1-DataAnalysis-WallThickness.R"))
-source(here("scripts", "03_1_2-DataAnalysis-WallThickness-Ressampling.R"))
+source(here("scripts", "Functions.R"))
+wdata <- read.csv(here("data", "processed", "wdata.csv"))
+WT_AIC <- read.csv(here("outputs", "tables", "Wdata_AIC.csv"))
+CI95 <- read.csv(here("outputs", "tables", "WTCI95.csv"))
+WT_MC <- read.csv(here("outputs", "tables", "WT_MonteCarlo_results.csv"))
+CI_95 <- read.csv(here("outputs", "tables", "WT_MonteCarlo_CI95.csv"))
 
+# Set the desired order for the groups
+desired_order <- c("Parasite", "Host",
+                   "Psittacanthus robustus", "Vochysia thyrsoidea",
+                   "Phoradendron perrotettii", "Tapirira guianensis",
+                   "Struthanthus rhynchophyllus", "Tipuana tipu",
+                   "Viscum album", "Populus nigra")
+
+relevel_factors(ls())
+# Reverse the order in 'desired_order' to display top-down
+CI95$Group <- factor(CI95$Group, levels = rev(desired_order))
+CI_95$Group <- factor(CI_95$Group, levels = rev(desired_order))
 # Define short names
 short_names <- c(
   "Psittacanthus robustus" = expression(italic("P. robustus")),
@@ -19,38 +34,13 @@ short_names <- c(
   "Viscum album" = expression(italic("V. album")),
   "Populus nigra" = expression(italic("P. nigra"))
 )
-x_pos <- c(1, 3, 5, 7, 9, 11, 13, 15)
-par(mar = c(7, 6, 1, 2) + 0.1, mgp = c(3, 1, 0), mfrow = c(1, 1))
-
-#######For student T test
-boxplot(
-  data = wdata_clean, wthickness~ ssp, na.rm = T, las = 2, cex = 1,
-  ylab = "", xlab = NA, tcl = T, xaxt = "n",
-  col = c("firebrick", "grey"), at = c(1, 3, 5, 7, 9, 11, 13, 15),
-  ylim = c(0, 8), cex.lab = 1.5, cex.axis = 1.5, whisklwd = 2, staplelwd = 2
-)
-title(ylab = "Intervessel Wall Thickness (µm)", line = 4, cex.lab = 1.5)
-text(
-  x = x_pos, y =-2.5, c("P. robustus", "V. thyrsoidea", "P. perrottetti", "T. guianensis", "S. rhynchophyllus", "T. tipu", "V. album", "P. nigra"),
-  xpd = NA, cex = 1.5, srt = 35, col = "black", adj = 0.50, font = 3
-)
-axis(1, at = x_pos, labels = NA)
-text(x = x_pos+0.5, y = 6,2, labels = c("A", "B", "A", "A", "A", "B"), cex = 1.5)
-abline(v = c(4, 8, 12), lty = 2)
-
-text(x = c(2, 6, 10, 14,2, 6, 10, 14),
-     y = c(VWall_results$ParasiteMean,VWall_results$HostMean), "-", cex = 2, col = "black")
-segments(x0 = c(2, 6, 10, 14), y0 = VWall_results$ParasiteMean, y1 = VWall_results$HostMean, lwd = 2)
-text(x = c(2, 6, 10, 14) + 0.3, y = (VWall_results$ParasiteMean+VWall_results$HostMean)/2, round(VWall_results$MeanDifference, 3), cex = 1.2)
-
-
-
-
 
 
 ########for LMEM
 # Create the plot
 library("viridis")
+
+
 g <- ggplot(wdata, aes(x = ssp, y = wthickness, fill = parasitism)) +
   geom_jitter(aes(color = label),
               size = 1, alpha = 0.4, position = position_jitter(width = 0.3)) +
@@ -67,11 +57,30 @@ g <- ggplot(wdata, aes(x = ssp, y = wthickness, fill = parasitism)) +
        x = "Species",
        y = "Vessel Wall Thickness (µm)") +
   annotate("text", x = seq_along(unique(wdata$ssp)),
-           y = max(wdata$wthickness) + 5, label = "A", size = 6)+
+           y = max(wdata$wthickness) + 5, label = c("A","A","A","A","A","B","A"), size = 6)+
   theme(legend.position = "right") +  # Legend on the right
   guides(color = "none")  # Remove the legend for `ssp`
 g
 ggsave(here("outputs","figs","vessel_wall_thickness_plot.png"), plot = g, dpi = 600, width = 10, height = 7)
+
+
+# Plot with alternating colors
+CI95 %>% 
+  ggplot(aes(Group, Estimate)) +
+  geom_point(size = 4, aes(color = Group)) +
+  geom_errorbar(aes(ymin = Lower, ymax = Upper), width = 0.2) +
+  coord_flip() +
+  labs(title = "Estimates and 95% Confidence Intervals",
+       x = "Effect", y = "Estimate") +
+  scale_color_manual(
+    values = rep(c("black", "firebrick"), length.out = nlevels(CI95$Group))  # Alternate colors based on levels
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")  # Remove legend if not needed
+
+
+
+
 
 
 
@@ -90,7 +99,6 @@ boot_sspWT_long <- boot_sspWT %>%
   ))
 
 
-
 g <- ggplot(wdata, aes(x = ssp, y = wthickness, fill = parasitism)) +
   geom_jitter(aes(color = label),
               size = 1, alpha = 0.4, position = position_jitter(width = 0.3)) +
@@ -107,7 +115,7 @@ g <- ggplot(wdata, aes(x = ssp, y = wthickness, fill = parasitism)) +
        x = "Species",
        y = "Vessel Wall Thickness (µm)") +
   annotate("text", x = seq_along(unique(wdata$ssp)),
-           y = max(wdata$wthickness) + 5, label = c("A","A","A","A","A","B","A"), size = 6)+
+           y = max(wdata$wthickness) + 5, label = c("A","A","A","A","A","A","A"), size = 6)+
   theme(legend.position = "right",
         axis.text.x = element_text(size = 12),        # X-axis tick labels size
         axis.text.y = element_text(size = 12)         # Y-axis tick labels size
@@ -117,63 +125,20 @@ g
 
 
 
+CI_95 %>% 
+  ggplot(aes(Group, Estimate)) +
+  geom_point(size = 4, aes(color = Group)) +
+  geom_errorbar(aes(ymin = Lower, ymax = Upper), width = 0.2) +
+  coord_flip() +
+  labs(title = "Estimates and 95% Confidence Intervals",
+       x = "Effect", y = "Estimate") +
+  scale_color_manual(
+    values = rep(c("firebrick", "black"), length.out = nlevels(CI_95$Group))  # Alternate colors based on levels
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")  # Remove legend if not needed
 
-# Create bostrap for each species WT
-for (pair in species_pairs) {
-  # Subset the data for the current pair
-  subset_data <- boot_sspWT_long %>%
-    filter(species %in% pair)
-  
-  # Get the 95% CI for each species in the current pair
-  ci_data <- CI_95 %>%
-    as.data.frame() %>%
-    mutate(species = rownames(CI_95)) %>%  # Add rownames as a column
-    filter(species %in% pair)  # Ensure only pairs are retained
-  
-  # Create the density plot for the current pair
-  plot <- ggplot(subset_data, aes(x = wthickness, fill = parasitism)) +
-    geom_density(alpha = 0.5) +
-    scale_fill_manual(values = c("Parasite" = "red", "Host" = "grey")) +
-    
-    # Vlines for Parasite
-    geom_vline(data = subset(ci_data, species == pair[1]), aes(xintercept = lower), linetype = "dashed", color = "red") +
-    geom_vline(data = subset(ci_data, species == pair[1]), aes(xintercept = upper), linetype = "dashed", color = "red") +
-    
-    # Vlines for Host
-    geom_vline(data = subset(ci_data, species == pair[2]), aes(xintercept = lower), linetype = "dashed", color = "black") +
-    geom_vline(data = subset(ci_data, species == pair[2]), aes(xintercept = upper), linetype = "dashed", color = "black") +
-    
-    labs(title = paste("Density Plot for", pair[1], "and", pair[2]),
-         x = "Vessel Wall Thickness",
-         y = "Density") +
-    
-    scale_x_continuous(limits = c(min(subset_data$wthickness) - 0.1, max(subset_data$wthickness) + 0.1)) +
-    theme_classic()
-  
-  print(plot)  # Print the plot for each pair
-}
 
-# Prepare data
-bootstrap_result_lg <- bootstrap_result %>%
-  pivot_longer(cols = everything(), 
-               names_to = "group", 
-               values_to = "wthickness") 
-
-# Create the density plot with vertical lines
-bootstrap_result_lg %>% 
-  ggplot(aes(x = wthickness, fill = group)) +
-  geom_density(alpha = 0.5) +
-  scale_fill_manual(values = c("Parasite" = "firebrick", "Host" = "grey")) + 
-  labs(title = "Density Plot of Parasites vs Hosts",
-       x = "Vessel Wall Thickness",
-       y = "Density") +
-  # Vlines for Parasite
-  geom_vline(xintercept = c(CI_95[1, "Lower"], CI_95[1, "Upper"]), 
-             linetype = "dashed", color = "firebrick") +
-  # Vlines for Host
-  geom_vline(xintercept = c(CI_95[2, "Lower"], CI_95[2, "Upper"]), 
-             linetype = "dashed", color = "black") +
-  theme_minimal()
 
 
 
