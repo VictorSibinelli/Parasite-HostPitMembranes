@@ -54,7 +54,7 @@ WT_obsdiff <- WT_obs[1] - WT_obs[2]  # Observed difference
 # Bootstrap test for resampling with replacement
 # --------------------------------------------------------
 
- #bootstrap_result <- replicate(iterations,
+ bootstrap_result <- replicate(iterations,
                                shuffle_means(x = WT_EV, cols = "wthickness", 
                                              cat = "parasitism", rcol = TRUE, rcat = TRUE),
                                simplify = FALSE)

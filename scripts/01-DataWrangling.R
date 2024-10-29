@@ -30,10 +30,16 @@ vdata <- within(vdata, {
   indiv <- gsub("Phoradendeon", "Phoradendron", indiv)
   pic <- gsub("Phoradendeon", "Phoradendron", pic)
 })
+vdata$Area <- vdata$Area*0.49
 vdata$VesselDiameter <- 2 * sqrt(vdata$Area / pi)  # Calculate vessel diameter
+
+
+
+
 
 ## vadata - Vessel Density Data
 # Correct species names and calculate vessel density
+vadata$Total.Area <- vadata$Total.Area*0.49
 vadata$vdensity <- vadata$Count / (vadata$Total.Area / vadata$X.Area) * 10000
 colnames(vadata)[2] <- "indiv"
 vadata <- within(vadata, {
@@ -45,7 +51,7 @@ vadata <- within(vadata, {
 
 ## wdata - Wall Thickness Data
 # Calculate single wall thickness
-wdata$wthickness <- wdata$Length / 2
+wdata$wthickness <- wdata$Length*0.7 / 2
 
 ## pitdata - Pit Data
 # Calculate average pit membrane thickness at edges and center
@@ -55,9 +61,9 @@ pitdata$pitavg <- rowMeans(pitdata[, 2:6], na.rm = TRUE)
 
 ## pitOdata - Pit Opening Data
 # Adjust pit opening diameter
-pitOdata$PitDiameter <- read.csv(here("data", "raw", "PitDiameter.csv"), sep = ";")$PitDiameter / 10
+pitOdata$PitDiameter <- read.csv(here("data", "raw", "PitDiameter.csv"), sep = ";")$PitDiameter*0.7 / 10
 colnames(pitOdata)[4] <- "PitOpening"
-
+pitOdata$PitOpening <- pitOdata$PitOpening*0.7
 #### Save Processed Data Frames
 # Filter only data frames from the environment
 dataframes <- Filter(function(x) is.data.frame(get(x)), ls())

@@ -69,7 +69,7 @@ Obs2 <- pitdata %>%
             Tpm = mean(pitavg, na.rm = TRUE),
             .groups = "drop") %>% select(Grouping, Pcd, Tpm)
   )
-
+relevel_factors(ls())
 # Merge the two summarized data frames by the Grouping column
 Obs_values <- merge(Obs1, Obs2, by = "Grouping", all = TRUE) %>% as.tibble() %>%
   arrange(Grouping)  # Change all=TRUE to all.x=TRUE for left join
