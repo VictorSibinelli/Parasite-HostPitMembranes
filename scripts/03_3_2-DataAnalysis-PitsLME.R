@@ -6,7 +6,7 @@
 #####################################################################
 
 library(here)
-source(here("scripts", "02_3-TestAssumptions-Pit.R")) # Source test assumptions script
+source(here("scripts","00-library.R"))
 rm(list=ls())
 source(here("scripts", "Functions.R")) # Source custom functions
 
@@ -15,15 +15,20 @@ pitdata <- read.csv(here("data", "processed", "pitdata.csv"))
 pitOdata <- read.csv(here("data", "processed", "pitOdata.csv"))
 
 # Modify outlier values to the second-highest value
-n <- length(pitOdata$PitDiameter)
-pitOdata[209, "PitDiameter"] <- sort(pitOdata$PitDiameter, partial = n - 1)[n - 1]
-pitOdata[465, "PitOpening"] <- sort(pitOdata$PitOpening, partial = n - 1)[n - 1]
 
-# Replace the 5 largest PitOpening values for Tipuana tipu with the 6th largest
-tipuana_indices <- pitOdata$ssp == "Tipuana tipu"
-top_5_tipuanas <- tail(sort(pitOdata$PitOpening[tipuana_indices]), 5)
-pitOdata$PitOpening[tipuana_indices & pitOdata$PitOpening %in% top_5_tipuanas] <- 
-  sort(pitOdata$PitOpening[tipuana_indices])[6]
+pitOdata[465,"PitOpening"] <- rev(sort(pitOdata$PitOpening[pitOdata$ssp == "Tapirira guianensis"]))[2]
+pitOdata[563,"PitOpening"] <- sort(pitOdata$PitOpening[pitOdata$ssp == "Tapirira guianensis"])[2]
+pitOdata[647,"PitOpening"] <- rev(sort(pitOdata$PitOpening[pitOdata$ssp == "Tipuana tipu"]))[2]
+
+# n <- length(pitOdata$PitDiameter)
+# pitOdata[209, "PitDiameter"] <- sort(pitOdata$PitDiameter, partial = n - 1)[n - 1]
+# pitOdata[465, "PitOpening"] <- sort(pitOdata$PitOpening, partial = n - 1)[n - 1]
+# 
+# # Replace the 5 largest PitOpening values for Tipuana tipu with the 6th largest
+# tipuana_indices <- pitOdata$ssp == "Tipuana tipu"
+# top_5_tipuanas <- tail(sort(pitOdata$PitOpening[tipuana_indices]), 5)
+# pitOdata$PitOpening[tipuana_indices & pitOdata$PitOpening %in% top_5_tipuanas] <- 
+#   sort(pitOdata$PitOpening[tipuana_indices])[6]
 
 # Relevel factors
 relevel_factors(ls())
@@ -44,7 +49,7 @@ PitDiameter_results <- data.frame(PairTested = character(),
                                   REVariance = numeric(),
                                   PValue = numeric(),
                                   DeltaAIC = numeric(),
-                                  stringsAsFactors = FALSE) %>% as.tibble
+                                  stringsAsFactors = FALSE) %>% as_tibble
 
 PitOpening_results <- data.frame(PairTested = character(),
                                  ParasiteMean = numeric(),
@@ -53,7 +58,7 @@ PitOpening_results <- data.frame(PairTested = character(),
                                  REVariance = numeric(),
                                  PValue = numeric(),
                                  DeltaAIC = numeric(),
-                                 stringsAsFactors = FALSE) %>% as.tibble()
+                                 stringsAsFactors = FALSE) %>% as_tibble()
 
 
 PitMembrane_results <- data.frame(Parasite = character(),
@@ -62,7 +67,7 @@ PitMembrane_results <- data.frame(Parasite = character(),
                                   HostMean = numeric(),
                                   MeanDifference = numeric(),
                                   pvalue = numeric(),
-                                  stringsAsFactors = FALSE) %>% as.tible
+                                  stringsAsFactors = FALSE) %>% as_tibble
 
 pcd_results <- data.frame(Parasite = character(),
                           Host = character(),
@@ -70,7 +75,10 @@ pcd_results <- data.frame(Parasite = character(),
                           HostMean = numeric(),
                           MeanDifference = numeric(),
                           pvalue = numeric(),
-                          stringsAsFactors = FALSE) %>% as.tibble()
+                          stringsAsFactors = FALSE) %>% as_tibble()
+
+
+
 
 # Fit models for PitDiameter and perform ANOVA
 full_model_diameter <- lme(PitDiameter ~ parasitism, random = ~ 1 | ssp/label, data = pitOdata,
@@ -79,14 +87,30 @@ reduced_model_diameter <- lme(PitDiameter ~ 1, random = ~ 1 | ssp/label, data = 
                               weights = varIdent(form = ~ 1 | ssp))
 pd <- anova(full_model_diameter, reduced_model_diameter) # Group-level difference non-significant
 pd
+
 # Fit models for PitOpening and perform ANOVA
 full_model_opening <- lme(PitOpening ~ parasitism, random = ~ 1 | ssp/label, data = pitOdata,
-                          weights = varIdent(form = ~ 1 | ssp))
+                          weights = varIdent(form = ~ 1 | ssp),
+                          control = lmeControl(maxIter = 100, msMaxIter = 100))
 reduced_model_opening <- lme(PitOpening ~ 1, random = ~ 1 | ssp/label, data = pitOdata,
-                             weights = varIdent(form = ~ 1 | ssp))
+                             weights = varIdent(form = ~ 1 | ssp),
+                             control = lmeControl(maxIter = 100, msMaxIter = 100))
 po <- anova(full_model_opening, reduced_model_opening)
 po# Pit Opening difference significant
 summary(full_model_opening) # Display summary of the full model
+# Residual plots for model analysis
+
+par(mar = c(5, 5, 5, 5))  # Set margins for the plot
+resid_plot <- residplot(full_model_opening, newwd = FALSE)
+title(sub = paste("PitOpening", "Parasite x Host"), 
+      adj = 0.5, line = 4, cex.sub = 0.9)
+
+print(check_model(full_model_opening))
+# Cook's distance plot
+cookd_plot <- CookD(full_model_opening, newwd = FALSE)
+title(main = paste("PitOpening", "Parasite x Host"), 
+      adj = 0.5, line = 0.5)
+abline(h=4/nrow(pitOdata),col="red")
 
 # Append results to the PitDiameter_results dataframe
 PitDiameter_results <- rbind(PitDiameter_results, data.frame(
@@ -202,6 +226,7 @@ for (pair in species_pairs) {
   cookd_plot <- CookD(full_model, newwd = FALSE)
   title(main = paste("PitDiameter", paste(pair, collapse = " vs ")), 
         adj = 0.5, line = 0.5)
+  abline(h=4/nrow(subset_data),col="red")
 }
 
 #########################################################
@@ -294,33 +319,48 @@ for (pair in species_pairs) {
   cookd_plot <- CookD(full_model, newwd = FALSE)
   title(main = paste("PitOpening", paste(pair, collapse = " vs ")), 
         adj = 0.5, line = 0.5)
+  abline(h=4/nrow(subset_data),col="red")
 }
 
 ######Pit chamber
 ssps <- unlist(species_pairs)
 # Initialize empty data frame to store results
-PeXPc_df <- data.frame(Difference = numeric(), PValue = numeric(), stringsAsFactors = FALSE)
-
-for (s in ssps) {
-  subset_data <- pitdata[pitdata$ssp == s, ]
-  
-  if (nrow(subset_data) > 1) { # Ensure there's enough data for the t-test
-    t <- t.test(subset_data$peavg, subset_data$pcavg, var.equal = TRUE)
-    result <- data.frame(Difference = diff(t$estimate), PValue = t$p.value)
-    PeXPc_df <- rbind(PeXPc_df, result)
-    rownames(PeXPc_df)[nrow(PeXPc_df)] <- s
-  } else {
-    cat("Not enough data for species:", s, "\n")
-  }
-}
-# Display the result
-PeXPc_df
+# PeXPc_df <- data.frame(Difference = numeric(), PValue = numeric(), stringsAsFactors = FALSE)
+# 
+# for (s in ssps) {
+#   subset_data <- pitdata[pitdata$ssp == s, ]
+#   
+#   if (nrow(subset_data) > 1) { # Ensure there's enough data for the t-test
+#     t <- t.test(subset_data$peavg, subset_data$pcavg, var.equal = TRUE)
+#     result <- data.frame(Difference = diff(t$estimate), PValue = t$p.value)
+#     PeXPc_df <- rbind(PeXPc_df, result)
+#     rownames(PeXPc_df)[nrow(PeXPc_df)] <- s
+#   } else {
+#     cat("Not enough data for species:", s, "\n")
+#   }
+# }
+# # Display the result
+# PeXPc_df
 
 
 full_model <- lme(pcd ~ parasitism, random = ~ 1 | ssp, data = pitdata)
 reduced_model <- lme(pcd ~ 1, random = ~ 1 | ssp, data = pitdata)
 a <- anova(full_model,reduced_model)#non siginificant
 full_model$coefficients$fixed
+
+# Residual plots for model analysis
+par(mar = c(5, 5, 5, 5))  # Set margins for the plot
+resid_plot <- residplot(full_model, newwd = FALSE)
+title(sub = paste("PCD Parsite x Host"), 
+      adj = 0.5, line = 4, cex.sub = 0.9)
+print(check_model(full_model, residual_type = "simulated"))
+
+# Cook's distance plot
+cookd_plot <- CookD(full_model, newwd = FALSE)
+title(main = paste("PCD Parasite x Host"), 
+      adj = 0.5, line = 0.5)
+abline(h=4/nrow(pitdata),col="red")
+
 
 pcd_results <- rbind(pcd_results, data.frame(
   Parasite = "Parasites",
@@ -336,6 +376,20 @@ pcd_results <- rbind(pcd_results, data.frame(
 full_model <- lme(pitavg ~ parasitism, random = ~ 1 | ssp,na.omit(pitdata))
 reduced_model <- lme(pitavg ~ 1, random = ~ 1 | ssp,na.omit(pitdata))
 anova(full_model,reduced_model)#Significant
+# Residual plots for model analysis
+par(mar = c(5, 5, 5, 5))  # Set margins for the plot
+resid_plot <- residplot(full_model, newwd = FALSE)
+title(sub = paste("Pit avg Parsite x Host"), 
+      adj = 0.5, line = 4, cex.sub = 0.9)
+print(check_model(full_model, residual_type = "simulated"))
+
+# Cook's distance plot
+cookd_plot <- CookD(full_model, newwd = FALSE)
+title(main = paste("Pit Avg Parasite x Host"), 
+      adj = 0.5, line = 0.5)
+abline(h=4/nrow(pitdata),col="red")
+
+
 PitMembrane_results <- rbind(PitMembrane_results, data.frame(
   Parasite = "Parasites",
   Host = "Hosts",

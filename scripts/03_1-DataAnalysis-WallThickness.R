@@ -5,7 +5,7 @@
 # Script 03.1 - Data Analysis - Vessel walls
 #################################################################
 library(here)
-rm(list = ls())
+source(here("scripts","00-library.R"))
 
 # Load data
 wdata <- read.csv(here("data", "processed", "wdata.csv"))
@@ -18,7 +18,27 @@ species_pairs <- list(
   c("Struthanthus rhynchophyllus", "Tipuana tipu")
 )
 
+
+
 relevel_factors(ls())
+
+#replace value due to high influence
+wdata[407,"wthickness"] <- rev(sort(wdata$wthickness))[2]
+wdata[318,"wthickness"] <- sort(wdata$wthickness)[3]
+# Define target rows with values to replace
+target_rows <- c(218, 354, 396, 397, 402, 407, 437)
+
+# Replace wthickness values in target rows with closest within-species values
+wdata[target_rows, "wthickness"] <- sapply(target_rows, function(row) {
+  species_data <- wdata[wdata$ssp == wdata$ssp[row] & rownames(wdata) != row, ]
+  species_data$wthickness[which.min(abs(species_data$wthickness - wdata$wthickness[row]))]
+})
+
+wdata[c(396,397),"wthickness"] <- sort(wdata$wthickness[wdata$ssp=="Tipuana tipu"])[3]
+
+wdata[c(354,402,407),"wthickness"] <- rev(sort(wdata$wthickness[wdata$ssp=="Tipuana tipu"]))[4]
+
+
 
 ### Initialize result data frames
 VWall_AIC <- data.frame(PairTested = character(), ParasiteMean = numeric(),
@@ -71,18 +91,22 @@ CI95 <- data.frame(
   Lower = c(conf_intervals[1, 1], conf_intervals[1, 1] + conf_intervals[2, 1]),
   Upper = c(conf_intervals[1, 2], conf_intervals[1, 2] + conf_intervals[2, 2])
 )
+print(VWall_AIC)
 
 
-print(check_model(full_model))
 testDispersion(full_model)
 title(main=paste(levels(wdata$parasitism), collapse = " vs "),line= 1,cex.main=1)
+print(check_model(full_model))
 simulationOutput <- simulateResiduals(fittedModel = full_model, plot = T)
 title(main = paste(levels(wdata$parasitism), collapse = " vs "),line=1,cex.main=1)
+cookd_plot <- CookD(full_model, newwd = FALSE)
+title(main = paste("Cook's Distance for", " WT ", "Parasite x Host"), adj = 0.5, line = 0.5)
+abline(h=4/length(wdata$wthickness),col="red")
 
 # Loop through each species pair and fit the model
 for (pair in species_pairs) {
   
-  subset_data <- wdata[wdata$ssp %in% pair, ]
+  subset_data <- subset(wdata,ssp %in% pair)
   
   if (length(unique(subset_data$ssp)) < 2) {
     cat("\nSkipping pair", paste(pair, collapse = " vs "), "due to insufficient levels in 'ssp'.\n")
@@ -130,13 +154,18 @@ for (pair in species_pairs) {
    
     CI95 <- rbind(CI95,CI95_pair)
     
-    print(check_model(full_model))
+   
     testDispersion(full_model)
     title(main=paste(pair, collapse = " vs "),line= 1,cex.main=1)
+    
+    print(check_model(full_model))
+    
     simulationOutput <- simulateResiduals(fittedModel = full_model, plot = T)
     title(main = paste(pair, collapse = " vs "),line=1,cex.main=1)
     
-    
+    cookd_plot <- CookD(full_model, newwd = FALSE,idn = 10)
+     title(main = paste("Cook's Distance for", " WT ", paste(pair,collapse = " x ")), adj = 0.5, line = 0.5)
+     abline(h=4/length(subset_data$wthickness),col="red")
   }, error = function(e) {
     cat("\nAn error occurred for pair", paste(pair, collapse = " vs "), ":", e$message, "\n")
   })
@@ -149,7 +178,7 @@ desired_order <- c("Parasite", "Host",
                    "Struthanthus rhynchophyllus", "Tipuana tipu")
 
 # Convert Group to a factor with specified levels
-CI95$Group <- factor(CI95$Group, levels = desired_order)
+CI95$Group <- factor(CI95$Group, levels = rev(desired_order))
 
 # Create the plot
 CI95 %>% 
@@ -159,7 +188,7 @@ CI95 %>%
   coord_flip() +
   labs(title = "Estimates and 95% Confidence Intervals",
        x = "Effect", y = "Estimate") +
-  scale_color_manual(values = rep(c("firebrick", "black"), length.out = nlevels(CI95$Group))) +  # Alternate colors
+  scale_color_manual(values = rep(c("black", "firebrick"), length.out = nlevels(CI95$Group))) +  # Alternate colors
   theme_minimal()
 
 

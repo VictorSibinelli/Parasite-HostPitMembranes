@@ -7,6 +7,7 @@
 # Script 03.2 - Graphics - Vessels
 #################################################################
 library(here)
+rm(list=ls())
 source(here("scripts","Functions.R"))
 HydraulicData <- read.csv(here("data", "processed", "HydraulicData.csv"))
 # List of file names to load into a list
@@ -14,6 +15,13 @@ files <- list.files(path = here("outputs", "tables"), pattern = "Vessels_MonteCa
 # Load each file as a data frame in a list
 CI95_MT <- lapply(files, fread)
 names(CI95_MT) <- gsub(".*CI95_(.*)\\.csv", "\\1", basename(files))  # Assign names based on file names
+Vessels_Pvalues <-fread(here("outputs","tables","Vessels_MonteCarlo_Pvalues.csv"))
+Vessels_AIC <- list(
+  HydraulicDiameter = fread(here("outputs", "tables", "HydraulicDiameter_results.R")),
+  VesselDensity = fread(here("outputs", "tables", "vdensity_results.R")),
+  Kmax = fread(here("outputs", "tables", "Kmax_results.R"))
+) %>% lapply(as_tibble)
+
 # Set the desired order for the groups
 desired_order <- c("Parasite", "Host",
                    "Psittacanthus robustus", "Vochysia thyrsoidea",
@@ -61,6 +69,8 @@ sapply(seq_along(column_names), function(i) {
 
 ##############################Ressampling
 ###Hydraulic Diameter
+Vessels_AIC[[1]]
+
 g <- HydraulicData %>%  
   ggplot(aes_string(x = "ssp", y = " HydraulicDiameter", fill = "parasitism")) +
   geom_jitter(aes(color = pic),
@@ -79,6 +89,10 @@ g <- HydraulicData %>%
        y = "Hydraulic Diameter (µm)") +  # Use dot for multiplication
   annotate("text", x = seq_along(unique(HydraulicData$ssp)),
            y = max(HydraulicData$HydraulicDiameter)*1.1, label = c("A","B","A","A","A","B"), size = 6) +
+  annotate("text", x = c(1.5,3.5,5.5,7.5),
+           y = max(HydraulicData$HydraulicDiameter)*1.1, 
+           label = "*", 
+           size = 6) +
   theme(legend.position = "right",
         axis.text.x = element_text(size = 12),        # X-axis tick labels size
         axis.text.y = element_text(size = 12)) +      # Y-axis tick labels size
@@ -89,6 +103,8 @@ print(g)
 
 
 ###Vessel density
+
+Vessels_AIC[2]
 
 g <- HydraulicData %>%  
   ggplot(aes_string(x = "ssp", y = "vdensity", fill = "parasitism")) +
@@ -108,6 +124,10 @@ g <- HydraulicData %>%
        y = "Vessel Density (Vessels/mm²)") +  # Use dot for multiplication
   annotate("text", x = seq_along(unique(HydraulicData$ssp)),
            y = max(HydraulicData$vdensity)*1.1, label = c("A","A","A","A","A","B"), size = 6) +
+  annotate("text", x = c(1.5,3.5,5.5,7.5),
+           y = max(HydraulicData$vdensity)*1.1, 
+           label = "*", 
+           size = 6) +
   theme(legend.position = "right",
         axis.text.x = element_text(size = 12),        # X-axis tick labels size
         axis.text.y = element_text(size = 12)) +      # Y-axis tick labels size
@@ -117,6 +137,9 @@ print(g)
 
 
 #Kmax
+
+Vessels_AIC[3]
+Vessels_Pvalues
   g <- HydraulicData %>%  
     ggplot(aes_string(x = "ssp", y = "Kmax", fill = "parasitism")) +
     geom_jitter(aes(color = pic),
@@ -135,6 +158,10 @@ print(g)
          y = "Max Conductivity (kg·s·MPa⁻¹·m⁻²)") +  # Use dot for multiplication
     annotate("text", x = seq_along(unique(HydraulicData$ssp)),
              y = max(HydraulicData$Kmax)*1.1, label = c("A","B","A","B","A","B"), size = 6) +
+    annotate("text", x = c(1.5,3.5,5.5,7.5),
+             y = max(HydraulicData$Kmax)*1.1, 
+             label = "*", 
+             size = 6) +
     theme(legend.position = "right",
           axis.text.x = element_text(size = 12),        # X-axis tick labels size
           axis.text.y = element_text(size = 8)) +      # Y-axis tick labels size

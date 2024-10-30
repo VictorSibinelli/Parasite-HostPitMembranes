@@ -16,29 +16,12 @@ vdata <- read.csv(here("data", "processed", "vdata.csv"))
 vadata <- read.csv(here("data", "processed", "vadata.csv"))
 
 ### Substitute the most influential values in HydraulicData
+##HydraulicDiameter
 
-# Substitute the value at index 102, column 5, with the second most extreme value
-HydraulicData[102, 5] <- sort(HydraulicData[, 5])[length(HydraulicData[, 5]) - 1] 
+HydraulicData[c(177,178,179,180),"HydraulicDiameter"] <- sort(HydraulicData$HydraulicDiameter[HydraulicData$ssp=="Vochysia thyrsoidea"])[4]
+HydraulicData[c(172),"vdensity"] <- rev(sort(HydraulicData$vdensity[HydraulicData$ssp=="Vochysia thyrsoidea"]))[2]
 
-# Replace specified values (indices 134-136, 139, 140, 142) in 'Kmax' with the closest values (excluding the current value)
-indices_to_replace <- c(134:136, 139, 140, 142)
-HydraulicData[indices_to_replace, "Kmax"] <- sapply(HydraulicData[indices_to_replace, "Kmax"], function(x) {
-  closest_value <- HydraulicData$Kmax[HydraulicData$Kmax != x][which.min(abs(HydraulicData$Kmax[HydraulicData$Kmax != x] - x))]
-  return(closest_value)
-})
-HydraulicData[134, 7] <- HydraulicData[141, 7]
-#HD
-HydraulicData[HydraulicData$ssp == "Vochysia thyrsoidea", "HydraulicDiameter"][c(25, 26, 28)] <- sort(HydraulicData[HydraulicData$ssp == "Vochysia thyrsoidea", "HydraulicDiameter"], decreasing = F)[4]
-HydraulicData[HydraulicData$ssp == "Vochysia thyrsoidea", "HydraulicDiameter"][c(27)] <- sort(HydraulicData[HydraulicData$ssp == "Vochysia thyrsoidea", "HydraulicDiameter"], decreasing = T)[5]
-#vdesn
-HydraulicData[HydraulicData$ssp == "Psittacanthus robustus", 5][20] <- sort(unique(HydraulicData[HydraulicData$ssp == "Psittacanthus robustus", 5]), decreasing = TRUE)[2]
-HydraulicData[HydraulicData$ssp == "Vochysia thyrsoidea", 5][c(20)] <- sort(unique(HydraulicData[HydraulicData$ssp == "Vochysia thyrsoidea", 5]), decreasing = TRUE)[3]
-
-
-HydraulicData[HydraulicData$ssp == "Psittacanthus robustus", 7][20] <- sort(unique(HydraulicData[HydraulicData$ssp == "Psittacanthus robustus", 7]), decreasing = TRUE)[2]
-HydraulicData[HydraulicData$ssp == "Vochysia thyrsoidea", 7][c(26,28)] <- sort(unique(HydraulicData[HydraulicData$ssp == "Vochysia thyrsoidea", 7]), decreasing = F)[3]
-HydraulicData[HydraulicData$ssp == "Vochysia thyrsoidea", 7][c(5)] <- sort(unique(HydraulicData[HydraulicData$ssp == "Vochysia thyrsoidea", 7]), decreasing = T)[2]
-
+HydraulicData[c(51),"Kmax"] <- rev(sort(HydraulicData$Kmax[HydraulicData$ssp=="Psittacanthus robustus"]))[2]
 
 
 ### Fit Linear Mixed-Effects Models (LME) for Parasite vs Host comparisons
@@ -101,17 +84,18 @@ for (v in vars) {
   # Perform ANOVA on full and reduced models
   pd <- anova(full_model, reduced_model)
   print(pd)
-  
-  # # Residual plots for model diagnostics
-  # par(mar = c(5, 5, 5, 5))  # Set plot margins
-  # resid_plot <- residplot(full_model, newwd = FALSE)
-  # title(sub = paste("Residuals of", v, "Parasite x Host"), adj = 0.5, line = 4, cex.sub = 0.9)
-  # print(check_model(full_model))
-  # 
-  # # Cook's distance plot to assess influential points
-  # cookd_plot <- CookD(full_model, newwd = FALSE)
-  # title(main = paste("Cook's Distance for", v, "Parasite x Host"), adj = 0.5, line = 0.5)
 
+  # Residual plots for model diagnostics
+  par(mar = c(5, 5, 5, 5))  # Set plot margins
+  resid_plot <- residplot(full_model, newwd = FALSE)
+  title(sub = paste("Residuals of", v, "Parasite x Host"), adj = 0.5, line = 4, cex.sub = 0.9)
+
+  
+  print(check_model(full_model))
+
+  cookd_plot <- CookD(full_model, newwd = FALSE,idn = 10)
+  title(main = paste("Cook's Distance for",v, "Parasite x Host"), adj = 0.5, line = 0.5)
+  abline(h=4/nrow(HydraulicData),col="red")
   }
 
 resul_table_list
@@ -119,7 +103,7 @@ resul_table_list
 for (pair in species_pairs) {
   
   # Filter data for the current species pair
-  data <- HydraulicData %>% filter(ssp %in% pair)
+  data <- HydraulicData %>% subset(ssp %in% pair)
   
   for (v in vars) {
     
@@ -171,16 +155,17 @@ for (pair in species_pairs) {
     # Perform ANOVA on full and reduced models, and print the results
     pd <- anova(full_model, reduced_model)
     print(pd)
-    # 
-    # par(mar = c(5, 5, 5, 5))  # Set plot margins
-    # resid_plot <- residplot(full_model, newwd = FALSE)
-    # title(sub = paste("Residuals of", v, paste(pair,collapse = " x ")), adj = 0.5, line = 4, cex.sub = 0.9)
-    # print(check_model(full_model))
-    # 
-    # # Cook's distance plot to assess influential points
-    # cookd_plot <- CookD(full_model, newwd = FALSE)
-    # title(main = paste("Cook's Distance for", v, paste(pair,collapse = " x ")), adj = 0.5, line = 0.5)
-    # 
+
+    par(mar = c(5, 5, 5, 5))  # Set plot margins
+    resid_plot <- residplot(full_model, newwd = FALSE)
+    title(sub = paste("Residuals of", v, paste(pair,collapse = " x ")), adj = 0.5, line = 4, cex.sub = 0.9)
+    
+    print(check_model(full_model))
+
+    # Cook's distance plot to assess influential points
+    cookd_plot <- CookD(full_model, newwd = FALSE)
+    title(main = paste("Cook's Distance for", v, paste(pair,collapse = " x ")), adj = 0.5, line = 0.5)
+    abline(h=4/nrow(data),col="red")
   }  
 } 
 resul_table_list

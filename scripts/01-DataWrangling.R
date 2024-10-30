@@ -52,7 +52,7 @@ vadata <- within(vadata, {
 ## wdata - Wall Thickness Data
 # Calculate single wall thickness
 wdata$wthickness <- wdata$Length*0.7 / 2
-
+wdata <- wdata[!rowSums(wdata == 0), ]
 ## pitdata - Pit Data
 # Calculate average pit membrane thickness at edges and center
 pitdata$peavg <- rowMeans(pitdata[, 5:6], na.rm = TRUE)
@@ -99,3 +99,4 @@ rm(list = ls())
 
 #######################################################
 print("Data Wrangling complete")
+
