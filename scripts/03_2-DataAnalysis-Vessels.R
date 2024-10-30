@@ -306,7 +306,7 @@ ssp_pvalues <- sapply(valid_diffs_list, simplify = TRUE, function(x) {
     sum(abs(y) >= abs(y[1]), na.rm = TRUE) / length(y)
   })
 }) %>% t() %>% as.data.frame()
-
+colnames(ssp_pvalues)[2] <- "VesselDensity"
 # Print the results to verify
 
 P_values <- rbind(p_values,ssp_pvalues)
@@ -363,12 +363,19 @@ for (var in variables) {
   rownames(CI95[[var]]) <- NULL  # Remove rownames
 }
 
+# Convert `ssp_obs` to a tibble and add the `parasitism` (or `Group`) column
+ssp_obs <- as_tibble(ssp_obs, rownames = "parasitism")
 
+# Bind rows while keeping numeric columns intact
+C_obs <- rbind(Obs_values, ssp_obs) %>% 
+  rename(Group = parasitism)
+
+fwrite(C_obs,here("outputs","tables","Vessel_obs.csv"))
 # Display the updated CI95 list
 print(CI95)
 print(P_values)
 
-
+fwrite(P_values,here("outputs","tables","Vessels_MonteCarlo_Pvalues.csv"))
 # Save each data frame in CI95 list to separate CSV files
 lapply(names(CI95), function(name) {
   fwrite(CI95[[name]], file = here("outputs", "tables", paste0("Vessels_MonteCarlo_CI95_", name, ".csv")))
