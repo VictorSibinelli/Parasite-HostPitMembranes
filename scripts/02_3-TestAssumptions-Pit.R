@@ -11,6 +11,7 @@ rm(list=ls())
 # Load data
 pitO <- read.csv(here("data", "processed", "PitOdata.csv"))
 pitdata <- read.csv(here("data", "processed", "pitdata.csv"))
+pitF <- read.csv(here("data", "processed", "pitF.csv"))
 source(here("scripts","Functions.R"))
 # Relevel the factors for each data frame
 relevel_factors(ls())
@@ -167,6 +168,11 @@ for (var in variables2) {
   plot_name <- paste(var,"_Variance.png",sep="")
   ggsave(here("outputs","figs","assumptions",plot_name), plot = p, dpi = 600, width = 10, height = 7)
 }
+
+pitF %>% ggplot(aes(x=ssp,y=PitFraction))+
+  geom_boxplot()
+  
+  
 cat("Wall Thickness Test assumptions Complete
     \nSummary:
     \n1. Small deviation from normality for most of traits

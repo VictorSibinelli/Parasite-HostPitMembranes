@@ -42,7 +42,7 @@ for (i in seq_along(unique(vdata$pic))) {
 }
 
 # Merge with vessel density data
-HydraulicData <- merge(HydraulicData, vadata[, c("pic", "vdensity")], by = "pic", all.x = TRUE)
+HydraulicData <- merge(HydraulicData, vadata[, c("pic", "vdensity","X.Area")], by = "pic", all.x = TRUE)
 
 # Update to include the `parasitism` variable
 HydraulicData <- HydraulicData %>%
@@ -54,7 +54,7 @@ HydraulicData <- HydraulicData %>%
     TRUE ~ "Host"
   )) %>%
   drop_na()
-
+colnames(HydraulicData)[6] <- "VesselFraction"
 # Constants for hydraulic conductivity calculation
 n <- 1.002 * 10^-9  # Viscosity index of water (MPa·s at 20°C)
 pw <- 998.2         # Density of water at 20°C (kg/m³)
@@ -130,6 +130,11 @@ print(h)
 h <- HydraulicData %>% ggplot(aes(x = ssp, y = Kmax)) +
   geom_boxplot()
 ggsave(here(output_dir_figs, "KmaxVariance.png"), plot = h, dpi = 600, width = 10, height = 7)
+print(h)
+
+h <- HydraulicData %>% ggplot(aes(x = ssp, y = X.Area)) +
+  geom_boxplot()
+ggsave(here(output_dir_figs, "VesselFractionArea.png"), plot = h, dpi = 600, width = 10, height = 7)
 print(h)
 
 # Non-normality and no homoscedasticity for all traits

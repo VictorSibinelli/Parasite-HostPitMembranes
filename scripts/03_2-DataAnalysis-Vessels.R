@@ -30,6 +30,7 @@ Hydraulic_EV <- HydraulicData %>%
     ssp = first(ssp),  # Or use any other summary function if needed
     HydraulicDiameter = median(HydraulicDiameter, na.rm = TRUE),
     vdensity = median(vdensity, na.rm = TRUE),
+    VesselFraction=median(VesselFraction,na.rm=T),
     Kmax = median(Kmax, na.rm = TRUE),
     parasitism = first(parasitism),  # This assumes the same for each individual
     .groups = "drop"
@@ -40,7 +41,7 @@ relevel_factors(ls())
 iterations <- 500000
 set.seed(42)
 # Specify the columns for which you want to calculate bootstrap values
-vars <- colnames(Hydraulic_EV)[3:5]
+vars <- colnames(Hydraulic_EV)[3:6]
 
 # Initialize a list to store results for each variable
 bootstrap_results <- list()
@@ -66,6 +67,7 @@ lapply(bootstrap_results,head)
 Obs_values <-  Hydraulic_EV %>% group_by(parasitism) %>%
   summarize(HydraulicDiameter = mean(HydraulicDiameter, na.rm = TRUE),
             vdensity = mean(vdensity, na.rm = TRUE),
+            VesselFraction=mean(VesselFraction,na.rm=t),
             Kmax = mean(Kmax, na.rm = TRUE),
             parasitism = first(parasitism),  # This assumes the same for each individual
             .groups = "drop")
@@ -73,7 +75,7 @@ Obs_values <-  Hydraulic_EV %>% group_by(parasitism) %>%
 bootstrap_results[[1]][1,] <- t(Obs_values[,2])
 bootstrap_results[[2]][1,] <- t(Obs_values[,3])
 bootstrap_results[[3]][1,] <- t(Obs_values[,4])
-
+bootstrap_results[[4]][1,] <- t(Obs_values[,5])
 
 for (t in seq_along(bootstrap_results)){
   # Create the file name for each table, appending "_bootstrap" before the file extension
@@ -92,6 +94,7 @@ for (t in seq_along(bootstrap_results)){
 bootstrap_results <- list(
   HydraulicDiameter = read.csv(here("data", "processed", "ressampled", "HydraulicDiameter_boot.csv")),
   VesselDensity = read.csv(here("data", "processed", "ressampled", "vdensity_boot.csv")),
+  VesselFraction = read.csv(here("data", "processed", "ressampled", "VesselFraction_boot.csv")),
   Kmax = read.csv(here("data", "processed", "ressampled", "Kmax_boot.csv"))
 )
 
@@ -172,8 +175,8 @@ para_CI95 <- t(apply(para_boot, 2, function(x) {
 })) %>% as.data.frame()
 
 # Add the observed values to each as a new column
-para_CI95 <- cbind(para_CI95, Obs = as.numeric(Obs_values[1, 2:4]))
-host_CI95 <- cbind(host_CI95, Obs = as.numeric(Obs_values[2, 2:4]))
+para_CI95 <- cbind(para_CI95, Obs = as.numeric(Obs_values[1, 2:5]))
+host_CI95 <- cbind(host_CI95, Obs = as.numeric(Obs_values[2, 2:5]))
 colnames(para_CI95) <- c("Lower","Upper","Mean")
 colnames(host_CI95) <- c("Lower","Upper","Mean")
 host_CI95$ssp <- "Host"
@@ -326,6 +329,7 @@ ssp_CI95 <- replicate(
     summarise(
       HydraulicDiameter = mean(sample(HydraulicDiameter, replace = TRUE)),
       VesselDensity = mean(sample(vdensity, replace = TRUE)),
+      VesselFraction=mean(sample(VesselFraction,replace=T)),
       Kmax = mean(sample(Kmax, replace = TRUE)),
       .groups = 'drop'
     ),
@@ -338,7 +342,7 @@ ssp_CI95 <- bind_rows(ssp_CI95, .id = "iteration")
 
 # Create a list to hold CI95 for each variable
 CI95 <- list()
-variables <- c("HydraulicDiameter", "VesselDensity", "Kmax")
+variables <- c("HydraulicDiameter", "VesselDensity","VesselFraction", "Kmax")
 
 # Calculate CI95 for each variable and store in the list
 for (var in variables) {

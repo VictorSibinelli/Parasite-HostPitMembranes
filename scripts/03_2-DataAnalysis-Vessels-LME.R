@@ -35,7 +35,7 @@ species_pairs <- list(
 )
 
 # Variables to model
-vars <- colnames(HydraulicData)[c(4, 5, 7)]
+vars <- colnames(HydraulicData)[c(4:6, 8)]
 relevel_factors(ls())
 # Initialize empty lists to store models and results
 model_list <- list()
@@ -60,14 +60,17 @@ for (v in vars) {
                        weights = varIdent(form = ~ 1 | ssp))
   
   # Store the full model
-  model_list[[model_name]] <- full_model
   
+  ms <- summary(full_model)
+
+  model_list[[model_name]] <- full_model
+
   # Create a results table summarizing the model output
   resul_table_list[[table_name]] <- data.frame(
     PairTested = paste(unique(HydraulicData$parasitism), collapse = " x "),
-    ParasiteMean = full_model$coefficients$fixed[1],
-    HostMean = sum(full_model$coefficients$fixed),
-    EstimatedDifference = full_model$coefficients$fixed[2],
+    ParasiteMean = paste0(round(full_model$coefficients$fixed[1], 3), " ± ", round(ms$tTable[,"Std.Error"][1], 3)),
+    HostMean = paste0(round(sum(full_model$coefficients$fixed), 3), " ± ", round(ms$tTable[,"Std.Error"][2], 3)),
+    EstimatedDifference = round(full_model$coefficients$fixed[2], 3),
     REVariance = (as.numeric(VarCorr(full_model)[2]) + as.numeric(VarCorr(full_model)[4])) / 
       as.numeric(VarCorr(full_model)[5]),
     PValue = anova(full_model, reduced_model)$`p-value`[2],
@@ -98,7 +101,10 @@ for (v in vars) {
   abline(h=4/nrow(HydraulicData),col="red")
   }
 
+# Display the formatted confidence intervals
+
 resul_table_list
+
 #########################################################################################################
 for (pair in species_pairs) {
   
@@ -130,13 +136,13 @@ for (pair in species_pairs) {
     # Create a results table summarizing the model output for the current variable and pair
     result <- data.frame(
       PairTested = paste(unique(data$ssp), collapse = " x "),  # Use filtered data
-      ParasiteMean = full_model$coefficients$fixed[1],
-      HostMean = sum(full_model$coefficients$fixed),
-      EstimatedDifference = full_model$coefficients$fixed[2],
-      REVariance = (as.numeric(VarCorr(full_model)[1])/as.numeric(VarCorr(full_model)[2])),
+      ParasiteMean = paste0(round(full_model$coefficients$fixed[1], 3), " ± ", round(ms$tTable[,"Std.Error"][1], 3)),
+      HostMean = paste0(round(sum(full_model$coefficients$fixed), 3), " ± ", round(ms$tTable[,"Std.Error"][2], 3)),
+      EstimatedDifference = round(full_model$coefficients$fixed[2], 3),
+      REVariance =as.numeric(VarCorr(full_model)[,"Variance"][1])/sum(as.numeric(VarCorr(full_model)[,"Variance"])),
       PValue = anova(full_model, reduced_model)$`p-value`[2],
       DeltaAIC = AIC(full_model) - AIC(reduced_model),
-      stringsAsFactors = F
+      stringsAsFactors = FALSE
     ) %>% as_tibble()
     
     # Append results to the table or initialize if NULL

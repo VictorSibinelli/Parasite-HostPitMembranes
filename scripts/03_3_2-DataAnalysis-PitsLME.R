@@ -13,22 +13,14 @@ source(here("scripts", "Functions.R")) # Source custom functions
 # Load data
 pitdata <- read.csv(here("data", "processed", "pitdata.csv"))
 pitOdata <- read.csv(here("data", "processed", "pitOdata.csv"))
+pitF <- fread(here("data","processed","pitF.csv")) %>% as_tibble()
+
 
 # Modify outlier values to the second-highest value
 
 pitOdata[465,"PitOpening"] <- rev(sort(pitOdata$PitOpening[pitOdata$ssp == "Tapirira guianensis"]))[2]
 pitOdata[563,"PitOpening"] <- sort(pitOdata$PitOpening[pitOdata$ssp == "Tapirira guianensis"])[2]
 pitOdata[647,"PitOpening"] <- rev(sort(pitOdata$PitOpening[pitOdata$ssp == "Tipuana tipu"]))[2]
-
-# n <- length(pitOdata$PitDiameter)
-# pitOdata[209, "PitDiameter"] <- sort(pitOdata$PitDiameter, partial = n - 1)[n - 1]
-# pitOdata[465, "PitOpening"] <- sort(pitOdata$PitOpening, partial = n - 1)[n - 1]
-# 
-# # Replace the 5 largest PitOpening values for Tipuana tipu with the 6th largest
-# tipuana_indices <- pitOdata$ssp == "Tipuana tipu"
-# top_5_tipuanas <- tail(sort(pitOdata$PitOpening[tipuana_indices]), 5)
-# pitOdata$PitOpening[tipuana_indices & pitOdata$PitOpening %in% top_5_tipuanas] <- 
-#   sort(pitOdata$PitOpening[tipuana_indices])[6]
 
 # Relevel factors
 relevel_factors(ls())
@@ -77,22 +69,36 @@ pcd_results <- data.frame(Parasite = character(),
                           pvalue = numeric(),
                           stringsAsFactors = FALSE) %>% as_tibble()
 
+PitF_results <- data.frame(Parasite = character(),
+                          Host = character(),
+                          ParasiteMean = numeric(),
+                          HostMean = numeric(),
+                          MeanDifference = numeric(),
+                          pvalue = numeric(),
+                          stringsAsFactors = FALSE) %>% as_tibble()
 
+
+full_model_pf <- lme(PitFraction ~ parasitism, random = ~ 1 | ssp/indiv, data = pitF,
+                     weights = varIdent(form = ~ 1 | ssp))
+reduced_model_pf <- lme(PitFraction ~ 1, random = ~ 1 | ssp/indiv, data = pitF,
+                              weights = varIdent(form = ~ 1 | ssp))
+pf <- anova(full_model_pf, reduced_model_pf) # Group-level difference non-significant
+pd
 
 
 # Fit models for PitDiameter and perform ANOVA
-full_model_diameter <- lme(PitDiameter ~ parasitism, random = ~ 1 | ssp/label, data = pitOdata,
+full_model_diameter <- lme(PitDiameter ~ parasitism, random = ~ 1 | ssp/indiv, data = pitOdata,
                            weights = varIdent(form = ~ 1 | ssp))
-reduced_model_diameter <- lme(PitDiameter ~ 1, random = ~ 1 | ssp/label, data = pitOdata,
+reduced_model_diameter <- lme(PitDiameter ~ 1, random = ~ 1 | ssp/indiv, data = pitOdata,
                               weights = varIdent(form = ~ 1 | ssp))
 pd <- anova(full_model_diameter, reduced_model_diameter) # Group-level difference non-significant
 pd
 
 # Fit models for PitOpening and perform ANOVA
-full_model_opening <- lme(PitOpening ~ parasitism, random = ~ 1 | ssp/label, data = pitOdata,
+full_model_opening <- lme(PitOpening ~ parasitism, random = ~ 1 | ssp/indiv, data = pitOdata,
                           weights = varIdent(form = ~ 1 | ssp),
                           control = lmeControl(maxIter = 100, msMaxIter = 100))
-reduced_model_opening <- lme(PitOpening ~ 1, random = ~ 1 | ssp/label, data = pitOdata,
+reduced_model_opening <- lme(PitOpening ~ 1, random = ~ 1 | ssp/indiv, data = pitOdata,
                              weights = varIdent(form = ~ 1 | ssp),
                              control = lmeControl(maxIter = 100, msMaxIter = 100))
 po <- anova(full_model_opening, reduced_model_opening)
@@ -137,6 +143,19 @@ PitOpening_results <- rbind(PitOpening_results, data.frame(
   stringsAsFactors = FALSE
 ))
 
+PitF_results <- rbind(PitF_results, data.frame(
+  PairTested = paste(levels(pitF$parasitism), collapse = " vs "),
+  ParasiteMean =summary(full_model_pf)$tTable[1], 
+  HostMean = summary(full_model_pf)$tTable[1] + summary(full_model_pf)$tTable[2], 
+  EstimatedDifference = summary(full_model_pf)$tTable[2],
+  REVariance =(as.numeric(VarCorr(full_model_pf)[[2]]) + as.numeric(VarCorr(full_model_pf)[[4]])) /
+    as.numeric(VarCorr(full_model_pf)[[5]]),
+  PValue = po$`p-value`[2],
+  DeltaAIC = AIC(full_model_pf)-AIC(reduced_model_pf),
+  stringsAsFactors = FALSE
+))
+
+
 # Loop through each species pair to analyze PitDiameter
 for (pair in species_pairs) {
   # Subset data for the current species pair
@@ -150,7 +169,7 @@ for (pair in species_pairs) {
   
   # Fit the full model and handle potential errors
   full_model <- tryCatch({
-    lme(PitDiameter ~ ssp, random = ~ 1 | label, data = subset_data, 
+    lme(PitDiameter ~ ssp, random = ~ 1 | indiv, data = subset_data, 
         weights = varIdent(form = ~ 1 | ssp))
   }, error = function(e) {
     cat("Error in fitting model for pair:", paste(pair, collapse = " vs "), "\n")
@@ -161,7 +180,7 @@ for (pair in species_pairs) {
   
   # Fit the reduced model and handle potential errors
   reduced_model <- tryCatch({
-    lme(PitDiameter ~ 1, random = ~ 1 | label, data = subset_data, 
+    lme(PitDiameter ~ 1, random = ~ 1 | indiv, data = subset_data, 
         weights = varIdent(form = ~ 1 | ssp))
   }, error = function(e) {
     cat("Error in fitting reduced model for pair:", paste(pair, collapse = " vs "), "\n")
@@ -186,7 +205,7 @@ for (pair in species_pairs) {
   
   # Calculate metrics
   estimated_difference <- fixed_effects$Value[2]
-  variance_explained_by_label <- as.numeric(VarCorr(full_model)[1]) / 
+  variance_explained_by_indiv <- as.numeric(VarCorr(full_model)[1]) / 
     as.numeric(VarCorr(full_model)[2])
   lrt_p_value <- lrt$`p-value`[2]  # Correct index for p-value
   delta_aic <- AIC(full_model) - AIC(reduced_model)
@@ -197,7 +216,7 @@ for (pair in species_pairs) {
     ParasiteMean = fixed_effects$Value[1], 
     HostMean = fixed_effects$Value[1] + fixed_effects$Value[2], 
     EstimatedDifference = estimated_difference,
-    REVariance = variance_explained_by_label,
+    REVariance = variance_explained_by_indiv,
     PValue = lrt_p_value,
     DeltaAIC = delta_aic,
     stringsAsFactors = FALSE
@@ -243,7 +262,7 @@ for (pair in species_pairs) {
   
   # Fit the full model and handle potential errors
   full_model <- tryCatch({
-    lme(PitOpening ~ ssp, random = ~ 1 | label, data = subset_data, 
+    lme(PitOpening ~ ssp, random = ~ 1 | indiv, data = subset_data, 
         weights = varIdent(form = ~ 1 | ssp))
   }, error = function(e) {
     cat("Error in fitting model for pair:", paste(pair, collapse = " vs "), "\n")
@@ -254,7 +273,7 @@ for (pair in species_pairs) {
   
   # Fit the reduced model and handle potential errors
   reduced_model <- tryCatch({
-    lme(PitOpening ~ 1, random = ~ 1 | label, data = subset_data, 
+    lme(PitOpening ~ 1, random = ~ 1 | indiv, data = subset_data, 
         weights = varIdent(form = ~ 1 | ssp))
   }, error = function(e) {
     cat("Error in fitting reduced model for pair:", paste(pair, collapse = " vs "), "\n")
@@ -279,7 +298,7 @@ for (pair in species_pairs) {
   
   # Calculate metrics
   estimated_difference <- fixed_effects$Value[2]
-  variance_explained_by_label <- as.numeric(VarCorr(full_model)[1]) / 
+  variance_explained_by_indiv <- as.numeric(VarCorr(full_model)[1]) / 
     as.numeric(VarCorr(full_model)[2])
   lrt_p_value <- lrt$`p-value`[2]  # Correct index for p-value
   delta_aic <- AIC(full_model) - AIC(reduced_model)
@@ -290,7 +309,7 @@ for (pair in species_pairs) {
     ParasiteMean = fixed_effects$Value[1], 
     HostMean = fixed_effects$Value[1] + fixed_effects$Value[2], 
     EstimatedDifference = estimated_difference,
-    REVariance = variance_explained_by_label,
+    REVariance = variance_explained_by_indiv,
     PValue = lrt_p_value,
     DeltaAIC = delta_aic,
     stringsAsFactors = FALSE
@@ -322,25 +341,113 @@ for (pair in species_pairs) {
   abline(h=4/nrow(subset_data),col="red")
 }
 
+################################
+###Pit F
+
+for (pair in species_pairs) {
+  # Subset data for the current species pair
+  subset_data <- pitF[pitF$ssp %in% pair, ]
+  
+  # Check if there is data for the species pair
+  if (nrow(subset_data) < 1) {
+    cat("No data for species pair:", paste(pair, collapse = " vs "), "\n")
+    next
+  }
+  
+  # Fit the full model and handle potential errors
+  full_model <- tryCatch({
+    lme(PitFraction ~ ssp, random = ~ 1 | indiv, data = subset_data, 
+        weights = varIdent(form = ~ 1 | ssp))
+  }, error = function(e) {
+    cat("Error in fitting model for pair:", paste(pair, collapse = " vs "), "\n")
+    return(NULL)
+  })
+  
+  if (is.null(full_model)) next  # Skip to the next pair if model fitting failed
+  
+  # Fit the reduced model and handle potential errors
+  reduced_model <- tryCatch({
+    lme(PitFraction ~ 1, random = ~ 1 | indiv, data = subset_data, 
+        weights = varIdent(form = ~ 1 | ssp))
+  }, error = function(e) {
+    cat("Error in fitting reduced model for pair:", paste(pair, collapse = " vs "), "\n")
+    return(NULL)
+  })
+  
+  if (is.null(reduced_model)) next  # Skip to the next pair if model fitting failed
+  
+  # Print summaries of the models
+  cat("\nModel Summary for Full Model (", paste(pair, collapse = " vs "), "):\n")
+  print(summary(full_model))
+  
+  # Perform the Likelihood Ratio Test
+  lrt <- anova(reduced_model, full_model)
+  
+  # Extract fixed effects and check for sufficient data
+  fixed_effects <- as.data.frame(summary(full_model)$tTable)
+  if (nrow(fixed_effects) < 2) {
+    cat("Insufficient fixed effects for pair:", paste(pair, collapse = " vs "), "\n")
+    next
+  }
+  
+  # Calculate metrics
+  estimated_difference <- fixed_effects$Value[2]
+  variance_explained_by_indiv <- as.numeric(VarCorr(full_model)[1]) / 
+    as.numeric(VarCorr(full_model)[2])
+  lrt_p_value <- lrt$`p-value`[2]  # Correct index for p-value
+  delta_aic <- AIC(full_model) - AIC(reduced_model)
+  
+  # Append results to the PitOpening_results dataframe
+  PitF_results <- rbind(PitF_results, data.frame(
+    PairTested = paste(pair, collapse = " vs "),
+    ParasiteMean = fixed_effects$Value[1], 
+    HostMean = fixed_effects$Value[1] + fixed_effects$Value[2], 
+    EstimatedDifference = estimated_difference,
+    REVariance = variance_explained_by_indiv,
+    PValue = lrt_p_value,
+    DeltaAIC = delta_aic,
+    stringsAsFactors = FALSE
+  ))
+  
+  # Calculate standardized residuals for plotting
+  residuals <- resid(full_model, na.omit = TRUE)
+  fitted_values <- fitted(full_model)
+  standardized_residuals <- residuals / sigma(full_model)^2
+  
+  # Create a data frame for plotting residuals
+  residuals_df <- data.frame(
+    FittedValues = fitted_values,
+    StandardizedResiduals = standardized_residuals,
+    Pair = paste(pair, collapse = " vs ")
+  )
+  
+  # Residual plots for model analysis
+  par(mar = c(5, 5, 5, 5))  # Set margins for the plot
+  resid_plot <- residplot(full_model, newwd = FALSE)
+  title(sub = paste("Pit Fraction", paste(pair, collapse = " vs ")), 
+        adj = 0.5, line = 4, cex.sub = 0.9)
+  print(check_model(full_model, residual_type = "simulated"))
+  
+  # Cook's distance plot
+  cookd_plot <- CookD(full_model, newwd = FALSE)
+  title(main = paste("Pit Fraction", paste(pair, collapse = " vs ")), 
+        adj = 0.5, line = 0.5)
+  abline(h=4/nrow(subset_data),col="red")
+}
+
+
+
+
+
+
+
+
+
+
+
+
 ######Pit chamber
 ssps <- unlist(species_pairs)
-# Initialize empty data frame to store results
-# PeXPc_df <- data.frame(Difference = numeric(), PValue = numeric(), stringsAsFactors = FALSE)
-# 
-# for (s in ssps) {
-#   subset_data <- pitdata[pitdata$ssp == s, ]
-#   
-#   if (nrow(subset_data) > 1) { # Ensure there's enough data for the t-test
-#     t <- t.test(subset_data$peavg, subset_data$pcavg, var.equal = TRUE)
-#     result <- data.frame(Difference = diff(t$estimate), PValue = t$p.value)
-#     PeXPc_df <- rbind(PeXPc_df, result)
-#     rownames(PeXPc_df)[nrow(PeXPc_df)] <- s
-#   } else {
-#     cat("Not enough data for species:", s, "\n")
-#   }
-# }
-# # Display the result
-# PeXPc_df
 
 
 full_model <- lme(pcd ~ parasitism, random = ~ 1 | ssp, data = pitdata)

@@ -13,16 +13,17 @@ source(here("scripts", "Functions.R"))  # Load custom functions
 # Load your data (assuming these lines are already included)
 pitdata <- fread(here("data", "processed", "pitdata.csv"))[,c(1,7,8,11)] %>% as.tibble()  # Load main pit data
 pitOdata <- fread(here("data", "processed", "pitOdata.csv")) %>% as.tibble()  # Load pit opening data
-
+pitF <- fread(here("data","processed","pitF.csv")) %>% as_tibble()
 
 # Summarize data for each species and parasite/host
 Pit_EV <- pitOdata %>%
-  group_by(label) %>%
+  group_by(indiv) %>%
   summarise(
-    ssp = first(ssp),                # Extract first species (ssp) name for each label
-    parasitism = first(parasitism),   # Extract parasitism status (Parasite/Host)
-    PitDiameter = median(PitDiameter, na.rm = TRUE),   # Calculate median PitDiameter
-    PitOpening = median(PitOpening, na.rm = TRUE),     # Calculate median PitOpening
+    ssp = first(ssp),
+    parasitism = first(parasitism),
+    PitDiameter = median(PitDiameter, na.rm = TRUE),
+    PitOpening = median(PitOpening, na.rm = TRUE),
+    PitFraction = median(pitF$PitFraction[pitF$indiv %in% unique(indiv)], na.rm = TRUE),
     .groups = "drop"
   )
 
@@ -41,15 +42,17 @@ Obs1 <- Pit_EV %>%
     Grouping = first(parasitism),  # Rename parasitism to Grouping
     PitDiameter = mean(PitDiameter, na.rm = TRUE),
     PitOpening = mean(PitOpening, na.rm = TRUE),
+    PitFraction=mean(PitFraction,na.rm=T),
     .groups = "drop"
-  ) %>%select(Grouping, PitDiameter, PitOpening) %>%
+  ) %>%select(Grouping, PitDiameter, PitOpening,PitFraction) %>%
   rbind(Pit_EV %>%
           group_by(ssp) %>%
           summarize(
             Grouping = first(ssp),  # Rename ssp to Grouping
             PitDiameter = mean(PitDiameter, na.rm = TRUE),
             PitOpening = mean(PitOpening, na.rm = TRUE),
-            .groups = "drop")%>%select(Grouping, PitDiameter, PitOpening) 
+            PitFraction=mean(PitFraction,na.rm=T),
+            .groups = "drop")%>%select(Grouping, PitDiameter, PitOpening,PitFraction) 
   )
 
 # Summarize pitdata by parasitism
@@ -78,7 +81,7 @@ rm(list = c("Obs1", "Obs2", "pitOdata"))
 
 
 # Define the variables of interest for bootstrapping
-vars <- colnames(Pit_EV[4:5])  # For Pit_EV: PitDiameter and PitOpening
+vars <- colnames(Pit_EV[4:6])  # For Pit_EV: PitDiameter and PitOpening
 vars2 <- colnames(pitdata[, c(2, 4)])  # 
 
 # Relevel factors for analysis

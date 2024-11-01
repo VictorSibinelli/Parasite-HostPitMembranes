@@ -15,7 +15,7 @@ vadata <- read.csv(here("data", "raw", "VesselDensity.csv"))
 wdata <- read.csv(here("data", "raw", "2xWallThickness.csv"), sep = ";")
 pitdata <- read.csv(here("data", "raw", "Pits.csv"), sep = ";")[, 1:8]
 pitOdata <- read.csv(here("data", "raw", "PitOpeningData.csv"), sep = ";")
-
+pitF <- read.csv(here("data", "raw", "PitFraction.csv"))
 #### Modifying Data Frames
 
 ## vdata - Vessel Diameter Data
@@ -63,7 +63,16 @@ pitdata$pitavg <- rowMeans(pitdata[, 2:6], na.rm = TRUE)
 # Adjust pit opening diameter
 pitOdata$PitDiameter <- read.csv(here("data", "raw", "PitDiameter.csv"), sep = ";")$PitDiameter*0.7 / 10
 colnames(pitOdata)[4] <- "PitOpening"
+colnames(pitOdata)[2] <- "indiv"
 pitOdata$PitOpening <- pitOdata$PitOpening*0.7
+
+
+
+
+pitF$ssp[pitF$ssp == "Phoradendron perrottetti"] <- "Phoradendron perrotettii"
+pitF$indiv <- gsub("perrottetti", "perrotettii", pitF$indiv)
+
+
 #### Save Processed Data Frames
 # Filter only data frames from the environment
 dataframes <- Filter(function(x) is.data.frame(get(x)), ls())
@@ -99,4 +108,3 @@ rm(list = ls())
 
 #######################################################
 print("Data Wrangling complete")
-
