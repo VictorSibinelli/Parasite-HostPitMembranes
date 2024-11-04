@@ -544,4 +544,5 @@ pcd_results <- as_tibble(pcd_results)
 fwrite(PitDiameter_results, file=here("outputs","tables","PitDiameter_AIC")) #save data frame
 fwrite(PitOpening_results, file=here("outputs","tables","PitOpening_AIC")) #save data frame
 fwrite(pcd_results, file=here("outputs","tables","PCD_AIC")) #save data frame
-fwrite(PitMembrane_results, file=here("outputs","tables","PitMembrane_AIC")) #save data frame
+fwrite(PitMembrane_results, file=here("outputs","tables","PitMembrane_AIC"))
+fwrite(PitF_results, file=here("outputs","tables","PitFraction_AIC"))#save data frame

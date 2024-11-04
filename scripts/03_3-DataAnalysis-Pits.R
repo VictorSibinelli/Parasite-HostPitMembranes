@@ -153,6 +153,21 @@ for (t in seq_along(CI_boot)){
   # Print a success message to the console
   cat(paste(table_name, "successfully saved\n"))
 }
+
+lapply(CI_boot,head)
+CI_boot <- list(
+  "Parasite" = read.csv(here("data", "processed", "ressampled", "Parasite_pits_CI_boot.R")),
+  "Host" = read.csv(here("data", "processed", "ressampled", "Host_pits_CI_boot.R")),
+  "Psittacanthus robustus" = read.csv(here("data", "processed", "ressampled", "Psittacanthus robustus_pits_CI_boot.R")),
+  "Vochysia thyrsoidea" = read.csv(here("data", "processed", "ressampled", "Vochysia thyrsoidea_pits_CI_boot.R")),
+  "Phoradendron perrotettii" = read.csv(here("data", "processed", "ressampled", "Phoradendron perrotettii_pits_CI_boot.R")),
+  "Tapirira guianensis" = read.csv(here("data", "processed", "ressampled", "Tapirira guianensis_pits_CI_boot.R")),
+  "Struthanthus rhynchophyllus" = read.csv(here("data", "processed", "ressampled", "Struthanthus rhynchophyllus_pits_CI_boot.R")),
+  "Tipuana tipu" = read.csv(here("data", "processed", "ressampled", "Tipuana tipu_pits_CI_boot.R")),
+  "Viscum album" = read.csv(here("data", "processed", "ressampled", "Viscum album_pits_CI_boot.R")),
+  "Populus nigra" = read.csv(here("data", "processed", "ressampled", "Populus nigra_pits_CI_boot.R"))
+)
+
 # Create a list of datasets and their corresponding variable sets
 data_list <- list(
   list(data = Pit_EV, vars = vars),
@@ -189,6 +204,13 @@ for (t in seq_along(boot_results)){
   # Print a success message to the console
   cat(paste(table_name, "successfully saved\n"))
 }
+boot_results <- list(
+  "PitDiameter"=fread(here("data", "processed", "ressampled", "PitDiameter_pits_PxH_boot.R")),
+  "PitOpening"=fread(here("data", "processed", "ressampled", "PitOpening_pits_PxH_boot.R")),
+  "PitFraction"=fread(here("data", "processed", "ressampled", "PitFraction_pits_PxH_boot.R")),
+  "pcd"=fread(here("data", "processed", "ressampled", "pcd_pits_PxH_boot.R")),
+  "pitavg"= fread(here("data", "processed", "ressampled", "pitavg_pits_PxH_boot.R"))
+)
 
 # Initialize list to store results
 Ssp_bootstrap_result <- list()  
@@ -234,9 +256,23 @@ for (t in seq_along(Ssp_bootstrap_result)){
   cat(paste(table_name, "successfully saved\n"))
 }
 
+Ssp_bootstrap_result <- list(
+  "PitDiameter" = read.csv(here("data", "processed", "ressampled", "PitDiameter_pits_ssp_boot.R"), check.names = FALSE),
+  "PitOpening" = read.csv(here("data", "processed", "ressampled", "PitOpening_pits_ssp_boot.R"), check.names = FALSE),
+  "PitFraction" = read.csv(here("data", "processed", "ressampled", "PitFraction_pits_ssp_boot.R"), check.names = FALSE),
+  "pcd" = read.csv(here("data", "processed", "ressampled", "pcd_pits_ssp_boot.R"), check.names = FALSE),
+  "pitavg" = read.csv(here("data", "processed", "ressampled", "pitavg_pits_ssp_boot.R"), check.names = FALSE)
+)
+
+
 boot_diff <- lapply(boot_results,function(x){
   apply(x,1,diff)
 }) %>% do.call(what=cbind)
+
+head(boot_diff)
+
+lapply(Ssp_bootstrap_result,head)
+
 
 # Calculate differences for each variable and species pair
 ssp_boot_diff <- lapply(Ssp_bootstrap_result, function(x) {
@@ -282,7 +318,7 @@ CI95 <- CI_boot %>%
   })
 
 head(boot_diff)
-boot_diff[1,] <- as.matrix(Obs_values[1,2:5]-Obs_values[2,2:5])
+boot_diff[1,] <- as.matrix(Obs_values[1,2:6]-Obs_values[2,2:6])
 PH_pvalue <- apply(boot_diff,2,function(x){
   sum(abs(x) >= abs(x[1]), na.rm = TRUE) / length(x)
 })
@@ -290,10 +326,10 @@ PH_pvalue <- apply(boot_diff,2,function(x){
 
 # Calculate differences and combine as rows
 ssp_obs_diffs <- rbind(
-  Obs_values[3, 2:5] - Obs_values[4, 2:5],  # Difference between rows 3 and 4
-  Obs_values[5, 2:5] - Obs_values[6, 2:5],  # Difference between rows 5 and 6
-  Obs_values[7, 2:5] - Obs_values[8, 2:5],  # Difference between rows 7 and 8
-  Obs_values[9, 2:5] - Obs_values[10, 2:5]  # Difference between rows 9 and 10
+  Obs_values[3, 2:6] - Obs_values[4, 2:6],  # Difference between rows 3 and 4
+  Obs_values[5, 2:6] - Obs_values[6, 2:6],  # Difference between rows 5 and 6
+  Obs_values[7, 2:6] - Obs_values[8, 2:6],  # Difference between rows 7 and 8
+  Obs_values[9, 2:6] - Obs_values[10, 2:6]  # Difference between rows 9 and 10
 )
 ssp_obs_diffs <- as.data.frame(ssp_obs_diffs)
 
@@ -310,5 +346,5 @@ Ssp_pvalue <- lapply(ssp_boot_diff, function(x) {
     sum(abs(y) >= abs(y[1]), na.rm = TRUE) / length(y)
   })
 }) %>% do.call(what=cbind) %>% rbind(PH_pvalue)
-
+row.names(Ssp_pvalue)[5] <- "Parasite vs Host"
 
