@@ -379,7 +379,7 @@ fwrite(C_obs,here("outputs","tables","Vessel_obs.csv"))
 print(CI95)
 print(P_values)
 
-fwrite(P_values,here("outputs","tables","Vessels_MonteCarlo_Pvalues.csv"))
+write.csv(P_values,here("outputs","tables","Vessels_MonteCarlo_Pvalues.csv"))
 # Save each data frame in CI95 list to separate CSV files
 lapply(names(CI95), function(name) {
   fwrite(CI95[[name]], file = here("outputs", "tables", paste0("Vessels_MonteCarlo_CI95_", name, ".csv")))

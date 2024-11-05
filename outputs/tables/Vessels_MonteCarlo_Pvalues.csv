@@ -1,5 +1,5 @@
-HydraulicDiameter,VesselDensity,VesselFraction,Kmax
-0.001178,0.557084,0.00533,0.011518
-0.019332,0.703492,0.031768,0.030572
-0.136568,0.420188,0.015416,0.040052
-0.017024,0.03416,0.125212,0.079064
+"","HydraulicDiameter","VesselDensity","VesselFraction","Kmax"
+"Parasite vs Host",0.001178,0.557084,0.00533,0.011518
+"Psittacanthus robustusvsVochysia thyrsoidea",0.019332,0.703492,0.031768,0.030572
+"Phoradendron perrotettiivsTapirira guianensis",0.136568,0.420188,0.015416,0.040052
+"Struthanthus rhynchophyllusvsTipuana tipu",0.017024,0.03416,0.125212,0.079064

@@ -5,6 +5,7 @@
 # Scrpt 04.3 -Graphics- Pits
 #################################################################
 library(here)
+source(here("scripts","00-library.R"))
 source(here("scripts", "Functions.R"))
 wdata <- read.csv(here("data", "processed", "wdata.csv"))
 WT_AIC <- read.csv(here("outputs", "tables", "Wdata_AIC.csv"))
@@ -39,29 +40,6 @@ short_names <- c(
 ########for LMEM
 # Create the plot
 library("viridis")
-
-
-g <- ggplot(wdata, aes(x = ssp, y = wthickness, fill = parasitism)) +
-  geom_jitter(aes(color = label),
-              size = 1, alpha = 0.4, position = position_jitter(width = 0.3)) +
-  geom_boxplot(color = "black", alpha = 1, position = position_dodge(width = 0.8)) +
-  scale_fill_manual(
-    values = c("Parasite" = "firebrick", "Host" = "grey"),
-    name = "Parasitism"
-  ) +
-  scale_color_viridis_d(option = "D") +
- geom_vline(xintercept = c(2.5,4.5,6.5)) +
-  theme_classic() +
-  scale_x_discrete(labels = short_names) +
-  labs(title = "Vessel Wall Thickness",
-       x = "Species",
-       y = "Vessel Wall Thickness (µm)") +
-  annotate("text", x = seq_along(unique(wdata$ssp)),
-           y = max(wdata$wthickness) + 5, label = c("A","A","A","A","A","B","A"), size = 6)+
-  theme(legend.position = "right") +  # Legend on the right
-  guides(color = "none")  # Remove the legend for `ssp`
-g
-ggsave(here("outputs","figs","vessel_wall_thickness_plot.png"), plot = g, dpi = 600, width = 10, height = 7)
 
 
 # Plot with alternating colors
@@ -135,7 +113,7 @@ CI_95 %>%
   geom_point(size = 4, aes(color = Group)) +
   geom_errorbar(aes(ymin = Lower, ymax = Upper), width = 0.2) +
   coord_flip() +
-  labs(title = "Estimates and 95% Confidence Intervals",
+  labs(title = "Bootstrap WT 95% Confidence Intervals",
        x = "Effect", y = "Estimate") +
   scale_color_manual(
     values = rep(c("firebrick", "black"), length.out = nlevels(CI_95$Group))  # Alternate colors based on levels
