@@ -61,10 +61,15 @@ pitdata$pitavg <- rowMeans(pitdata[, 2:6], na.rm = TRUE)
 
 ## pitOdata - Pit Opening Data
 # Adjust pit opening diameter
-pitOdata$PitDiameter <- read.csv(here("data", "raw", "PitDiameter.csv"), sep = ";")$PitDiameter*0.7 / 10
+
+pitOdata$PitDiameter <- read.csv(here("data", "raw", "PitDiameter.csv"), sep = ";")$PitDiameter
 colnames(pitOdata)[4] <- "PitOpening"
 colnames(pitOdata)[2] <- "indiv"
-pitOdata$PitOpening <- pitOdata$PitOpening*0.7
+pitOdata$PitOpening[pitOdata$ssp != "Populus nigra"] <- 
+  pitOdata$PitOpening[pitOdata$ssp != "Populus nigra"] * 0.7
+pitOdata$PitDiameter[pitOdata$ssp != "Populus nigra"] <- 
+  pitOdata$PitDiameter[pitOdata$ssp != "Populus nigra"] * 0.7
+
 
 
 
