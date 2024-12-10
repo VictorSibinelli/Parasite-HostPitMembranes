@@ -30,7 +30,8 @@ vdata <- within(vdata, {
   indiv <- gsub("Phoradendeon", "Phoradendron", indiv)
   pic <- gsub("Phoradendeon", "Phoradendron", pic)
 })
-vdata$Area <- vdata$Area*2.05
+
+vdata$Area <- ifelse(vdata$ssp != "Populus nigra", vdata$Area * 2.05, vdata$Area)
 vdata$VesselDiameter <- 2 * sqrt(vdata$Area / pi)  # Calculate vessel diameter
 
 
@@ -39,7 +40,8 @@ vdata$VesselDiameter <- 2 * sqrt(vdata$Area / pi)  # Calculate vessel diameter
 
 ## vadata - Vessel Density Data
 # Correct species names and calculate vessel density
-vadata$Total.Area <- vadata$Total.Area*2.05
+vadata$indiv <- paste(vadata$ssp, vadata$indiv, sep = " ")
+vadata$Total.Area <- ifelse(vadata$ssp!="Populus nigra", vadata$Total.Area*2.05,vadata$Total.Area)
 vadata$vdensity <- vadata$Count / (vadata$Total.Area / vadata$X.Area) * 10000
 colnames(vadata)[2] <- "indiv"
 vadata <- within(vadata, {
@@ -51,7 +53,10 @@ vadata <- within(vadata, {
 
 ## wdata - Wall Thickness Data
 # Calculate single wall thickness
-wdata$Length[wdata$ssp != "Populus nigra"]  <- wdata$Length[wdata$ssp != "Populus nigra"]*1.43
+wdata$Length <- ifelse(wdata$ssp != "Populus nigra", 
+                       wdata$Length * 1.43, 
+                       wdata$Length)
+
 wdata$Wthickness <- wdata$Length/2
 wdata <- wdata[!rowSums(wdata == 0), ]
 
@@ -68,11 +73,13 @@ pitdata$pitavg <- rowMeans(pitdata[, 2:6], na.rm = TRUE)
 pitOdata$PitDiameter <- read.csv(here("data", "raw", "PitDiameter.csv"), sep = ";")$PitDiameter
 colnames(pitOdata)[4] <- "PitOpening"
 colnames(pitOdata)[2] <- "indiv"
-pitOdata$PitOpening[pitOdata$ssp != "Populus nigra"] <- 
-  pitOdata$PitOpening[pitOdata$ssp != "Populus nigra"] * 1.43
-pitOdata$PitDiameter[pitOdata$ssp != "Populus nigra"] <- 
-  pitOdata$PitDiameter[pitOdata$ssp != "Populus nigra"] * 1.43
+pitOdata$PitOpening <- ifelse(pitOdata$ssp != "Populus nigra", 
+                              pitOdata$PitOpening * 1.43, 
+                              pitOdata$PitOpening)
 
+pitOdata$PitDiameter <- ifelse(pitOdata$ssp != "Populus nigra", 
+                               pitOdata$PitDiameter * 1.43, 
+                               pitOdata$PitDiameter)
 
 
 

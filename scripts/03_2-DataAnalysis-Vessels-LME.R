@@ -18,9 +18,9 @@ vadata <- read.csv(here("data", "processed", "vadata.csv"))
 ### Substitute the most influential values in HydraulicData
 ##HydraulicDiameter
 
-HydraulicData[c(177,178,179,180),"HydraulicDiameter"] <- sort(HydraulicData$HydraulicDiameter[HydraulicData$ssp=="Vochysia thyrsoidea"])[4]
+HydraulicData[c(177,178,180),"HydraulicDiameter"] <- sort(HydraulicData$HydraulicDiameter[HydraulicData$ssp=="Vochysia thyrsoidea"])[4]
 HydraulicData[c(172),"vdensity"] <- rev(sort(HydraulicData$vdensity[HydraulicData$ssp=="Vochysia thyrsoidea"]))[2]
-
+HydraulicData[c(74),"VesselFraction"] <- rev(sort(HydraulicData$Kmax[HydraulicData$ssp=="Vochysia thyrsoidea"]))[2]
 HydraulicData[c(51),"Kmax"] <- rev(sort(HydraulicData$Kmax[HydraulicData$ssp=="Psittacanthus robustus"]))[2]
 
 
@@ -179,7 +179,7 @@ resul_table_list
 # Loop through each table and save it
 for (t in seq_along(resul_table_list)) {
   # Create the file name for each table
-  table_name <- paste(names(resul_table_list)[t], ".R", sep = "")
+  table_name <- paste(names(resul_table_list)[t], ".csv", sep = "")
   
   # Use fwrite to save each table to the specified directory
   fwrite(resul_table_list[[t]], file = here("outputs", "tables", table_name))

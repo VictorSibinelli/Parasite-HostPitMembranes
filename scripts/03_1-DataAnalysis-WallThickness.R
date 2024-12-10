@@ -23,8 +23,6 @@ species_pairs <- list(
 
 relevel_factors(ls())
 
-#substituting outliers
-wdata[c(359,412),"Wthickness"] <- rev(sort(wdata$Wthickness))[3]
 
 
 ### Initialize result data frames
@@ -101,15 +99,13 @@ print(CI95)
 
 
 
-wdata$Wthickness[200] <- rev(sort(wdata$Wthickness[wdata$ssp=="Struthanthus rhynchophyllus"]))[8]
-wdata$Wthickness[c(221,214,227,257,242)] <- sort(wdata$Wthickness[wdata$ssp=="Struthanthus rhynchophyllus"])[6]
-wdata$Wthickness[c(221,227)] <- sort(wdata$Wthickness[wdata$ssp=="Struthanthus rhynchophyllus"])[6]
-wdata$Wthickness[323] <- sort(wdata$Wthickness[wdata$ssp=="Tapirira guianensis"])[3]
-wdata$Wthickness[c(359,378,407,406,412,442,360,379,389,390,409,439)]<- rev(sort(wdata$Wthickness[wdata$ssp=="Tipuana tipu"]))[13]
+wdata$Wthickness[200] <- rev(sort(wdata$Wthickness[wdata$ssp=="Struthanthus rhynchophyllus"]))[7]
+ wdata$Wthickness[c(221,214,227,257,242)] <- sort(wdata$Wthickness[wdata$ssp=="Struthanthus rhynchophyllus"])[6]
 
+ wdata$Wthickness[323] <- sort(wdata$Wthickness[wdata$ssp=="Tapirira guianensis"])[3]
+ wdata$Wthickness[c(359,378,407,406,412,442,360,379,389,390,409,439)]<- rev(sort(wdata$Wthickness[wdata$ssp=="Tipuana tipu"]))[13]
 
-wdata$Wthickness[c(401,402,431,437,372,377)] <- sort(wdata$Wthickness[wdata$ssp=="Tipuana tipu"])[7]
-
+ wdata$Wthickness[c(401,402,431,437,372,377)] <- sort(wdata$Wthickness[wdata$ssp=="Tipuana tipu"])[7]
 
 
 # Loop through each species pair and fit the model
@@ -144,12 +140,12 @@ for (pair in species_pairs) {
     print(summary(full_model))
     
 
-    # 
-    # print(check_model(full_model))
-    # print(CookD(full_model,neww=F,idn=10))
-    # abline(h=4/length(wdata$Wthickness),col="red")
-    # title(main=paste(pair,collapse = " x "),cex=0.5,line=3)
-    
+# 
+#     print(check_model(full_model))
+#     print(CookD(full_model,neww=F,idn=10))
+#     abline(h=4/length(wdata$Wthickness),col="red")
+#     title(main=paste(pair,collapse = " x "),cex=0.5,line=3)
+
     # Extract fixed effects and random effects variance
     fixed_effects <- fixed.effects(full_model)
     re <- as.numeric(VarCorr(full_model)[, "Variance"])
@@ -197,13 +193,8 @@ for (pair in species_pairs) {
   })
 }
 
-
-
+row.names(VWall_AIC) <- NULL
 
 
 write.csv(VWall_AIC, file = here("outputs", "tables", "Wdata_AIC.csv"))
-
-cat("Summary:\n
-1. Model results: Significant differences were found in Struthanthus rhynchophyllus vs Tipuana tipu and Parasite vs Host.
-2. Residual analysis: All models were checked. Deviations were either non-existent or small enough to be disregarded.")
 
