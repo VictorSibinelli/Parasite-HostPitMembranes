@@ -8,36 +8,23 @@ library(here)
 source(here("scripts","00-library.R"))
 
 # Load data
-wdata <- read.csv(here("data", "processed", "wdata.csv"))
+wdata <- read.csv(here("data", "processed", "wdata.csv")) %>% drop_na()
 source(here("scripts", "Functions.R"))
 
 # List of species pairs for comparison
 species_pairs <- list(
   c("Psittacanthus robustus", "Vochysia thyrsoidea"),
   c("Phoradendron perrotettii", "Tapirira guianensis"),
-  c("Struthanthus rhynchophyllus", "Tipuana tipu")
+  c("Struthanthus rhynchophyllus", "Tipuana tipu"),
+  c("Viscum album", "Populus nigra")
 )
 
 
 
 relevel_factors(ls())
 
-#replace value due to high influence
-wdata[407,"wthickness"] <- rev(sort(wdata$wthickness))[2]
-wdata[318,"wthickness"] <- sort(wdata$wthickness)[3]
-# Define target rows with values to replace
-target_rows <- c(218, 354, 396, 397, 402, 407, 437)
-
-# Replace wthickness values in target rows with closest within-species values
-wdata[target_rows, "wthickness"] <- sapply(target_rows, function(row) {
-  species_data <- wdata[wdata$ssp == wdata$ssp[row] & rownames(wdata) != row, ]
-  species_data$wthickness[which.min(abs(species_data$wthickness - wdata$wthickness[row]))]
-})
-
-wdata[c(396,397),"wthickness"] <- sort(wdata$wthickness[wdata$ssp=="Tipuana tipu"])[3]
-
-wdata[c(354,402,407),"wthickness"] <- rev(sort(wdata$wthickness[wdata$ssp=="Tipuana tipu"]))[4]
-
+#substituting outliers
+wdata[c(359,412),"Wthickness"] <- rev(sort(wdata$Wthickness))[3]
 
 
 ### Initialize result data frames
@@ -50,36 +37,54 @@ CI95 <- data.frame(Group = character(), Estimate = numeric(),
                    Lower = numeric(), Upper = numeric(), stringsAsFactors = FALSE)
 
 
-full_model <- lmer(wthickness ~ parasitism + (1 | ssp/label), data = wdata)
-reduced_model <- lmer(wthickness ~ 1+ (1 | ssp/label), data = wdata)
+full_model <- lme(
+  Wthickness ~ parasitism,      # Fixed effects
+  random = ~ 1 | ssp/label,     # Random effects
+  data = wdata,                  # Data frame
+  method="ML"
+)
+reduced_model <- lme(
+  Wthickness ~ 1,                # Fixed effect: Only the intercept
+  random = ~ 1 | ssp/label,      # Random intercepts for ssp and label (nested)
+  data = wdata,                  # Dataset
+  method="ML"
+)
+
 summary(full_model)
 summary(reduced_model)
-lrt <- anova(reduced_model, full_model)
+(lrt <- anova(reduced_model, full_model))
+check_model(full_model)
+CookD(full_model,neww=F,idn=10)
+abline(h=4/length(wdata$Wthickness),col="red")
 
-# Extract information from the full model
-fixed_effects <- summary(full_model)$coefficients
-random_effects <- as.data.frame(VarCorr(full_model))
+# Extract fixed effects and random effects variance
+fixed_effects <- fixed.effects(full_model)
+re <- as.numeric(VarCorr(full_model)[, "Variance"])
 residual_variance <- sigma(full_model)^2
 
-# Extract fixed effects and variances
-estimated_difference <- fixed_effects[2,1] # Adjust if necessary
-variance_explained_by_RE <- random_effects$vcov[1]+random_effects$vcov[2] / sum(random_effects$vcov)
-lrt_p_value <- lrt$`Pr(>Chisq)`[2]
+# Calculate specific metrics
+estimated_difference <- fixed_effects[2]
+variance_explained_by_RE <-(re[2]+re[4])/ 
+  (re[5]+re[2]+re[4])
+
+# Perform LRT and calculate metrics
+lrt <- AIC(reduced_model,full_model)
+
 delta_aic <- diff(lrt$AIC)
 
 # Confidence intervals for fixed effects
-conf_intervals <- confint(full_model, level = 0.95)
-conf_intervals <- conf_intervals[rownames(conf_intervals) %in% rownames(summary(full_model)$coefficients), ]
+conf_intervals <- intervals(full_model)
+
 
 
 # Append results to the dataframe
 VWall_AIC <- rbind(VWall_AIC, data.frame(
   PairTested = paste(levels(wdata$parasitism), collapse = " vs "),
-  ParasiteMean = fixed_effects[1,1], # Assumes the first level is the reference
-  HostMean = fixed_effects[1,1] + fixed_effects[2,1], # Adjust if necessary
+  ParasiteMean = fixed_effects[1],
+  HostMean = sum(fixed_effects), 
   EstimatedDifference = estimated_difference,
-  REVariance = variance_explained_by_RE,
-  RelDiff = estimated_difference/fixed_effects[1,1],
+  REVariance = variance_explained_by_RE*100 ,
+  RelDiff = estimated_difference/fixed_effects[1],
   DeltaAIC = delta_aic,
   stringsAsFactors = FALSE
 ))
@@ -87,21 +92,25 @@ VWall_AIC <- rbind(VWall_AIC, data.frame(
 # Confidence intervals table
 CI95 <- data.frame(
   Group = c("Parasite", "Host"),
-  Estimate = c(summary(full_model)$coef[1, 1], sum(summary(full_model)$coef[, 1])),
-  Lower = c(conf_intervals[1, 1], conf_intervals[1, 1] + conf_intervals[2, 1]),
-  Upper = c(conf_intervals[1, 2], conf_intervals[1, 2] + conf_intervals[2, 2])
+  Lower = c(conf_intervals$fixed[1,"lower"],sum(conf_intervals$fixed[,"lower"])),
+  Estimate=c(conf_intervals$fixed[1,"est."],sum(conf_intervals$fixed[,"est."])),
+  Upper = c(conf_intervals$fixed[1,"upper"],sum(conf_intervals$fixed[,"upper"]))
 )
 print(VWall_AIC)
+print(CI95)
 
 
-testDispersion(full_model)
-title(main=paste(levels(wdata$parasitism), collapse = " vs "),line= 1,cex.main=1)
-print(check_model(full_model))
-simulationOutput <- simulateResiduals(fittedModel = full_model, plot = T)
-title(main = paste(levels(wdata$parasitism), collapse = " vs "),line=1,cex.main=1)
-cookd_plot <- CookD(full_model, newwd = FALSE)
-title(main = paste("Cook's Distance for", " WT ", "Parasite x Host"), adj = 0.5, line = 0.5)
-abline(h=4/length(wdata$wthickness),col="red")
+
+wdata$Wthickness[200] <- rev(sort(wdata$Wthickness[wdata$ssp=="Struthanthus rhynchophyllus"]))[8]
+wdata$Wthickness[c(221,214,227,257,242)] <- sort(wdata$Wthickness[wdata$ssp=="Struthanthus rhynchophyllus"])[6]
+wdata$Wthickness[c(221,227)] <- sort(wdata$Wthickness[wdata$ssp=="Struthanthus rhynchophyllus"])[6]
+wdata$Wthickness[323] <- sort(wdata$Wthickness[wdata$ssp=="Tapirira guianensis"])[3]
+wdata$Wthickness[c(359,378,407,406,412,442,360,379,389,390,409,439)]<- rev(sort(wdata$Wthickness[wdata$ssp=="Tipuana tipu"]))[13]
+
+
+wdata$Wthickness[c(401,402,431,437,372,377)] <- sort(wdata$Wthickness[wdata$ssp=="Tipuana tipu"])[7]
+
+
 
 # Loop through each species pair and fit the model
 for (pair in species_pairs) {
@@ -114,86 +123,87 @@ for (pair in species_pairs) {
   }
   
   tryCatch({
-    full_model <- lmer(wthickness ~ ssp + (1 | label), data = subset_data)
-    reduced_model <- lmer(wthickness ~ (1 | label), data = subset_data)
+    full_model <- full_model <- lme(
+      Wthickness ~ ssp,      # Fixed effects
+      random = ~ 1 | ssp/label,     # Random effects
+      data = subset_data,                  # Data frame
+      control = list(maxIter = 150, msMaxIter = 150),
+      weights = varIdent(form = ~ 1 | ssp),
+      method="ML"
+    )
+    reduced_model <- lme(
+      Wthickness ~ 1,      # Fixed effects
+      random = ~ 1 | ssp/label,     # Random effects
+      data = subset_data,   
+      control = list(maxIter = 150, msMaxIter = 150),
+      weights = varIdent(form = ~ 1 | ssp),
+      method="ML"
+    )
     
     cat("\nModel Summary for Full Model (", paste(pair, collapse = " vs "), "):\n")
     print(summary(full_model))
     
-    # Likelihood Ratio Test
-    anova(reduced_model, full_model)
+
+    # 
+    # print(check_model(full_model))
+    # print(CookD(full_model,neww=F,idn=10))
+    # abline(h=4/length(wdata$Wthickness),col="red")
+    # title(main=paste(pair,collapse = " x "),cex=0.5,line=3)
     
-    # Confidence intervals
-    conf_intervals <- confint(full_model, level = 0.95)
-    conf_intervals <- conf_intervals[rownames(conf_intervals) %in% rownames(summary(full_model)$coefficients), ]
+    # Extract fixed effects and random effects variance
+    fixed_effects <- fixed.effects(full_model)
+    re <- as.numeric(VarCorr(full_model)[, "Variance"])
+    residual_variance <- sigma(full_model)^2
     
-    delta_aic <- AIC(full_model) - AIC(reduced_model)
-    variance_explained_by_RE <- as.data.frame(VarCorr(full_model))$vcov[1] / sum(as.data.frame(VarCorr(full_model))$vcov)
+    # Calculate specific metrics
+    estimated_difference <- fixed_effects[2]
+    variance_explained_by_RE <-(re[2]+re[4])/ 
+      (re[5]+re[2]+re[4])
+    
+    # Perform LRT and calculate metrics
+    lrt <- AIC(reduced_model,full_model)
+    
+    delta_aic <- diff(lrt$AIC)
+    
+    # Confidence intervals for fixed effects
+    conf_intervals <- intervals(full_model,which = "fixed")
     
     # Append results
     VWall_AIC <- rbind(VWall_AIC, data.frame(
-      PairTested = paste(pair, collapse = " vs "),
-      ParasiteMean = summary(full_model)$coef[1, 1],
-      HostMean = summary(full_model)$coef[1, 1] + summary(full_model)$coef[2, 1],
-      EstimatedDifference = summary(full_model)$coef[2, 1],
-      REVariance = variance_explained_by_RE,
-      RelDiff = summary(full_model)$coef[2, 1] / summary(full_model)$coef[1, 1],
+      PairTested = paste(unique(subset_data$ssp), collapse = " vs "),
+      ParasiteMean = fixed_effects[1],
+      HostMean = sum(fixed_effects), 
+      EstimatedDifference = estimated_difference,
+      REVariance = variance_explained_by_RE*100 ,
+      RelDiff = estimated_difference/fixed_effects[1],
       DeltaAIC = delta_aic,
       stringsAsFactors = FALSE
     ))
     
     # Confidence intervals table for the current pair
-    CI95_pair <- data.frame(
+    CI95_pair <-data.frame(
       Group = unique(subset_data$ssp),
-      Estimate = c(summary(full_model)$coef[1, 1], sum(summary(full_model)$coef[, 1])),
-      Lower = c(conf_intervals[1, 1], conf_intervals[1, 1] + conf_intervals[2, 1]),
-      Upper = c(conf_intervals[1, 2], conf_intervals[1, 2] + conf_intervals[2, 2])
+      Lower = c(conf_intervals$fixed[1,"lower"],sum(conf_intervals$fixed[,"lower"])),
+      Estimate=c(conf_intervals$fixed[1,"est."],sum(conf_intervals$fixed[,"est."])),
+      Upper = c(conf_intervals$fixed[1,"upper"],sum(conf_intervals$fixed[,"upper"]))
     )
     
     # Plot for the current species pair
    
     CI95 <- rbind(CI95,CI95_pair)
     
-   
-    testDispersion(full_model)
-    title(main=paste(pair, collapse = " vs "),line= 1,cex.main=1)
-    
-    print(check_model(full_model))
-    
-    simulationOutput <- simulateResiduals(fittedModel = full_model, plot = T)
-    title(main = paste(pair, collapse = " vs "),line=1,cex.main=1)
-    
-    cookd_plot <- CookD(full_model, newwd = FALSE,idn = 10)
-     title(main = paste("Cook's Distance for", " WT ", paste(pair,collapse = " x ")), adj = 0.5, line = 0.5)
-     abline(h=4/length(subset_data$wthickness),col="red")
   }, error = function(e) {
     cat("\nAn error occurred for pair", paste(pair, collapse = " vs "), ":", e$message, "\n")
   })
 }
 
-# Set the desired order for the groups
-desired_order <- c("Parasite", "Host",
-                   "Psittacanthus robustus", "Vochysia thyrsoidea",
-                   "Phoradendron perrotettii", "Tapirira guianensis",
-                   "Struthanthus rhynchophyllus", "Tipuana tipu")
 
-# Convert Group to a factor with specified levels
-CI95$Group <- factor(CI95$Group, levels = rev(desired_order))
 
-# Create the plot
-CI95 %>% 
-  ggplot(aes(Group, Estimate)) +
-  geom_point(size = 4, aes(color = Group)) +
-  geom_errorbar(aes(ymin = Lower, ymax = Upper), width = 0.2) +
-  coord_flip() +
-  labs(title = "Estimates and 95% Confidence Intervals",
-       x = "Effect", y = "Estimate") +
-  scale_color_manual(values = rep(c("black", "firebrick"), length.out = nlevels(CI95$Group))) +  # Alternate colors
-  theme_minimal()
 
 
 write.csv(VWall_AIC, file = here("outputs", "tables", "Wdata_AIC.csv"))
-write.csv(CI95, file = here("outputs", "tables", "WTCI95.csv"))
+
 cat("Summary:\n
 1. Model results: Significant differences were found in Struthanthus rhynchophyllus vs Tipuana tipu and Parasite vs Host.
 2. Residual analysis: All models were checked. Deviations were either non-existent or small enough to be disregarded.")
+

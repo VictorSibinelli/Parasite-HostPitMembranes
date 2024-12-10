@@ -12,7 +12,7 @@ rm(list = ls())  # Clear environment
 # Read in raw data files
 vdata <- read.csv(here("data", "raw", "VesselsDiameter.csv"))
 vadata <- read.csv(here("data", "raw", "VesselDensity.csv"))
-wdata <- read.csv(here("data", "raw", "2xWallThickness.csv"), sep = ";")
+wdata <- read.csv(here("data", "raw", "2xWallThickness.csv"), sep = ";")[,c(1,2,4)]
 pitdata <- read.csv(here("data", "raw", "Pits.csv"), sep = ";")[, 1:8]
 pitOdata <- read.csv(here("data", "raw", "PitOpeningData.csv"), sep = ";")
 pitF <- read.csv(here("data", "raw", "PitFraction.csv"))
@@ -51,8 +51,11 @@ vadata <- within(vadata, {
 
 ## wdata - Wall Thickness Data
 # Calculate single wall thickness
-wdata$wthickness <- wdata$Length*0.7 / 2
+wdata$Length[wdata$ssp != "Populus nigra"]  <- wdata$Length[wdata$ssp != "Populus nigra"]*0.7
+wdata$Wthickness <- wdata$Length/2
 wdata <- wdata[!rowSums(wdata == 0), ]
+
+
 ## pitdata - Pit Data
 # Calculate average pit membrane thickness at edges and center
 pitdata$peavg <- rowMeans(pitdata[, 5:6], na.rm = TRUE)
