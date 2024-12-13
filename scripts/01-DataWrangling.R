@@ -11,7 +11,7 @@ rm(list = ls())  # Clear environment
 
 # Read in raw data files
 vdata <- read.csv(here("data", "raw", "VesselsDiameter.csv"))
-vadata <- read.csv(here("data", "raw", "VesselDensity.csv"))
+vadata <- read.csv(here("data", "raw", "VesselDensity.csv"),sep=";")
 wdata <- read.csv(here("data", "raw", "2xWallThickness.csv"), sep = ";")[,c(1,2,4)]
 pitdata <- read.csv(here("data", "raw", "Pits.csv"), sep = ";")[, 1:8]
 pitOdata <- read.csv(here("data", "raw", "PitOpeningData.csv"), sep = ";")
@@ -40,7 +40,7 @@ vdata$VesselDiameter <- 2 * sqrt(vdata$Area / pi)  # Calculate vessel diameter
 
 ## vadata - Vessel Density Data
 # Correct species names and calculate vessel density
-vadata$indiv <- paste(vadata$ssp, vadata$indiv, sep = " ")
+
 vadata$Total.Area <- ifelse(vadata$ssp!="Populus nigra", vadata$Total.Area*2.05,vadata$Total.Area)
 vadata$vdensity <- vadata$Count / (vadata$Total.Area / vadata$X.Area) * 10000
 colnames(vadata)[2] <- "indiv"

@@ -27,7 +27,7 @@ relevel_factors(ls())
 
 ### Initialize result data frames
 VWall_AIC <- data.frame(PairTested = character(), ParasiteMean = numeric(),
-                        HostMean = numeric(), EstimatedDifference = numeric(),
+                        HostMean = numeric(),
                         REVariance = numeric(), RelDiff = numeric(),
                         DeltaAIC = numeric(), stringsAsFactors = FALSE)
 
@@ -48,18 +48,21 @@ reduced_model <- lme(
   method="ML"
 )
 
-summary(full_model)
-summary(reduced_model)
-(lrt <- anova(reduced_model, full_model))
-check_model(full_model)
-CookD(full_model,neww=F,idn=10)
-abline(h=4/length(wdata$Wthickness),col="red")
+ summary(full_model)
+# summary(reduced_model)
+# (lrt <- anova(reduced_model, full_model))
+# check_model(full_model)
+# CookD(full_model,neww=F,idn=10)
+# abline(h=4/length(wdata$Wthickness),col="red")
 
 # Extract fixed effects and random effects variance
-fixed_effects <- fixed.effects(full_model)
+fixed_effects <- round(fixed.effects(full_model),digits = 2)
 re <- as.numeric(VarCorr(full_model)[, "Variance"])
-residual_variance <- sigma(full_model)^2
+# Extract residuals
+residuals<- round(residuals(full_model),digits=2)
 
+CoV_parasite <-round(sd(residuals[wdata$parasitism == "Parasite"])/fixed_effects[1],digits = 2)
+CoV_host <- round(sd(residuals[wdata$parasitism == "Host"])/sum(fixed_effects),digits=2)
 # Calculate specific metrics
 estimated_difference <- fixed_effects[2]
 variance_explained_by_RE <-(re[2]+re[4])/ 
@@ -78,9 +81,8 @@ conf_intervals <- intervals(full_model)
 # Append results to the dataframe
 VWall_AIC <- rbind(VWall_AIC, data.frame(
   PairTested = paste(levels(wdata$parasitism), collapse = " vs "),
-  ParasiteMean = fixed_effects[1],
-  HostMean = sum(fixed_effects), 
-  EstimatedDifference = estimated_difference,
+  ParasiteMean =paste(fixed_effects[1],"(",CoV_parasite, ")",sep = ""),
+  HostMean = paste(sum(fixed_effects)," (",CoV_host, ")",sep=""), 
   REVariance = variance_explained_by_RE*100 ,
   RelDiff = estimated_difference/fixed_effects[1],
   DeltaAIC = delta_aic,
@@ -146,11 +148,17 @@ for (pair in species_pairs) {
 #     abline(h=4/length(wdata$Wthickness),col="red")
 #     title(main=paste(pair,collapse = " x "),cex=0.5,line=3)
 
-    # Extract fixed effects and random effects variance
-    fixed_effects <- fixed.effects(full_model)
-    re <- as.numeric(VarCorr(full_model)[, "Variance"])
-    residual_variance <- sigma(full_model)^2
     
+    
+    # Extract fixed effects and random effects variance
+    fixed_effects <- round(fixed.effects(full_model),digits = 2)
+    re <- as.numeric(VarCorr(full_model)[, "Variance"])
+    # Extract residuals
+    residuals<- round(residuals(full_model),digits=2)
+    
+    CoV_parasite <-round(sd(residuals[subset_data$ssp==pair[1]])/fixed_effects[1],digits = 2)
+    CoV_host <- round(sd(residuals[subset_data$ssp == pair[2]])/sum(fixed_effects),digits=2)
+
     # Calculate specific metrics
     estimated_difference <- fixed_effects[2]
     variance_explained_by_RE <-(re[2]+re[4])/ 
@@ -167,9 +175,8 @@ for (pair in species_pairs) {
     # Append results
     VWall_AIC <- rbind(VWall_AIC, data.frame(
       PairTested = paste(unique(subset_data$ssp), collapse = " vs "),
-      ParasiteMean = fixed_effects[1],
-      HostMean = sum(fixed_effects), 
-      EstimatedDifference = estimated_difference,
+      ParasiteMean =paste(fixed_effects[1],"(",CoV_parasite, ")",sep = ""),
+      HostMean = paste(sum(fixed_effects)," (",CoV_host, ")",sep=""), 
       REVariance = variance_explained_by_RE*100 ,
       RelDiff = estimated_difference/fixed_effects[1],
       DeltaAIC = delta_aic,
@@ -194,7 +201,6 @@ for (pair in species_pairs) {
 }
 
 row.names(VWall_AIC) <- NULL
-
+print(VWall_AIC)
 
 write.csv(VWall_AIC, file = here("outputs", "tables", "Wdata_AIC.csv"))
-

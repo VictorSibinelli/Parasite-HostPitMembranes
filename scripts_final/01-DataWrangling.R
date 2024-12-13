@@ -9,10 +9,13 @@ library(here)
 source(here("scripts", "00-library.R"))
 rm(list = ls())  # Clear environment
 
+
+wall_data <- read.csv(here("data", "raw", "VesselWall.csv"))
+
 # Read in raw data files
 vdata <- read.csv(here("data", "raw", "VesselsDiameter.csv"))
 vadata <- read.csv(here("data", "raw", "VesselDensity.csv"))
-wdata <- read.csv(here("data", "raw", "2xWallThickness.csv"), sep = ";")
+
 pitdata <- read.csv(here("data", "raw", "Pits.csv"), sep = ";")[, 1:8]
 pitOdata <- read.csv(here("data", "raw", "PitOpeningData.csv"), sep = ";")
 pitF <- read.csv(here("data", "raw", "PitFraction.csv"))

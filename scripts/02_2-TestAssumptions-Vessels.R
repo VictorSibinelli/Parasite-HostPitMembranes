@@ -59,11 +59,10 @@ colnames(HydraulicData)[6] <- "VesselFraction"
 n <- 1.002 * 10^-9  # Viscosity index of water (MPa·s at 20°C)
 pw <- 998.2         # Density of water at 20°C (kg/m³)
 
-# Max hydraulic conductivity calculation
-HydraulicData$Kmax <- ((pi * pw) / (n * 128)) *  # Constants
-  (HydraulicData$vdensity * 1e+6) *               # Vessel density in vessels/m² (converted from vessels/mm²)
-  ((HydraulicData$HydraulicDiameter * 1e-6)^4)    # Vessel diameter in meters to the power of 4
 
+HydraulicData$Kmax <- ((pi * pw) / (n * 128)) *    # Constants
+  (HydraulicData$vdensity * 1e+6) *               # Vessel density in vessels/m²
+  ((HydraulicData$HydraulicDiameter * 1e-6)^4)    # Vessel diameter in meters
 
 
 ####relevel factors

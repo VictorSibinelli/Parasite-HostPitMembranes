@@ -16,13 +16,16 @@ vdata <- read.csv(here("data", "processed", "vdata.csv"))
 vadata <- read.csv(here("data", "processed", "vadata.csv"))
 
 ### Substitute the most influential values in HydraulicData
-##HydraulicDiameter
+
+
 
 HydraulicData[c(177,178,180),"HydraulicDiameter"] <- sort(HydraulicData$HydraulicDiameter[HydraulicData$ssp=="Vochysia thyrsoidea"])[4]
+HydraulicData[c(102,98,101),"vdensity"] <- rev(sort(HydraulicData$vdensity[HydraulicData$ssp=="Tapirira guianensis"]))[4]
 HydraulicData[c(172),"vdensity"] <- rev(sort(HydraulicData$vdensity[HydraulicData$ssp=="Vochysia thyrsoidea"]))[2]
-HydraulicData[c(74),"VesselFraction"] <- rev(sort(HydraulicData$Kmax[HydraulicData$ssp=="Vochysia thyrsoidea"]))[2]
+HydraulicData[c(74),"VesselFraction"] <- rev(sort(HydraulicData$VesselFraction[HydraulicData$ssp=="Struthanthus rhynchophyllus"]))[1]
+HydraulicData[c(51),"VesselFraction"] <- rev(sort(HydraulicData$VesselFraction[HydraulicData$ssp=="Psittacanthus robustus"]))[3]
 HydraulicData[c(51),"Kmax"] <- rev(sort(HydraulicData$Kmax[HydraulicData$ssp=="Psittacanthus robustus"]))[2]
-
+HydraulicData[c(138,141,140,134),"Kmax"] <- rev(sort(HydraulicData$Kmax[HydraulicData$ssp=="Tipuana tipu"]))[5]
 
 ### Fit Linear Mixed-Effects Models (LME) for Parasite vs Host comparisons
 
@@ -58,7 +61,29 @@ for (v in vars) {
                        data = HydraulicData,
                        control = list(maxIter = 100, msMaxIter = 100),
                        weights = varIdent(form = ~ 1 | ssp))
+
   
+  fixed_effects <- round(fixed.effects(full_model),digits = 2)
+  re <- as.numeric(VarCorr(full_model)[, "Variance"])
+  # Extract residuals
+  residuals<- round(residuals(full_model),digits=2)
+  
+  CoV_parasite <-round(sd(residuals[HydraulicData$parasitism == "Parasite"])/fixed_effects[1],digits = 2)
+  CoV_host <- round(sd(residuals[HydraulicData$parasitism == "Host"])/sum(fixed_effects),digits=2)
+  # Calculate specific metrics
+  estimated_difference <- fixed_effects[2]
+  variance_explained_by_RE <-(re[2]+re[4])/ 
+    (re[5]+re[2]+re[4])
+  
+  # Perform LRT and calculate metrics
+  lrt <- AIC(reduced_model,full_model)
+  
+  delta_aic <- diff(lrt$AIC)
+  
+  # Confidence intervals for fixed effects
+  conf_intervals <- intervals(full_model)
+  
+
   # Store the full model
   
   ms <- summary(full_model)
@@ -68,13 +93,11 @@ for (v in vars) {
   # Create a results table summarizing the model output
   resul_table_list[[table_name]] <- data.frame(
     PairTested = paste(unique(HydraulicData$parasitism), collapse = " x "),
-    ParasiteMean = paste0(round(full_model$coefficients$fixed[1], 3), " ± ", round(ms$tTable[,"Std.Error"][1], 3)),
-    HostMean = paste0(round(sum(full_model$coefficients$fixed), 3), " ± ", round(ms$tTable[,"Std.Error"][2], 3)),
-    EstimatedDifference = round(full_model$coefficients$fixed[2], 3),
-    REVariance = (as.numeric(VarCorr(full_model)[2]) + as.numeric(VarCorr(full_model)[4])) / 
-      as.numeric(VarCorr(full_model)[5]),
-    PValue = anova(full_model, reduced_model)$`p-value`[2],
-    DeltaAIC = AIC(full_model) - AIC(reduced_model),
+    ParasiteMean = paste(fixed_effects[1],"(",CoV_parasite, ")",sep = ""),
+    HostMean = paste(sum(fixed_effects)," (",CoV_host, ")",sep=""),
+    REVariance = variance_explained_by_RE*100,
+    RelDiff = estimated_difference/fixed_effects[1],
+    DeltaAIC = delta_aic,
     stringsAsFactors = FALSE
   ) %>% as_tibble()
   
@@ -96,15 +119,32 @@ for (v in vars) {
   
   print(check_model(full_model))
 
-  cookd_plot <- CookD(full_model, newwd = FALSE,idn = 10)
-  title(main = paste("Cook's Distance for",v, "Parasite x Host"), adj = 0.5, line = 0.5)
-  abline(h=4/nrow(HydraulicData),col="red")
+  # Calculate Cook's Distance
+  cookd_plot <- CookD(full_model, newwd = FALSE, idn = 10)
+  
+  # Add title and thresholds
+  title(main = paste("Cook's Distance for", v, "Parasite x Host"), adj = 0.5, line = 0.5)
+  abline(h = 4 / nrow(HydraulicData), col = "red", lty = 2)  # Standard threshold
+  abline(h = 0.05, col = "blue", lty = 2)  # 3x mean threshold
+  
   }
+
+
 
 # Display the formatted confidence intervals
 
 resul_table_list
-
+HydraulicData[174,"VesselFraction"] <- rev(sort(HydraulicData$VesselFraction[HydraulicData$ssp=="Vochysia thyrsoidea"]))[2]
+HydraulicData[51,"vdensity"] <- rev(sort(HydraulicData$vdensity[HydraulicData$ssp=="Psittacanthus robustus"]))[2]
+HydraulicData[172,"vdensity"] <- rev(sort(HydraulicData$vdensity[HydraulicData$ssp=="Vochysia thyrsoidea"]))[2]
+HydraulicData[179,"HydraulicDiameter"] <- rev(sort(HydraulicData$HydraulicDiameter[HydraulicData$ssp=="Vochysia thyrsoidea"]))[2]
+HydraulicData[80,"vdensity"] <- rev(sort(HydraulicData$vdensity[HydraulicData$ssp=="Struthanthus rhynchophyllus"]))[2]
+HydraulicData[90,"Kmax"] <- rev(sort(HydraulicData$Kmax[HydraulicData$ssp=="Struthanthus rhynchophyllus"]))[2]
+HydraulicData[c(127),"HydraulicDiameter"] <- sort(HydraulicData$HydraulicDiameter[HydraulicData$ssp=="Tipuana tipu"])[10]
+HydraulicData[c(132,134),"HydraulicDiameter"] <- rev(sort(HydraulicData$HydraulicDiameter[HydraulicData$ssp=="Tipuana tipu"]))[7]
+HydraulicData[112,"Kmax"] <- rev(sort(HydraulicData$Kmax[HydraulicData$ssp=="Tapirira guianensis"]))[2]
+HydraulicData[112,"VesselFraction"] <- rev(sort(HydraulicData$VesselFraction[HydraulicData$ssp=="Tapirira guianensis"]))[2]
+HydraulicData[c(93,97,98,99,101,102),"vdensity"] <- rev(sort(HydraulicData$vdensity[HydraulicData$ssp=="Tapirira guianensis"]))[8]
 #########################################################################################################
 for (pair in species_pairs) {
   
@@ -130,18 +170,37 @@ for (pair in species_pairs) {
                          control = list(maxIter = 100, msMaxIter = 100),
                          weights = varIdent(form = ~ 1 | ssp))
     
+    
+    fixed_effects <- round(fixed.effects(full_model),digits = 2)
+    re <- as.numeric(VarCorr(full_model)[, "Variance"])
+    # Extract residuals
+    residuals<- round(residuals(full_model),digits=2)
+    
+    CoV_parasite <-round(sd(residuals[data$parasitism == pair[1]])/fixed_effects[1],digits = 2)
+    CoV_host <- round(sd(residuals[data$parasitism == pair[2]])/sum(fixed_effects),digits=2)
+    # Calculate specific metrics
+    estimated_difference <- fixed_effects[2]
+    variance_explained_by_RE <-(re[2]+re[4])/ 
+      (re[5]+re[2]+re[4])
+    
+    # Perform LRT and calculate metrics
+    lrt <- AIC(reduced_model,full_model)
+    
+    delta_aic <- diff(lrt$AIC)
+    
+    # Confidence intervals for fixed effects
+    conf_intervals <- intervals(full_model)
     # Store the full model in the model_list
     model_list[[model_name]] <- full_model
     
     # Create a results table summarizing the model output for the current variable and pair
     result <- data.frame(
-      PairTested = paste(unique(data$ssp), collapse = " x "),  # Use filtered data
-      ParasiteMean = paste0(round(full_model$coefficients$fixed[1], 3), " ± ", round(ms$tTable[,"Std.Error"][1], 3)),
-      HostMean = paste0(round(sum(full_model$coefficients$fixed), 3), " ± ", round(ms$tTable[,"Std.Error"][2], 3)),
-      EstimatedDifference = round(full_model$coefficients$fixed[2], 3),
-      REVariance =as.numeric(VarCorr(full_model)[,"Variance"][1])/sum(as.numeric(VarCorr(full_model)[,"Variance"])),
-      PValue = anova(full_model, reduced_model)$`p-value`[2],
-      DeltaAIC = AIC(full_model) - AIC(reduced_model),
+      PairTested = paste(unique(data$ssp), collapse = " x "),
+      ParasiteMean = paste(fixed_effects[1],"(",CoV_parasite, ")",sep = ""),
+      HostMean = paste(sum(fixed_effects)," (",CoV_host, ")",sep=""),
+      REVariance = variance_explained_by_RE*100,
+      RelDiff = estimated_difference/fixed_effects[1],
+      DeltaAIC = delta_aic,
       stringsAsFactors = FALSE
     ) %>% as_tibble()
     
@@ -169,9 +228,10 @@ for (pair in species_pairs) {
     print(check_model(full_model))
 
     # Cook's distance plot to assess influential points
-    cookd_plot <- CookD(full_model, newwd = FALSE)
+    cookd_plot <- CookD(full_model, newwd = FALSE,idn=10)
     title(main = paste("Cook's Distance for", v, paste(pair,collapse = " x ")), adj = 0.5, line = 0.5)
     abline(h=4/nrow(data),col="red")
+    
   }  
 } 
 resul_table_list
