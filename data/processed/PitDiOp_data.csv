@@ -299,7 +299,6 @@ Populus nigra,Populus nigra 3,6.812,3.339,Host
 Populus nigra,Populus nigra 3,7.181,2.698,Host
 Populus nigra,Populus nigra 3,7.196,3.269,Host
 Populus nigra,Populus nigra 3,8.985,3.694,Host
-Populus nigra,Vochysia thyrsoidea 3,5.248,,Host
 Psittacanthus robustus,Psittacanthus robustus 1,9.129,3.04304,Parasite
 Psittacanthus robustus,Psittacanthus robustus 1,8.395,4.14271,Parasite
 Psittacanthus robustus,Psittacanthus robustus 1,8.094,3.8038,Parasite
@@ -1200,4 +1199,4 @@ Vochysia thyrsoidea,Vochysia thyrsoidea 3,6.658,3.02588,Host
 Vochysia thyrsoidea,Vochysia thyrsoidea 3,6.183,3.30616,Host
 Vochysia thyrsoidea,Vochysia thyrsoidea 3,6.559,2.70985,Host
 Vochysia thyrsoidea,Vochysia thyrsoidea 3,5.254,2.59831,Host
-Vochysia thyrsoidea,Vochysia thyrsoidea 3,,2.93722,Host
+Vochysia thyrsoidea,Vochysia thyrsoidea 3,5.248,2.93722,Host
