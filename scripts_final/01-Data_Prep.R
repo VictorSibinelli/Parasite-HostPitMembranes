@@ -122,6 +122,68 @@ HydraulicData$Kmax <- ((pi * pw) / (n * 128)) *      # Constants
   (HydraulicData$VesselDensity * 1e6) *             # Vessel density in vessels/m²
   ((HydraulicData$HydraulicDiameter * 1e-6)^4)      # Vessel diameter in meters (to the 4th power)
 
+
+# Create and merge summarized data frames for median values
+Median_data <- list(
+  PitDiOp_data %>%
+    group_by(indiv, ssp) %>%
+    summarise(
+      PitOpening = median(PitOpening, na.rm = TRUE),
+      PitDiameter = median(PitDiameter, na.rm = TRUE),
+      .groups = "drop"
+    ),
+  Wall_data %>%
+    group_by(indiv, ssp) %>%
+    summarise(Wthickness = median(WallThickness, na.rm = TRUE), .groups = "drop"),
+  VesselDiameter_data %>%
+    group_by(indiv, ssp) %>%
+    summarise(VesselDiameter = median(VesselDiameter, na.rm = TRUE), .groups = "drop"),
+  PitFraction_data %>%
+    group_by(indiv, ssp) %>%
+    summarise(PitFraction = median(PitFraction, na.rm = TRUE), .groups = "drop"),
+  HydraulicData %>%
+    group_by(indiv, ssp) %>%
+    summarise(
+      HydraulicDiameter = median(HydraulicDiameter, na.rm = TRUE),
+      VesselDensity = median(VesselDensity, na.rm = TRUE),
+      VesselFraction = median(VesselFraction, na.rm = TRUE),
+      Kmax = median(Kmax, na.rm = TRUE),
+      .groups = "drop"
+    )
+) %>% 
+  reduce(full_join, by = c("ssp", "indiv"))
+
+# Create and merge summarized data frames for mean values
+Mean_data <- list(
+  PitDiOp_data %>%
+    group_by(indiv, ssp) %>%
+    summarise(
+      PitOpening = mean(PitOpening, na.rm = TRUE),
+      PitDiameter = mean(PitDiameter, na.rm = TRUE),
+      .groups = "drop"
+    ),
+  Wall_data %>%
+    group_by(indiv, ssp) %>%
+    summarise(Wthickness = mean(WallThickness, na.rm = TRUE), .groups = "drop"),
+  VesselDiameter_data %>%
+    group_by(indiv, ssp) %>%
+    summarise(VesselDiameter = mean(VesselDiameter, na.rm = TRUE), .groups = "drop"),
+  PitFraction_data %>%
+    group_by(indiv, ssp) %>%
+    summarise(PitFraction = mean(PitFraction, na.rm = TRUE), .groups = "drop"),
+  HydraulicData %>%
+    group_by(indiv, ssp) %>%
+    summarise(
+      HydraulicDiameter = mean(HydraulicDiameter, na.rm = TRUE),
+      VesselDensity = mean(VesselDensity, na.rm = TRUE),
+      VesselFraction = mean(VesselFraction, na.rm = TRUE),
+      Kmax = mean(Kmax, na.rm = TRUE),
+      .groups = "drop"
+    )
+) %>% 
+  reduce(full_join, by = c("ssp", "indiv"))
+
+
 # Add parasitism column to all data frames
 dataframes <- Filter(function(x) is.data.frame(get(x)), ls())
 for (df_name in dataframes) {
@@ -137,65 +199,6 @@ for (df_name in dataframes) {
   rm(df)
 }
 
-# Create and merge summarized data frames for median values
-Median_data <- list(
-  PitDiOp_data %>%
-    group_by(indiv, ssp, parasitism) %>%
-    summarise(
-      PitOpening = median(PitOpening, na.rm = TRUE),
-      PitDiameter = median(PitDiameter, na.rm = TRUE),
-      .groups = "drop"
-    ),
-  Wall_data %>%
-    group_by(indiv, ssp, parasitism) %>%
-    summarise(Wthickness = median(WallThickness, na.rm = TRUE), .groups = "drop"),
-  VesselDiameter_data %>%
-    group_by(indiv, ssp, parasitism) %>%
-    summarise(VesselDiameter = median(VesselDiameter, na.rm = TRUE), .groups = "drop"),
-  PitFraction_data %>%
-    group_by(indiv, ssp, parasitism) %>%
-    summarise(PitFraction = median(PitFraction, na.rm = TRUE), .groups = "drop"),
-  HydraulicData %>%
-    group_by(indiv, ssp, parasitism) %>%
-    summarise(
-      HydraulicDiameter = median(HydraulicDiameter, na.rm = TRUE),
-      VesselDensity = median(VesselDensity, na.rm = TRUE),
-      VesselFraction = median(VesselFraction, na.rm = TRUE),
-      Kmax = median(Kmax, na.rm = TRUE),
-      .groups = "drop"
-    )
-) %>% 
-  reduce(full_join, by = c("ssp", "indiv", "parasitism"))
-
-# Create and merge summarized data frames for mean values
-Mean_data <- list(
-  PitDiOp_data %>%
-    group_by(indiv, ssp, parasitism) %>%
-    summarise(
-      PitOpening = mean(PitOpening, na.rm = TRUE),
-      PitDiameter = mean(PitDiameter, na.rm = TRUE),
-      .groups = "drop"
-    ),
-  Wall_data %>%
-    group_by(indiv, ssp, parasitism) %>%
-    summarise(Wthickness = mean(WallThickness, na.rm = TRUE), .groups = "drop"),
-  VesselDiameter_data %>%
-    group_by(indiv, ssp, parasitism) %>%
-    summarise(VesselDiameter = mean(VesselDiameter, na.rm = TRUE), .groups = "drop"),
-  PitFraction_data %>%
-    group_by(indiv, ssp, parasitism) %>%
-    summarise(PitFraction = mean(PitFraction, na.rm = TRUE), .groups = "drop"),
-  HydraulicData %>%
-    group_by(indiv, ssp, parasitism) %>%
-    summarise(
-      HydraulicDiameter = mean(HydraulicDiameter, na.rm = TRUE),
-      VesselDensity = mean(VesselDensity, na.rm = TRUE),
-      VesselFraction = mean(VesselFraction, na.rm = TRUE),
-      Kmax = mean(Kmax, na.rm = TRUE),
-      .groups = "drop"
-    )
-) %>% 
-  reduce(full_join, by = c("ssp", "indiv", "parasitism"))
 
 # Save each data frame as a CSV
 for (df_name in dataframes) {
