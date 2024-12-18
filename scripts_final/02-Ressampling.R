@@ -45,10 +45,10 @@ species_pairs <- list(
  )
  
  
-data_list <- list(Means = Mean_data, medians = Median_data)
+data_list <- list(Means = Mean_data, Medians = Median_data)
 Bootstraped_data <- list()
 Variables <- colnames(Mean_data)[sapply(Mean_data, is.numeric)]
-Iterations <- 10
+Iterations <- 250000
 
 for (d in seq_along(data_list)){
   
@@ -71,7 +71,7 @@ for (d in seq_along(data_list)){
 }
 
 
-
+Iterations <- 100000
  
 
 for (d in seq_along(data_list)) {
@@ -102,7 +102,72 @@ for (d in seq_along(data_list)) {
   }
   rm(x,m)
 }
+
+
+
+
 ###################################################################
+Iterations <- 10000
 CI95 <- list()
 
+for (d in seq_along(data_list)) {
+  df_name <- names(data_list)[d]
+  x <- data_list[[d]]
+  
+  for (p in levels(x$parasitism)) {
+    subset_data <- subset(x, parasitism == p)
+    para_type <- paste(p, "CI95", sep = "_")
+    
+    # Generate bootstrap values for all variables in one matrix
+    m <- sapply(Variables, function(v) {
+      replicate(Iterations, mean(sample(subset_data[[v]], replace = TRUE), na.rm=T))
+    })
+    
+    # Add the result matrix to the list
+    CI95[[paste(df_name, para_type, sep = "_")]] <- m
+  }
+}
 
+
+
+
+for (d in seq_along(data_list)) {
+  df_name <- names(data_list)[d]
+  x <- data_list[[d]]
+  
+  for (p in levels(x$ssp)) {
+    subset_data <- subset(x, ssp == p)
+    para_type <- paste(p, "CI95", sep = "_")
+    
+    # Generate bootstrap values for all variables in one matrix
+    m <- sapply(Variables, function(v) {
+      replicate(Iterations, mean(sample(subset_data[[v]], replace = TRUE),na.rm=T))
+    })
+    
+    # Add the result matrix to the list
+    CI95[[paste(df_name, para_type, sep = "_")]] <- m
+  }
+}
+
+Boots <- list(Bootstraped_data,CI95)
+
+
+lapply(seq_along(Boots), function(i) {
+  # Extract the sublist and its name
+  sublist <- Boots[[i]]
+  
+  # Iterate over the data frames in the sublist
+  lapply(seq_along(sublist), function(j) {
+    # Extract the data frame and its name
+    df <- sublist[[j]]
+    df_name <- names(sublist)[j]
+    
+    # Create a file name using sublist and data frame names
+    table_name <- paste0(df_name, ".csv")
+    print(table_name)
+    # Save the data frame
+    write.csv(df, file = here("data", "processed", "ressampled", table_name))
+  })
+})
+
+str(Boots)

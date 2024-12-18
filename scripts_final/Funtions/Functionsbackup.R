@@ -126,28 +126,7 @@ shuffle_calculation <- function(x, cols, cat) {
   return(results)
 }
 
-shuffle_means <- function(x, cols, cat, rcat = FALSE, rcol = FALSE) {
-  shuffled <- x
-  
-  # Shuffle numeric columns (cols) with or without replacement
-  shuffled[, cols] <- apply(shuffled[, cols, drop = FALSE], 2, function(col) {
-    sample(col, size = length(col), replace = rcol)
-  })
-  
-  # Shuffle the categorical column with or without replacement
-  shuffled[[cat]] <- sample(shuffled[[cat]], size = length(shuffled[[cat]]), replace = rcat)
-  
-  # Calculate the mean for each level of the categorical variable
-  results <- tapply(shuffled[[cols]], shuffled[[cat]], mean, na.rm = TRUE)
-  
-  # Ensure the results are numeric and return as a matrix
-  results <- as.matrix(results)
-  
-  # Remove NA values, if needed
-  results <- results[!is.na(results)]
-  
-  return(results)
-}
+
 
 # ------------------------------------------------------
 # Function for shuffling data subsets and calculating species pair differences

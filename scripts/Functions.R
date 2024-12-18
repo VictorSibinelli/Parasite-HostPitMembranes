@@ -25,7 +25,28 @@ mean_diff_boot <- function(x, cols, cat) {
   return(results)
 }
 
+bootstrap_summary <- function(data, group_var, variables) {
+  data %>%
+    group_by(across(all_of(group_var))) %>%
+    summarise(across(
+      all_of(variables),
+      ~ mean(sample(.x, replace = TRUE), na.rm=T),
+      .names = "{col}"
+    ), .groups = "drop")
+}
 
+shuffle_means <- function(x, cols, cat) {
+  # Shuffle numeric column (cols) with replacement
+  x[[cols]] <- sample(x[[cols]], size = nrow(x), replace = TRUE)
+  
+  # Calculate the mean for each level of the categorical variable
+  results <- tapply(x[[cols]], x[[cat]], mean, na.rm = TRUE)
+  
+  # Convert to a named vector or data frame
+  results <- data.frame(Category = names(results), Mean = as.numeric(results))
+  
+  return(results)
+}
 
 relevel_factors <- function(dataframes) {
   for (df_name in dataframes) {
