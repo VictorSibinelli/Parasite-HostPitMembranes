@@ -3,7 +3,7 @@ rm(list = ls())  # Remove all objects from memory
 
 # Load required libraries and custom functions
 library(here)
-source(here("scripts", "00-library.R"))  # Load packages
+library(tidyverse)  # Load packages
 source(here("scripts", "Functions.R"))    # Load custom functions
 
 Mean_data <- read.csv(here("data","processed","Mean_data.csv"))
@@ -16,8 +16,8 @@ relevel_factors(ls())
 species_pairs <- list(
   c("Psittacanthus robustus", "Vochysia thyrsoidea"),
   c("Phoradendron perrotettii", "Tapirira guianensis"),
-  c("Struthanthus rhynchophyllus", "Tipuana tipu")#,
-  # c("Viscum album", "Populus nigra")
+  c("Struthanthus rhynchophyllus", "Tipuana tipu"),
+  c("Viscum album", "Populus nigra")
   )
 
 
@@ -164,10 +164,10 @@ lapply(seq_along(Boots), function(i) {
     
     # Create a file name using sublist and data frame names
     table_name <- paste0(df_name, ".csv")
-    print(table_name)
+
     # Save the data frame
     write.csv(df, file = here("data", "processed", "ressampled", table_name))
   })
 })
 
-str(Boots)
+

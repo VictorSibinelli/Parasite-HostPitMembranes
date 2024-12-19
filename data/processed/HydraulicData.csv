@@ -1,4 +1,24 @@
 Label,ssp,indiv,HydraulicDiameter,VesselDensity,VesselFraction,Kmax,parasitism
+p_nigra_3_1.tif,Populus nigra,Populus nigra 2,46.4796398325302,187.04448090677,10.06,21.3444840570749,Host
+p_nigra_3_10.tif,Populus nigra,Populus nigra 2,45.2033498210697,167.688824700181,8.654,17.1189193738728,Host
+p_nigra_3_2.tif,Populus nigra,Populus nigra 2,49.8156185383587,145.810164753914,9.261,21.9553141806453,Host
+p_nigra_3_3.tif,Populus nigra,Populus nigra 2,60.8534370447092,118.109853878547,11.779,39.6019279518772,Host
+p_nigra_3_4.tif,Populus nigra,Populus nigra 2,61.0764326422726,110.813255863091,11.617,37.7030178429359,Host
+p_nigra_3_5.tif,Populus nigra,Populus nigra 2,60.3356691374931,126.857356554702,12.599,41.1056896070196,Host
+p_nigra_3_6.tif,Populus nigra,Populus nigra 2,45.8475180456753,193.937002489452,11.07,20.9514336710305,Host
+p_nigra_3_7.tif,Populus nigra,Populus nigra 2,59.983818811075,145.145142078333,12.887,45.9439887387322,Host
+p_nigra_3_8.tif,Populus nigra,Populus nigra 2,45.8847112627691,215.837496366806,11.832,23.3931472463746,Host
+p_nigra_3_9.tif,Populus nigra,Populus nigra 2,45.3520269846886,209.062207339061,10.982,21.6247994311336,Host
+p_nigra_4_1.tif,Populus nigra,Populus nigra 3,49.4659046619649,117.56023452151,8.198,17.2097283551285,Host
+p_nigra_4_10.tif,Populus nigra,Populus nigra 3,56.0960389540638,156.737517684599,12.702,37.9482274912525,Host
+p_nigra_4_11.tif,Populus nigra,Populus nigra 3,47.7938244521956,145.470704282996,8.424,18.558908250574,Host
+p_nigra_4_12.tif,Populus nigra,Populus nigra 3,46.6540082644051,126.160722282684,7.223,14.6140221611703,Host
+p_nigra_4_2.tif,Populus nigra,Populus nigra 3,49.2754769728787,118.781706333548,7.246,17.1223217638111,Host
+p_nigra_4_3.tif,Populus nigra,Populus nigra 3,46.7001869937004,159.886986620507,9.225,18.594193352979,Host
+p_nigra_4_4.tif,Populus nigra,Populus nigra 3,57.3826005776762,105.41364064244,9.837,27.9452156922073,Host
+p_nigra_4_5.tif,Populus nigra,Populus nigra 3,54.5325048132681,160.602453481192,11.943,34.7267154218861,Host
+p_nigra_4_7.tif,Populus nigra,Populus nigra 3,48.2546618710484,183.974428230559,11.173,24.3895796882728,Host
+p_nigra_4_8.tif,Populus nigra,Populus nigra 3,51.1997880214449,181.044331940455,11.441,30.419167993098,Host
 Phoradendron perrotettii 1 - GC4841 x10 001-1.tif,Phoradendron perrotettii,Phoradendron perrotettii 1,65.9856509748379,58.6111832790502,7.41,27.1686624783343,Parasite
 Phoradendron perrotettii 1 - GC4841 x10 002-1.tif,Phoradendron perrotettii,Phoradendron perrotettii 1,71.506535599755,36.9211170779385,5.33,23.6019306360389,Parasite
 Phoradendron perrotettii 1 - GC4841 x10 003-1.tif,Phoradendron perrotettii,Phoradendron perrotettii 1,67.8733816008048,38.7603214165165,5.09,20.1129172001298,Parasite

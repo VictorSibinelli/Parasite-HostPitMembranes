@@ -8,9 +8,9 @@
 
 # Package names
 packages <- c(
-  "tidyverse", "here", "plotly", "data.table",
-  "groundhog", "car", "htmlwidgets","DHARMa",
-  "lattice", "lme4", "nlme", "predictmeans", "performance"
+  "tidyverse", "here", "plotly", "data.table","sjPlot",
+  "groundhog", "car", "htmlwidgets","DHARMa","emmeans",
+  "lattice", "lme4", "nlme", "predictmeans", "performance", "report"
 )
 
 # Install packages not yet installed
@@ -20,7 +20,6 @@ if (any(installed_packages == FALSE)) {
 }
 
 # Load packages
-invisible(lapply(packages, library, character.only = TRUE))
 print("Packages Loaded")
 
 #########################################################################

@@ -7,7 +7,8 @@
 # Load required libraries and custom functions
 library(here)
 source(here("scripts", "00-library.R"))
-
+library(tidyverse)
+library(data.table)
 
 # Load and clean Wall data
 Wall_data <- read.csv(here("data", "raw", "VesselWall.csv"))
