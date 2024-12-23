@@ -21,29 +21,7 @@ species_pairs <- list(
   )
 
 
-# Calculate means grouped by 'parasitism'
- Obs_means <-bind_rows(Mean_data %>%
-                         group_by(parasitism) %>%
-                         summarise(across(everything()[-c(1, 2)], ~ mean(.x, na.rm = TRUE))) %>%
-                         rename(Group = parasitism),
-                       
-                       Mean_data %>%
-                         group_by(ssp) %>%
-                         summarise(across(everything()[-c(1,11)], ~ mean(.x, na.rm = TRUE)))%>%
-                         rename(Group = ssp)
- )
-   
- Obs_medians <-bind_rows(Median_data %>%
-                         group_by(parasitism) %>%
-                         summarise(across(everything()[-c(1, 2)], ~ mean(.x, na.rm = TRUE))) %>%
-                         rename(Group = parasitism),
-                       
-                       Mean_data %>%
-                         group_by(ssp) %>%
-                         summarise(across(everything()[-c(1,11)], ~ mean(.x, na.rm = TRUE)))%>%
-                         rename(Group = ssp)
- )
- 
+
  
 data_list <- list(Means = Mean_data, Medians = Median_data)
 Bootstraped_data <- list()
