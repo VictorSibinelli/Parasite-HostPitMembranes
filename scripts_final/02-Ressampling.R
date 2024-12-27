@@ -26,7 +26,8 @@ species_pairs <- list(
 data_list <- list(Means = Mean_data, Medians = Median_data)
 Bootstraped_data <- list()
 Variables <- colnames(Mean_data)[sapply(Mean_data, is.numeric)]
-Iterations <- 250000
+set.seed(42)
+Iterations <- 500000
 
 for (d in seq_along(data_list)){
   
@@ -49,7 +50,7 @@ for (d in seq_along(data_list)){
 }
 
 
-Iterations <- 100000
+Iterations <- 150000
  
 
 for (d in seq_along(data_list)) {

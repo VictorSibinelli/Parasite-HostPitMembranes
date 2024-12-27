@@ -133,15 +133,30 @@ Median_data <- list(
       PitDiameter = median(PitDiameter, na.rm = TRUE),
       .groups = "drop"
     ),
+  
   Wall_data %>%
     group_by(indiv, ssp) %>%
-    summarise(Wthickness = median(WallThickness, na.rm = TRUE), .groups = "drop"),
+    summarise(
+      Wthickness = median(WallThickness, na.rm = TRUE),
+      .groups = "drop"
+    ),
+  
   VesselDiameter_data %>%
     group_by(indiv, ssp) %>%
-    summarise(VesselDiameter = median(VesselDiameter, na.rm = TRUE), .groups = "drop"),
+    mutate(threshold = quantile(VesselDiameter, 0.9, na.rm = TRUE)) %>%
+    filter(VesselDiameter >= threshold) %>%
+    summarise(
+      VesselDiameter = median(VesselDiameter, na.rm = TRUE),
+      .groups = "drop"
+    ),
+  
   PitFraction_data %>%
     group_by(indiv, ssp) %>%
-    summarise(PitFraction = median(PitFraction, na.rm = TRUE), .groups = "drop"),
+    summarise(
+      PitFraction = median(PitFraction, na.rm = TRUE),
+      .groups = "drop"
+    ),
+  
   HydraulicData %>%
     group_by(indiv, ssp) %>%
     summarise(
@@ -153,6 +168,7 @@ Median_data <- list(
     )
 ) %>% 
   reduce(full_join, by = c("ssp", "indiv"))
+
 
 # Create and merge summarized data frames for mean values
 Mean_data <- list(
@@ -168,7 +184,12 @@ Mean_data <- list(
     summarise(Wthickness = mean(WallThickness, na.rm = TRUE), .groups = "drop"),
   VesselDiameter_data %>%
     group_by(indiv, ssp) %>%
-    summarise(VesselDiameter = mean(VesselDiameter, na.rm = TRUE), .groups = "drop"),
+    mutate(threshold = quantile(VesselDiameter, 0.9, na.rm = TRUE)) %>%
+    filter(VesselDiameter >= threshold) %>%
+    summarise(
+      VesselDiameter = median(VesselDiameter, na.rm = TRUE),
+      .groups = "drop"
+    ),
   PitFraction_data %>%
     group_by(indiv, ssp) %>%
     summarise(PitFraction = mean(PitFraction, na.rm = TRUE), .groups = "drop"),
