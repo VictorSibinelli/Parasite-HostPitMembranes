@@ -32,7 +32,7 @@ Obs_medians <-bind_rows(Median_data %>%
                           summarise(across(everything()[-c(1, 2)], ~ mean(.x, na.rm = TRUE))) %>%
                           rename(Group = parasitism),
                         
-                        Mean_data %>%
+                        Median_data %>%
                           group_by(ssp) %>%
                           summarise(across(everything()[-c(1,11)], ~ mean(.x, na.rm = TRUE)))%>%
                           rename(Group = ssp)
@@ -188,7 +188,7 @@ median_effect <- Median_obs_diff/Obs_medians[Obs_medians$Group == "Phoradendron 
 # Add a column with row names and convert to a tibble
 PpxTg_results <- rbind(
   Mean_obs_diff, 
-  PrpTg_mean_pvalues, 
+  PpTg_median_pvalues, 
   mean_effect * 100, 
   Median_obs_diff, 
   PpTg_median_pvalues, 

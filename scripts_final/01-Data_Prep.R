@@ -85,7 +85,15 @@ rm(PitDi, PitOp)  # Remove intermediate data
 
 # Load and process Pit Membrane data
 PitMembrane_data <- read.csv(here("data", "raw", "PitMembrane.csv"))[-8]
-PitMembrane_data$Tpm <- rowMeans(PitMembrane_data[, 2:6], na.rm = TRUE) * 1000  # Calculate mean thickness
+PitMembrane_data$Tpm <- rowMeans(PitMembrane_data[, 2:6], na.rm = TRUE) * 1000
+PitMembrane_data$pcd <- PitMembrane_data$pcd*1000
+PitMembrane_data$ssp <- gsub("^(.)", "\\U\\1", PitMembrane_data$ssp, perl = TRUE)
+PitMembrane_data <- within(PitMembrane_data, {
+  ssp <- gsub("Vochisya thirsoidea", "Vochysia thyrsoidea", ssp)  # Correct misspelling
+  ssp <- gsub("perrotetti", "perrotettii", ssp)
+})
+PitMembrane_data <- PitMembrane_data[,c(1,7,8)]
+# Calculate mean thickness
 
 # Initialize Hydraulic Data
 HydraulicData <- data.frame(
@@ -170,6 +178,8 @@ Median_data <- list(
   reduce(full_join, by = c("ssp", "indiv"))
 
 
+
+
 # Create and merge summarized data frames for mean values
 Mean_data <- list(
   PitDiOp_data %>%
@@ -204,6 +214,8 @@ Mean_data <- list(
     )
 ) %>% 
   reduce(full_join, by = c("ssp", "indiv"))
+
+
 
 
 # Add parasitism column to all data frames
