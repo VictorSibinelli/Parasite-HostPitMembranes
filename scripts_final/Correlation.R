@@ -1,64 +1,61 @@
 ####covariance
-install.packages("ggbiplot")
+library(viridis)
 library(GGally)
 library(ggstatsplot)
 library(devtools)
 library(ggbiplot)
+library(here)
+Median_data<- read.csv(here("data", "processed", "Median_data.csv"))
+head(Median_data)
 
-ggpairs(Median_data,columns = 3:11,aes(colour = parasitism),
-        lower = list(continuous="smooth"),
-        upper=list(continuous=wrap("cor",method="pearson")))
-ggpairs(Mean_data,columns = 3:11,aes(colour = parasitism),
-        lower = list(continuous="smooth"),
-        upper=list(continuous=wrap("cor",method="pearson")))
-library(ggstatsplot)
-
-# Create grouped correlation matrix without the `title` argument
-grouped_corr_plot <- grouped_ggcorrmat(
-  data = Median_data,
-  type = "p",                 # Non-parametric correlation
-  grouping.var = parasitism,   # Grouping variable
-  method = "pearson",         # Spearman rank correlation
-  label = TRUE                 # Display correlation coefficients
-)
-
-# Add a title after the plot is created
-grouped_corr_plot + labs(title = "Grouped Correlation Matrix by Parasitism")
-
+# Create the ggpairs plot
+ggpairs(
+  Median_data,
+  columns = 3:11,
+  aes(colour = parasitism, fill = parasitism),  # Map both colour and fill to parasitism
+  lower = list(continuous = "smooth"),         # Smooth lines in lower panels
+  upper = list(continuous = wrap("cor", method = "kendall"))  # Correlation in upper panels
+) +
+  scale_colour_manual(
+    values = c("Parasite" = alpha("red",0.7), "Host" =alpha("grey",0.7))  # Customize line and point colors
+  ) +
+  scale_fill_manual(
+    values = c("Parasite" = alpha("red",0.7), "Host" =alpha("grey",0.7)) # Customize fill colors
+  ) +
+  theme_minimal()  # Apply a minimal theme for better visuals
 
 
-# Perform PCAhttp://127.0.0.1:25125/graphics/3a69a903-5638-4b79-b36b-54fb268756f3.png
-pca_median <- Median_data[3:11]
-pc <- prcomp(pca_median, center = TRUE, scale. = TRUE)
+library(patchwork)
 
-# Print PCA results
-print(pc)
-summary(pc)
+# Create the correlation matrix for "Host"
+host_corr <- ggcorrmat(
+  data = subset(Median_data, parasitism == "Host"),
+  type = "np",
+  method = "kendall",
+  label = TRUE
+) +
+  scale_fill_viridis_c(option = "viridis", alpha = 0.8) +
+  labs(title = "Host")
 
-# Create the PCA biplot
-library(ggbiplot)
+# Create the correlation matrix for "Parasite"
+parasite_corr <- ggcorrmat(
+  data = subset(Median_data, parasitism == "Parasite"),
+  type = "np",
+  method = "kendall",
+  label = TRUE
+) +
+  scale_fill_viridis_c(option = "viridis", alpha = 0.8) +
+  labs(title = "Parasite") +
+  theme(legend.position = "none") +  # Remove the legend for the second plot
+  guides(fill = "none")             # Remove the color scale for the second plot
 
-p <- ggbiplot(pc, 
-              obs.scale = 1, 
-              var.scale = 1, 
-              groups = Median_data$parasitism, 
-              ellipse = TRUE, 
-              circle = TRUE, 
-              ellipse.prob = 0.68)
+# Combine the two plots
+combined_plot <- host_corr + parasite_corr + 
+  plot_annotation(title = "Kendall's Correlation Matrix")&
+  theme(plot.title = element_text(size = 20, hjust = 0.5))  
 
-# Add point labels (names) from Median_data$ssp
-p <- p + 
-  geom_text(aes(label = Median_data$ssp), 
-            vjust = -0.5, 
-            hjust = 0.5, 
-            size = 3, 
-            color = "black")
+# Display the combined plot
+print(combined_plot)
 
-# Customize and display the plot
-p <- p + 
-  theme_minimal() + 
-  ggtitle("PCA Biplot with Point Labels") +
-  theme(legend.position = "right")
 
-print(p)
 

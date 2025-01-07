@@ -8,9 +8,9 @@
 
 # Package names
 packages <- c(
-  "tidyverse", "here", "plotly", "data.table","sjPlot",
-  "groundhog", "car", "htmlwidgets","DHARMa","emmeans",
-  "lattice", "lme4", "nlme", "predictmeans", "performance", "report"
+  "tidyverse", "here", "plotly", "data.table","sjPlot","GGally","ggstatsplot",
+  "groundhog", "car", "htmlwidgets","DHARMa","emmeans","devtools","ggbiplot",
+  "lattice", "lme4", "nlme", "predictmeans", "performance"
 )
 
 # Install packages not yet installed

@@ -50,11 +50,12 @@ shuffle_means <- function(x, cols, cat) {
 
 relevel_factors <- function(dataframes) {
   for (df_name in dataframes) {
-    df <- get(df_name)  # Get the object by name
+    # Retrieve the data frame by its name
+    df <- get(df_name, envir = .GlobalEnv)
     
-    if (!is.data.frame(df)) next  # Skip non-data frames
+    if (!is.data.frame(df)) next  # Skip non-data frame objects
     
-    # Check for the 'ssp' or 'Grouping' column and reorder factors
+    # Relevel the 'ssp' column
     if ("ssp" %in% colnames(df)) {  
       df$ssp <- factor(df$ssp, levels = c(
         "Psittacanthus robustus", "Vochysia thyrsoidea",
@@ -63,22 +64,24 @@ relevel_factors <- function(dataframes) {
         "Viscum album", "Populus nigra"
       ))
     }
-    if ("Grouping" %in% colnames(df)){
+    
+    # Relevel the 'Grouping' column
+    if ("Grouping" %in% colnames(df)) {
       df$Grouping <- factor(df$Grouping, levels = c(
-        "Parasite","Host",
+        "Parasite", "Host",
         "Psittacanthus robustus", "Vochysia thyrsoidea",
         "Phoradendron perrotettii", "Tapirira guianensis",
         "Struthanthus rhynchophyllus", "Tipuana tipu",
         "Viscum album", "Populus nigra"
       ))
     }
-    # Check for 'parasitism' column and reorder factors
+    
+    # Relevel the 'parasitism' column
     if ("parasitism" %in% colnames(df)) {  
       df$parasitism <- factor(df$parasitism, levels = c("Parasite", "Host"))
     }
     
-    assign(df_name, df, envir = .GlobalEnv)  # Save the modified data frame
+    # Save the modified data frame back to the global environment
+    assign(df_name, df, envir = .GlobalEnv)
   }
 }
-
-
