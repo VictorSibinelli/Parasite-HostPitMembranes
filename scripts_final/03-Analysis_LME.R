@@ -6,6 +6,7 @@ library(tidyverse)
 library(here)
 library(nlme)
 #library(predictmeans)
+library(emmeans)
 library(performance)
 source(here("scripts","00-library.R"))
 
@@ -17,7 +18,7 @@ VesselDiameter_data<- read.csv(here("data", "processed", "VesselDiameter_data.cs
 Hydraulic_data<- read.csv(here("data", "processed", "HydraulicData.csv"))
 PitFraction_data<- read.csv(here("data", "processed", "PitFraction_data.csv"))
 PitDiOp_data<- read.csv(here("data", "processed", "PitDiOp_data.csv"))
-PitMembrane_data<- read.csv(here("data", "processed", "PitMembrane_data.csv"))
+
 source(here("scripts", "Functions.R"))
 
 
@@ -63,11 +64,11 @@ re <- as.numeric(VarCorr(Wall_full)[, "Variance"])
 
 
 # Calculate 95% Confidence Intervals using intervals() for the lme model
-conf_int <- intervals(Wall_full, level = 0.95)
+conf_int <- emmeans(Wall_full,~parasitism) %>% summary()
 
 # Extract the CI for the intercept (Parasite) and parasitismHost (Host)
-CI_Parasite <- conf_int$fixed[1, ]%>% round(digits = 2)  # CI for Parasite (Intercept)
-CI_Host <-(conf_int$fixed[2, ] + conf_int$fixed[1, ] )%>% round(digits = 2) # Adding Intercept to Host effect
+CI_Parasite <- c(conf_int$lower.CL[1],fixed_effects[1],conf_int$upper.CL[1]) %>% round(digits = 2)
+CI_Host <-c(conf_int$lower.CL[2],sum(fixed_effects),conf_int$upper.CL[2]) %>% round(digits = 2) # Adding Intercept to Host effect
 
 
 
@@ -136,11 +137,12 @@ for (pair in species_pairs) {
     variance_explained_by_RE <-re/sum(as.numeric(VarCorr(full_model)[,"Variance"]))
     
     # Calculate 95% Confidence Intervals using intervals() for the lme model
-    conf_int <- intervals(full_model, level = 0.95)
+    conf_int <- emmeans(full_model,~ssp) %>% summary()
     
     # Extract the CI for the intercept (Parasite) and parasitismHost (Host)
-    CI_Parasite <- conf_int$fixed[1, ]%>% round(digits = 2)  # CI for Parasite (Intercept)
-    CI_Host <-(conf_int$fixed[2, ] + conf_int$fixed[1, ] )%>% round(digits = 2) 
+    CI_Parasite <- c(conf_int$lower.CL[1],fixed_effects[1],conf_int$upper.CL[1]) %>% round(digits = 2)
+    CI_Host <-c(conf_int$lower.CL[2],sum(fixed_effects),conf_int$upper.CL[2]) %>% round(digits = 2) # Adding Intercept to Host effect
+    
     # Perform likelihood ratio test for the pair
     lrt <- anova(reduced_model,full_model)
     delta_aic <- diff(lrt$AIC)
@@ -171,7 +173,7 @@ for (pair in species_pairs) {
 }
 
 
-
+print(VWall_AIC)
 
 
 
@@ -193,7 +195,7 @@ VDiameter_AIC <- data.frame(
 
 # Fit global models
 VesselDiameter_full <- lme(
-  VesselDiameter ~ parasitism,       # Fixed effects
+  log(VesselDiameter) ~ parasitism,       # Fixed effects
   random = ~ 1 | ssp / indiv,       # Random effects
   data = VesselDiameter_data,                 # Data frame
   method = "ML",
@@ -202,7 +204,7 @@ VesselDiameter_full <- lme(
 )
 
 VesselDiameter_null <- lme(
-  VesselDiameter ~ 1,       # Fixed effects
+  log(VesselDiameter) ~ 1,       # Fixed effects
   random = ~ 1 | ssp / indiv,       # Random effects
   data = VesselDiameter_data,                 # Data frame
   method = "ML",
@@ -216,12 +218,11 @@ re <- as.numeric(VarCorr(VesselDiameter_full)[, "Variance"])
 variance_explained_by_RE <- (re[2] + re[4]) / (re[5] + re[2] + re[4])
 
 # Calculate 95% Confidence Intervals using intervals() for the lme model
-conf_int <- intervals(VesselDiameter_full, level = 0.95)
+conf_int <- emmeans(VesselDiameter_full,~parasitism) %>% summary()
 
 # Extract the CI for the intercept (Parasite) and parasitismHost (Host)
-CI_Parasite <- conf_int$fixed[1, ]%>% round(digits = 2)  # CI for Parasite (Intercept)
-CI_Host <-(conf_int$fixed[2, ] + conf_int$fixed[1, ] )%>% round(digits = 2) # Adding Intercept to Host effect
-# Variance explained by random effects
+CI_Parasite <- c(conf_int$lower.CL[1],fixed_effects[1],conf_int$upper.CL[1]) %>% round(digits = 2)
+CI_Host <-c(conf_int$lower.CL[2],sum(fixed_effects),conf_int$upper.CL[2]) %>% round(digits = 2) # Adding Intercept to Host effect
 
 
 # Perform likelihood ratio test (LRT)
@@ -229,11 +230,11 @@ lrt <- anova(VesselDiameter_null,VesselDiameter_full)
 delta_aic <- diff(lrt$AIC)
 pv <- na.omit(lrt$`p-value`)
 
-# residplot(VesselDiameter_full,newwd = F)
-# title(sub = "VDiameter PxH")
-# check_model(VesselDiameter_full,show_dots = F)
-# CookD(VesselDiameter_full, idn = 20,newwd = F)
-# abline(h=4/nrow(VesselDiameter_data),col="red")
+residplot(VesselDiameter_full,newwd = F)
+title(sub = "VDiameter PxH")
+check_model(VesselDiameter_full,show_dots = F)
+CookD(VesselDiameter_full, idn = 20,newwd = F)
+abline(h=4/nrow(VesselDiameter_data),col="red")
 
 
 VDiameter_AIC <- rbind(VDiameter_AIC, data.frame(
@@ -249,7 +250,6 @@ VDiameter_AIC <- rbind(VDiameter_AIC, data.frame(
 
 
 
-VesselDiameter_data[2036,"VesselDiameter"] <-rev(sort(VesselDiameter_data$VesselDiameter[VesselDiameter_data$indiv=="Vochysia thyrsoidea 3"]))[2]
 
 
 for (pair in species_pairs) {
@@ -257,7 +257,7 @@ for (pair in species_pairs) {
   tryCatch({
     # Fit models
     full_model <- lme(
-      VesselDiameter ~ ssp,
+      log(VesselDiameter) ~ ssp,
       random = ~ 1 | indiv,
       data = subset_data,
       control = list(maxIter = 150, msMaxIter = 150),
@@ -266,7 +266,7 @@ for (pair in species_pairs) {
     )
     
     reduced_model <- lme(
-      VesselDiameter ~ 1,
+      log(VesselDiameter) ~ 1,
       random = ~ 1 | indiv,
       data = subset_data,
       control = list(maxIter = 150, msMaxIter = 150),
@@ -287,11 +287,12 @@ for (pair in species_pairs) {
     re <- VarCorr(full_model)[1,"Variance"] %>% as.numeric()
     residuals <- VarCorr(full_model)[2,"Variance"] %>% as.numeric()
     variance_explained_by_RE <-re/sum(as.numeric(VarCorr(full_model)[,"Variance"]))
-    conf_int <- intervals(full_model, level = 0.95)
+    conf_int <- emmeans(full_model,~ssp) %>% summary()
     
     # Extract the CI for the intercept (Parasite) and parasitismHost (Host)
-    CI_Parasite <- conf_int$fixed[1, ]%>% round(digits = 2)  # CI for Parasite (Intercept)
-    CI_Host <-(conf_int$fixed[2, ] + conf_int$fixed[1, ] )%>% round(digits = 2)
+    CI_Parasite <- c(conf_int$lower.CL[1],fixed_effects[1],conf_int$upper.CL[1]) %>% round(digits = 2)
+    CI_Host <-c(conf_int$lower.CL[2],sum(fixed_effects),conf_int$upper.CL[2]) %>% round(digits = 2) # Adding Intercept to Host effect
+    
     # Likelihood ratio test
     lrt <- anova(reduced_model, full_model)
     delta_aic <- diff(lrt$AIC)
@@ -320,7 +321,7 @@ for (pair in species_pairs) {
  
 
 
-##very big model assumptions deviations
+
 ###############################################
 ################################################
 
@@ -362,11 +363,11 @@ fixed_effects <- round(fixed.effects(Hydraulic_full), digits = 2)
 re <- as.numeric(VarCorr(Hydraulic_full)[, "Variance"])
 variance_explained_by_RE <- (re[2] + re[4]) / (re[5] + re[2] + re[4])
 
-conf_int <- intervals(Hydraulic_full, level = 0.95)
+conf_int <- emmeans(Hydraulic_full,~parasitism) %>% summary()
 
 # Extract the CI for the intercept (Parasite) and parasitismHost (Host)
-CI_Parasite <- conf_int$fixed[1, ]%>% round(digits = 2)  # CI for Parasite (Intercept)
-CI_Host <-(conf_int$fixed[2, ] + conf_int$fixed[1, ] )%>% round(digits = 2) # Adding Intercept to Host effect
+CI_Parasite <- c(conf_int$lower.CL[1],fixed_effects[1],conf_int$upper.CL[1]) %>% round(digits = 2)
+CI_Host <-c(conf_int$lower.CL[2],sum(fixed_effects),conf_int$upper.CL[2]) %>% round(digits = 2) # Adding Intercept to Host effect
 
 # Perform likelihood ratio test (LRT)
 lrt <- anova(Hydraulic_null,Hydraulic_full)
@@ -419,13 +420,12 @@ for (pair in species_pairs) {
     re <- VarCorr(full_model)[1,"Variance"] %>% as.numeric()
 
     variance_explained_by_RE <-re/sum(as.numeric(VarCorr(full_model)[,"Variance"]))
-    conf_int <- intervals(full_model, level = 0.95)
+    conf_int <- emmeans(full_model,~ssp) %>% summary()
     
     # Extract the CI for the intercept (Parasite) and parasitismHost (Host)
-    CI_Parasite <- conf_int$fixed[1, ]%>% round(digits = 2)  # CI for Parasite (Intercept)
-    CI_Host <-(conf_int$fixed[2, ] + conf_int$fixed[1, ] )%>% round(digits = 2)
-    # Likelihood ratio test
-
+    CI_Parasite <- c(conf_int$lower.CL[1],fixed_effects[1],conf_int$upper.CL[1]) %>% round(digits = 2)
+    CI_Host <-c(conf_int$lower.CL[2],sum(fixed_effects),conf_int$upper.CL[2]) %>% round(digits = 2) # Adding Intercept to Host effect
+    
     # Perform likelihood ratio test for the pair
     lrt <- anova(reduced_model, full_model)
     delta_aic <- diff(lrt$AIC)
@@ -658,11 +658,11 @@ VFraction_null <- lme(
 # Extract fixed effects, random effects variance, and residuals
 fixed_effects <- round(fixed.effects(VFraction_full), digits = 2)
 re <- as.numeric(VarCorr(VFraction_full)[, "Variance"])
-conf_int <- intervals(VFraction_full, level = 0.95)
+conf_int <- emmeans(VFraction_full,~parasitism) %>% summary()
 
 # Extract the CI for the intercept (Parasite) and parasitismHost (Host)
-CI_Parasite <- conf_int$fixed[1, ]%>% round(digits = 2)  # CI for Parasite (Intercept)
-CI_Host <-(conf_int$fixed[2, ] + conf_int$fixed[1, ] )%>% round(digits = 2)
+CI_Parasite <- c(conf_int$lower.CL[1],fixed_effects[1],conf_int$upper.CL[1]) %>% round(digits = 2)
+CI_Host <-c(conf_int$lower.CL[2],sum(fixed_effects),conf_int$upper.CL[2]) %>% round(digits = 2) # Adding Intercept to Host effect
 
 # Variance explained by random effects
 variance_explained_by_RE <- (re[2] + re[4]) / (re[5] + re[2] + re[4])
@@ -689,7 +689,7 @@ VFraction_AIC <- rbind(VFraction_AIC, data.frame(
   p_value = pv,
   stringsAsFactors = FALSE
 ))
-Hydraulic_data[c(232,236,237,238,239,240,127,132,135),c(3,6)]
+
 Hydraulic_data[84,"VesselFraction"] <-
   rev(sort(Hydraulic_data$VesselFraction[Hydraulic_data$indiv=="Psittacanthus robustus 2"]))[2]
 Hydraulic_data[222,"VesselFraction"] <- 
@@ -739,13 +739,12 @@ for (pair in species_pairs) {
 
     variance_explained_by_RE <-re/sum(as.numeric(VarCorr(full_model)[,"Variance"]))
     
-    conf_int <- intervals(full_model, level = 0.95)
+    conf_int <- emmeans(full_model,~ssp) %>% summary()
     
     # Extract the CI for the intercept (Parasite) and parasitismHost (Host)
-    CI_Parasite <- conf_int$fixed[1, ]%>% round(digits = 2)  # CI for Parasite (Intercept)
-    CI_Host <-(conf_int$fixed[2, ] + conf_int$fixed[1, ] )%>% round(digits = 2)
-    # Likelihood ratio test
-
+    CI_Parasite <- c(conf_int$lower.CL[1],fixed_effects[1],conf_int$upper.CL[1]) %>% round(digits = 2)
+    CI_Host <-c(conf_int$lower.CL[2],sum(fixed_effects),conf_int$upper.CL[2]) %>% round(digits = 2) # Adding Intercept to Host effect
+    
     
     residplot(full_model,newwd = F)
     title(sub = paste0(pair,collapse = " x "))
@@ -790,7 +789,7 @@ Kmax_AIC <- data.frame(
 
 # Fit global models
 Kmax_full <- lme(
-  Kmax ~ parasitism,       # Fixed effects
+  log(Kmax) ~ parasitism,       # Fixed effects
   random = ~ 1 | ssp / indiv,       # Random effects
   data = Hydraulic_data,                 # Data frame
   method = "ML",
@@ -799,7 +798,7 @@ Kmax_full <- lme(
 )
 
 Kmax_null <- lme(
-  Kmax ~ 1,       # Fixed effects
+ log(Kmax) ~ 1,       # Fixed effects
   random = ~ 1 | ssp / indiv,       # Random effects
   data = Hydraulic_data,                 # Data frame
   method = "ML",
@@ -812,9 +811,11 @@ fixed_effects <- round(fixed.effects(Kmax_full), digits = 2)
 re <- as.numeric(VarCorr(Kmax_full)[, "Variance"])
 residuals <- round(residuals(Kmax_full), digits = 2)
 
-# Calculate CoV for parasitism groups
-CoV_parasite <- round(sd(residuals[Hydraulic_data$parasitism == "Parasite"]) / fixed_effects[1], digits = 2)
-CoV_host <- round(sd(residuals[Hydraulic_data$parasitism == "Host"]) / sum(fixed_effects), digits = 2)
+conf_int <- emmeans(Kmax_full,~parasitism) %>% summary()
+
+# Extract the CI for the intercept (Parasite) and parasitismHost (Host)
+CI_Parasite <- c(conf_int$lower.CL[1],fixed_effects[1],conf_int$upper.CL[1]) %>% round(digits = 2)
+CI_Host <-c(conf_int$lower.CL[2],sum(fixed_effects),conf_int$upper.CL[2]) %>% round(digits = 2) # Adding Intercept to Host effect
 
 # Variance explained by random effects
 variance_explained_by_RE <- (re[2] + re[4]) / (re[5] + re[2] + re[4])
@@ -847,7 +848,7 @@ for (pair in species_pairs) {
   tryCatch({
     # Fit models for the species pair
     full_model <- lme(
-      Kmax ~ ssp,           # Fixed effects
+      log(Kmax) ~ ssp,           # Fixed effects
       random = ~ 1 |indiv,    # Random effects
       data = subset_data,            # Subset data
       control = list(maxIter = 150, msMaxIter = 150),
@@ -856,7 +857,7 @@ for (pair in species_pairs) {
     )
     
     reduced_model <- lme(
-      Kmax ~ 1,             # Fixed effects
+      log(Kmax) ~ 1,             # Fixed effects
       random = ~ 1 | indiv,    # Random effects
       data = subset_data,
       control = list(maxIter = 150, msMaxIter = 150),
@@ -874,11 +875,12 @@ for (pair in species_pairs) {
     re <- VarCorr(full_model)[1,"Variance"] %>% as.numeric()
 
     variance_explained_by_RE <-re/sum(as.numeric(VarCorr(full_model)[,"Variance"]))
-    conf_int <- intervals(full_model, level = 0.95)
+    conf_int <- emmeans(full_model,~ssp) %>% summary()
     
     # Extract the CI for the intercept (Parasite) and parasitismHost (Host)
-    CI_Parasite <- conf_int$fixed[1, ]%>% round(digits = 2)  # CI for Parasite (Intercept)
-    CI_Host <-(conf_int$fixed[2, ] + conf_int$fixed[1, ] )%>% round(digits = 2)
+    CI_Parasite <- c(conf_int$lower.CL[1],fixed_effects[1],conf_int$upper.CL[1]) %>% round(digits = 2)
+    CI_Host <-c(conf_int$lower.CL[2],sum(fixed_effects),conf_int$upper.CL[2]) %>% round(digits = 2) # Adding Intercept to Host effect
+    
     # Likelihood ratio test
     
     
@@ -920,12 +922,14 @@ PitDiameter_AIC <- data.frame(
   REVariance = numeric(), RelDiff = numeric(), DeltaAIC = numeric(),
   p_value = numeric(), stringsAsFactors = FALSE
 )
+PitDiOp_data[59,]
+
 
 # Fit global models
 PitDiameter_full <- lme(
   PitDiameter ~ parasitism,       # Fixed effects
   random = ~ 1 | ssp / indiv,       # Random effects
-  data = Hydraulic_data,                 # Data frame
+  data = PitDiOp_data %>% na.omit(),                 # Data frame
   method = "ML",
   control = list(maxIter = 150, msMaxIter = 150),
   weights = varIdent(form = ~ 1 | ssp)
@@ -934,7 +938,7 @@ PitDiameter_full <- lme(
 PitDiameter_null <- lme(
   PitDiameter ~ 1,       # Fixed effects
   random = ~ 1 | ssp / indiv,       # Random effects
-  data = Hydraulic_data,                 # Data frame
+  data = PitDiOp_data %>% na.omit,                 # Data frame
   method = "ML",
   control = list(maxIter = 150, msMaxIter = 150),
   weights = varIdent(form = ~ 1 | ssp)
@@ -943,11 +947,11 @@ PitDiameter_null <- lme(
 # Extract fixed effects, random effects variance, and residuals
 fixed_effects <- round(fixed.effects(PitDiameter_full), digits = 2)
 re <- as.numeric(VarCorr(PitDiameter_full)[, "Variance"])
-residuals <- round(residuals(PitDiameter_full), digits = 2)
+conf_int <- emmeans(PitDiameter_full,~parasitism) %>% summary()
 
-# Calculate CoV for parasitism groups
-CoV_parasite <- round(sd(residuals[Hydraulic_data$parasitism == "Parasite"]) / fixed_effects[1], digits = 2)
-CoV_host <- round(sd(residuals[Hydraulic_data$parasitism == "Host"]) / sum(fixed_effects), digits = 2)
+# Extract the CI for the intercept (Parasite) and parasitismHost (Host)
+CI_Parasite <- c(conf_int$lower.CL[1],fixed_effects[1],conf_int$upper.CL[1]) %>% round(digits = 2)
+CI_Host <-c(conf_int$lower.CL[2],sum(fixed_effects),conf_int$upper.CL[2]) %>% round(digits = 2) # Adding Intercept to Host effect
 
 # Variance explained by random effects
 variance_explained_by_RE <- (re[2] + re[4]) / (re[5] + re[2] + re[4])
@@ -969,25 +973,33 @@ PitDiameter_AIC <- rbind(PitDiameter_AIC, data.frame(
   stringsAsFactors = FALSE
 ))
 
+residplot(PitDiameter_full,newwd = F)
+title(sub = paste0("Pit diam PxH",collapse = " x "))
+print(check_model(PitDiameter_full,show_dots = F))
+print(CookD(PitDiameter_full, idn = 20,newwd = F))
+abline(h=4/nrow(PitDiOp_data),col="red")
+title(sub=paste0(pair,collacpse=" x "))
+
 # Iterate through species pairs
 for (pair in species_pairs) {
-  subset_data <- subset(Hydraulic_data, ssp %in% pair)
+  subset_data <- subset(PitDiOp_data, ssp %in% pair)
   
   tryCatch({
     # Fit models for the species pair
     full_model <- lme(
       PitDiameter ~ ssp,           # Fixed effects
       random = ~ 1 | indiv,    # Random effects
-      data = subset_data,            # Subset data
+      data = subset_data %>% na.omit(),            # Subset data
       control = list(maxIter = 150, msMaxIter = 150),
       weights = varIdent(form = ~ 1 | ssp),
       method = "ML"
+     
     )
     
     reduced_model <- lme(
       PitDiameter ~ 1,             # Fixed effects
       random = ~ 1 |indiv,    # Random effects
-      data = subset_data,
+      data = subset_data %>% na.omit(),
       control = list(maxIter = 150, msMaxIter = 150),
       weights = varIdent(form = ~ 1 | ssp),
       method = "ML"
@@ -1005,11 +1017,12 @@ for (pair in species_pairs) {
     variance_explained_by_RE <-re/sum(as.numeric(VarCorr(full_model)[,"Variance"]))
     # Calculate CoV and other metrics
 
-    conf_int <- intervals(full_model, level = 0.95)
+    conf_int <- emmeans(full_model,~ssp) %>% summary()
     
     # Extract the CI for the intercept (Parasite) and parasitismHost (Host)
-    CI_Parasite <- conf_int$fixed[1, ]%>% round(digits = 2)  # CI for Parasite (Intercept)
-    CI_Host <-(conf_int$fixed[2, ] + conf_int$fixed[1, ] )%>% round(digits = 2)
+    CI_Parasite <- c(conf_int$lower.CL[1],fixed_effects[1],conf_int$upper.CL[1]) %>% round(digits = 2)
+    CI_Host <-c(conf_int$lower.CL[2],sum(fixed_effects),conf_int$upper.CL[2]) %>% round(digits = 2) # Adding Intercept to Host effect
+    
     # Likelihood ratio test
     residplot(full_model,newwd = F)
     title(sub = paste0(pair,collapse = " x "))
@@ -1052,7 +1065,7 @@ PitOpening_AIC <- data.frame(
 PitOpening_full <- lme(
   PitOpening ~ parasitism,       # Fixed effects
   random = ~ 1 | ssp / indiv,       # Random effects
-  data = Hydraulic_data,                 # Data frame
+  data =PitDiOp_data %>% na.omit(),                 # Data frame
   method = "ML",
   control = list(maxIter = 150, msMaxIter = 150),
   weights = varIdent(form = ~ 1 | ssp)
@@ -1061,7 +1074,7 @@ PitOpening_full <- lme(
 PitOpening_null <- lme(
   PitOpening ~ 1,       # Fixed effects
   random = ~ 1 | ssp / indiv,       # Random effects
-  data = Hydraulic_data,                 # Data frame
+  data = PitDiOp_data %>% na.omit(),                 # Data frame
   method = "ML",
   control = list(maxIter = 150, msMaxIter = 150),
   weights = varIdent(form = ~ 1 | ssp)
@@ -1071,10 +1084,11 @@ PitOpening_null <- lme(
 fixed_effects <- round(fixed.effects(PitOpening_full), digits = 2)
 re <- as.numeric(VarCorr(PitOpening_full)[, "Variance"])
 residuals <- round(residuals(PitOpening_full), digits = 2)
+conf_int <- emmeans(PitOpening_full,~parasitism) %>% summary()
 
-# Calculate CoV for parasitism groups
-CoV_parasite <- round(sd(residuals[Hydraulic_data$parasitism == "Parasite"]) / fixed_effects[1], digits = 2)
-CoV_host <- round(sd(residuals[Hydraulic_data$parasitism == "Host"]) / sum(fixed_effects), digits = 2)
+# Extract the CI for the intercept (Parasite) and parasitismHost (Host)
+CI_Parasite <- c(conf_int$lower.CL[1],fixed_effects[1],conf_int$upper.CL[1]) %>% round(digits = 2)
+CI_Host <-c(conf_int$lower.CL[2],sum(fixed_effects),conf_int$upper.CL[2]) %>% round(digits = 2) # Adding Intercept to Host effect
 
 # Variance explained by random effects
 variance_explained_by_RE <- (re[2] + re[4]) / (re[5] + re[2] + re[4])
@@ -1098,14 +1112,14 @@ PitOpening_AIC <- rbind(PitOpening_AIC, data.frame(
 
 # Iterate through species pairs
 for (pair in species_pairs) {
-  subset_data <- subset(Hydraulic_data, ssp %in% pair)
+  subset_data <- subset(PitDiOp_data, ssp %in% pair)
   
   tryCatch({
     # Fit models for the species pair
     full_model <- lme(
       PitOpening ~ ssp,           # Fixed effects
       random = ~ 1 | indiv,    # Random effects
-      data = subset_data,            # Subset data
+      data = subset_data %>% na.omit,            # Subset data
       control = list(maxIter = 150, msMaxIter = 150),
       weights = varIdent(form = ~ 1 | ssp),
       method = "ML"
@@ -1114,7 +1128,7 @@ for (pair in species_pairs) {
     reduced_model <- lme(
       PitOpening ~ 1,             # Fixed effects
       random = ~ 1 | indiv,    # Random effects
-      data = subset_data,
+      data = subset_data %>% na.omit(),
       control = list(maxIter = 150, msMaxIter = 150),
       weights = varIdent(form = ~ 1 | ssp),
       method = "ML"
@@ -1128,11 +1142,12 @@ for (pair in species_pairs) {
     # Extract fixed effects, variance, and residuals
     fixed_effects <- round(fixed.effects(full_model), digits = 2)
     re <- VarCorr(full_model)[1,"Variance"] %>% as.numeric()
-    conf_int <- intervals(full_model, level = 0.95)
+    conf_int <- emmeans(full_model,~ssp) %>% summary()
     
     # Extract the CI for the intercept (Parasite) and parasitismHost (Host)
-    CI_Parasite <- conf_int$fixed[1, ]%>% round(digits = 2)  # CI for Parasite (Intercept)
-    CI_Host <-(conf_int$fixed[2, ] + conf_int$fixed[1, ] )%>% round(digits = 2)
+    CI_Parasite <- c(conf_int$lower.CL[1],fixed_effects[1],conf_int$upper.CL[1]) %>% round(digits = 2)
+    CI_Host <-c(conf_int$lower.CL[2],sum(fixed_effects),conf_int$upper.CL[2]) %>% round(digits = 2) # Adding Intercept to Host effect
+    
     # Likelihood ratio test
     variance_explained_by_RE <-re/sum(as.numeric(VarCorr(full_model)[,"Variance"]))
 
@@ -1199,10 +1214,11 @@ fixed_effects <- round(fixed.effects(PitFraction_full), digits = 2)
 re <- VarCorr(full_model)[1,"Variance"] %>% as.numeric()
 residuals <- VarCorr(full_model)[2,"Variance"] %>% as.numeric()
 variance_explained_by_RE <-re/sum(as.numeric(VarCorr(full_model)[,"Variance"]))variance_explained_by_RE <-re/sum(as.numeric(VarCorr(full_model)[,"Variance"]))
+conf_int <- emmeans(PitFraction_full,~parasitism) %>% summary()
 
-# Calculate CoV for parasitism groups
-CoV_parasite <- round(sd(residuals[Hydraulic_data$parasitism == "Parasite"]) / fixed_effects[1], digits = 2)
-CoV_host <- round(sd(residuals[Hydraulic_data$parasitism == "Host"]) / sum(fixed_effects), digits = 2)
+# Extract the CI for the intercept (Parasite) and parasitismHost (Host)
+CI_Parasite <- c(conf_int$lower.CL[1],fixed_effects[1],conf_int$upper.CL[1]) %>% round(digits = 2)
+CI_Host <-c(conf_int$lower.CL[2],sum(fixed_effects),conf_int$upper.CL[2]) %>% round(digits = 2) # Adding Intercept to Host effect
 
 # Variance explained by random effects
 variance_explained_by_RE <- (re[2] + re[4]) / (re[5] + re[2] + re[4])
@@ -1258,13 +1274,11 @@ for (pair in species_pairs) {
     re <- VarCorr(full_model)[1,"Variance"] %>% as.numeric()
   
     variance_explained_by_RE <-re/sum(as.numeric(VarCorr(full_model)[,"Variance"]))
-    
-    conf_int <- intervals(full_model, level = 0.95)
+    conf_int <- emmeans(full_model,~ssp) %>% summary()
     
     # Extract the CI for the intercept (Parasite) and parasitismHost (Host)
-    CI_Parasite <- conf_int$fixed[1, ]%>% round(digits = 2)  # CI for Parasite (Intercept)
-    CI_Host <-(conf_int$fixed[2, ] + conf_int$fixed[1, ] )%>% round(digits = 2)
-    # Likelihood ratio test
+    CI_Parasite <- c(conf_int$lower.CL[1],fixed_effects[1],conf_int$upper.CL[1]) %>% round(digits = 2)
+    CI_Host <-c(conf_int$lower.CL[2],sum(fixed_effects),conf_int$upper.CL[2]) %>% round(digits = 2) # Adding Intercept to Host effect
     
     
     residplot(full_model,newwd = F)

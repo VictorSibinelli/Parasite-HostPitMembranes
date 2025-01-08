@@ -7,14 +7,15 @@ library(ggbiplot)
 library(here)
 Median_data<- read.csv(here("data", "processed", "Median_data.csv"))
 head(Median_data)
-
+var_names <- c("Dpo","Dpit","Tvw","D","Fpit","Dh","VD","Fv","Kmax")
+colnames(Median_data)[3:11] <- var_names
 # Create the ggpairs plot
 ggpairs(
   Median_data,
   columns = 3:11,
   aes(colour = parasitism, fill = parasitism),  # Map both colour and fill to parasitism
   lower = list(continuous = "smooth"),         # Smooth lines in lower panels
-  upper = list(continuous = wrap("cor", method = "kendall"))  # Correlation in upper panels
+  upper = list(continuous = wrap("cor", method = "spearman"))  # Correlation in upper panels
 ) +
   scale_colour_manual(
     values = c("Parasite" = alpha("red",0.7), "Host" =alpha("grey",0.7))  # Customize line and point colors
@@ -31,7 +32,7 @@ library(patchwork)
 host_corr <- ggcorrmat(
   data = subset(Median_data, parasitism == "Host"),
   type = "np",
-  method = "kendall",
+  method = "spearman",
   label = TRUE
 ) +
   scale_fill_viridis_c(option = "viridis", alpha = 0.8) +
@@ -41,7 +42,7 @@ host_corr <- ggcorrmat(
 parasite_corr <- ggcorrmat(
   data = subset(Median_data, parasitism == "Parasite"),
   type = "np",
-  method = "kendall",
+  method = "spearman",
   label = TRUE
 ) +
   scale_fill_viridis_c(option = "viridis", alpha = 0.8) +
@@ -51,7 +52,7 @@ parasite_corr <- ggcorrmat(
 
 # Combine the two plots
 combined_plot <- host_corr + parasite_corr + 
-  plot_annotation(title = "Kendall's Correlation Matrix")&
+  plot_annotation(title = "spearman's Correlation Matrix")&
   theme(plot.title = element_text(size = 20, hjust = 0.5))  
 
 # Display the combined plot
