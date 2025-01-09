@@ -41,7 +41,7 @@ parasite <- group_stats[group_stats$Group == "Parasite", ]
 host <- group_stats[group_stats$Group == "Host", ]
 
 # Calculate Relative Difference
-relative_diff <- (host$mean - parasite$mean) / parasite$mean
+relative_diff <- -100*(host$mean - parasite$mean) / parasite$mean
 
 # Format the Parasite and Host columns
 parasite_formatted <- paste0(round(parasite$ci_lower, 2), " - ", round(parasite$mean, 2), " - ", round(parasite$ci_upper, 2))
@@ -85,7 +85,7 @@ for (pair in species_pairs) {
   group2 <- res[2, ]
   
   # Calculate Relative Difference
-  relative_diff <- (group2$mean - group1$mean) / group1$mean
+  relative_diff <- -100*(group2$mean - group1$mean) / group1$mean
   print(-(group2$mean - group1$mean))
   # Format the columns
   group1_formatted <- paste0(round(group1$ci_lower, 2), " - ", round(group1$mean, 2), " - ", round(group1$ci_upper, 2))
@@ -135,7 +135,7 @@ parasite <- group_stats[group_stats$Group == "Parasite", ]
 host <- group_stats[group_stats$Group == "Host", ]
 
 # Calculate Relative Difference
-relative_diff <- (host$mean - parasite$mean) / parasite$mean
+relative_diff <- -100*(host$mean - parasite$mean) / parasite$mean
 
 # Format the Parasite and Host columns
 parasite_formatted <- paste0(round(parasite$ci_lower, 2), " - ", round(parasite$mean, 2), " - ", round(parasite$ci_upper, 2))
@@ -178,7 +178,7 @@ for (pair in species_pairs) {
   group2 <- res[2, ]
   
   # Calculate Relative Difference
-  relative_diff <- (group2$mean - group1$mean) / group1$mean
+  relative_diff <- -100*(group2$mean - group1$mean) / group1$mean
   print(-(group2$mean - group1$mean))
   # Format the columns
   group1_formatted <- paste0(round(group1$ci_lower, 2), " - ", round(group1$mean, 2), " - ", round(group1$ci_upper, 2))
@@ -199,3 +199,4 @@ for (pair in species_pairs) {
 
 # Print the results table
 print(Tpm_results)
+

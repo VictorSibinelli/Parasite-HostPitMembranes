@@ -160,11 +160,14 @@ SrTt_median_pvalues <- sapply(Var, function(v) {
   abline(v =data[1], col = "red", lwd = 2)
   abline(v = quantile(data, c(0.025, 0.975)), col =  "black", lwd = 2)
   bootp <- sum(abs(data)>=abs(data[1]))/length(data)
+  print(sum(abs(data)>=abs(data[1])))
+  print(length(data))
   text(x = mean(data), y = max(density(data)$y) * 0.9, labels = paste("p =", round(bootp, 3)))
   bootp
 })
-
-mean_effect <- Mean_obs_diff/Obs_means[Obs_means$Group == "Struthanthus rhynchophyllus", ][-1]
+sum(median_boot<(-283))
+7216+7342
+14558/150000
 median_effect <- Median_obs_diff/Obs_medians[Obs_medians$Group == "Struthanthus rhynchophyllus", ][-1]
 # Add a column with row names and convert to a tibble
 SrxTt_results <- rbind(
