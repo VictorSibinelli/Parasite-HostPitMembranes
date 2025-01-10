@@ -228,7 +228,7 @@ CI_Host <-c(conf_int$lower.CL[2],sum(fixed_effects),conf_int$upper.CL[2]) %>% ro
 # Perform likelihood ratio test (LRT)
 lrt <- anova(VesselDiameter_null,VesselDiameter_full)
 delta_aic <- diff(lrt$AIC)
-pv <- na.omit(lrt$`p-value`)
+pv <- na.omit(lrt$`p-value`) %>% round(digits = 3)
 
 residplot(VesselDiameter_full,newwd = F)
 title(sub = "VDiameter PxH")
@@ -296,7 +296,7 @@ for (pair in species_pairs) {
     # Likelihood ratio test
     lrt <- anova(reduced_model, full_model)
     delta_aic <- diff(lrt$AIC)
-    pv <- na.omit(lrt$`p-value`)
+    pv <- na.omit(lrt$`p-value`) %>% round(digits = 3)
     
     # Log progress
     cat("\nCompleted pair:", paste(pair, collapse = " vs "), "\n")
@@ -781,88 +781,107 @@ for (pair in species_pairs) {
 
 #######################################
 #Kmax
+# Fit the model using glmmTMB
+
 Kmax_AIC <- data.frame(
   PairTested = character(), ParasiteMean = numeric(), HostMean = numeric(),
   REVariance = numeric(), RelDiff = numeric(), DeltaAIC = numeric(),
   p_value = numeric(), stringsAsFactors = FALSE
 )
-
-# Fit global models
-Kmax_full <- lme(
-  log(Kmax) ~ parasitism,       # Fixed effects
-  random = ~ 1 | ssp / indiv,       # Random effects
-  data = Hydraulic_data,                 # Data frame
-  method = "ML",
-  control = list(maxIter = 150, msMaxIter = 150),
-  weights = varIdent(form = ~ 1 | ssp)
+Kmax_full <- glmmTMB(
+  Kmax ~ parasitism + (1 | ssp/indiv), # Fixed and random effects
+  data = Hydraulic_data,              # Data frame
+  family = gaussian(link = "log"),    # Use a log link for the response
+  control = glmmTMBControl(
+    optCtrl = list(iter.max = 300, eval.max = 300) # Max iterations for fitting
+  ),
+  dispformula = ~ ssp                  # Variance structure for dispersion
 )
 
-Kmax_null <- lme(
- log(Kmax) ~ 1,       # Fixed effects
-  random = ~ 1 | ssp / indiv,       # Random effects
-  data = Hydraulic_data,                 # Data frame
-  method = "ML",
-  control = list(maxIter = 150, msMaxIter = 150),
-  weights = varIdent(form = ~ 1 | ssp)
+Kmax_null <- glmmTMB(
+  Kmax ~ 1 + (1 | ssp/indiv), # Fixed and random effects
+  data = Hydraulic_data,              # Data frame
+  family = gaussian(link = "log"),    # Use a log link for the response
+  control = glmmTMBControl(
+    optCtrl = list(iter.max = 300, eval.max = 300) # Max iterations for fitting
+  ),
+  dispformula = ~ ssp                  # Variance structure for dispersion
 )
+
+
 
 # Extract fixed effects, random effects variance, and residuals
-fixed_effects <- round(fixed.effects(Kmax_full), digits = 2)
-re <- as.numeric(VarCorr(Kmax_full)[, "Variance"])
-residuals <- round(residuals(Kmax_full), digits = 2)
 
-conf_int <- emmeans(Kmax_full,~parasitism) %>% summary()
+fixed_effects <- fixef(Kmax_full)
+fixed_effects$cond
+# Extract variance components
+var_components <- VarCorr(Kmax_full) 
+
+re <- var_components$cond %>% as.data.frame() %>% sum()
+residual_variance <- var(exp(residuals(Kmax_full, type = "pearson")), na.rm = TRUE)
+
+total_variance <- re + residual_variance
+variance_explained_by_RE <-re/total_variance 
+
+# Extract confidence intervals for fixed effects only
+ci_fixed <- confint(Kmax_full, parm = "beta_")
+ci_fixed <- ci_fixed[grep("^cond", rownames(ci_fixed)), ]
+# View the fixed effects confidence intervals
+print(ci_fixed)
 
 # Extract the CI for the intercept (Parasite) and parasitismHost (Host)
-CI_Parasite <- c(conf_int$lower.CL[1],fixed_effects[1],conf_int$upper.CL[1]) %>% round(digits = 2)
-CI_Host <-c(conf_int$lower.CL[2],sum(fixed_effects),conf_int$upper.CL[2]) %>% round(digits = 2) # Adding Intercept to Host effect
+CI_Parasite <- ci_fixed[1,] %>% exp()%>% round(digits = 2)  # CI for PaDevasite (Intercept)
+CI_Host <-(ci_fixed[2, ] + ci_fixed[1, ] )%>% exp() %>% round(digits = 2)
 
+CI_Parasite <- c(CI_Parasite[1], CI_Parasite[3], CI_Parasite[2])
+CI_Host <- c(CI_Host[1], CI_Host[3], CI_Host[2])
 # Variance explained by random effects
-variance_explained_by_RE <- (re[2] + re[4]) / (re[5] + re[2] + re[4])
+
 
 # Perform likelihood ratio test (LRT)
 lrt <- anova(Kmax_null,Kmax_full)
 delta_aic <- diff(lrt$AIC)
-pv <- na.omit(lrt$`p-value`)
+pv <- na.omit(lrt$`Pr(>Chisq)`)
+residplot(Kmax_full,newwd = F)
+check_model(Kmax_full,show_dots = F)
 
-# Append global model results
+simulateResiduals(fittedModel = Kmax_full) %>% plot() %>% print()
 Kmax_AIC <- rbind(Kmax_AIC, data.frame(
   PairTested = paste(levels(Hydraulic_data$parasitism %>% as.factor()), collapse = " vs "),
   ParasiteMean = paste0(CI_Parasite,collapse = "-"),
   HostMean = paste0(CI_Host,collapse = "-"),
   REVariance = variance_explained_by_RE * 100,
-  RelDiff = fixed_effects[2] / fixed_effects[1],
+  RelDiff = exp(fixed_effects$cond[2]) / exp(fixed_effects$cond[1]),
   DeltaAIC = delta_aic,
   p_value = pv,
   stringsAsFactors = FALSE
 ))
-residplot(VFraction_full,newwd = F)
-title(sub = "VFraction PxH")
-check_model(VFraction_full,show_dots = F)
-CookD(VFraction_full, idn = 20,newwd = F)
-abline(h=4/nrow(Hydraulic_data),col="red")
-# Iterate through species pairs
+
+
+
 for (pair in species_pairs) {
   subset_data <- subset(Hydraulic_data, ssp %in% pair)
   
   tryCatch({
     # Fit models for the species pair
-    full_model <- lme(
-      log(Kmax) ~ ssp,           # Fixed effects
-      random = ~ 1 |indiv,    # Random effects
-      data = subset_data,            # Subset data
-      control = list(maxIter = 150, msMaxIter = 150),
-      weights = varIdent(form = ~ 1 | ssp),
-      method = "ML"
+    full_model <- glmmTMB(
+      Kmax ~ ssp + (1 |indiv), # Fixed and random effects
+      data = subset_data,              # Data frame
+      family = gaussian(link = "log"),    # Use a log link for the response
+      control = glmmTMBControl(
+        optCtrl = list(iter.max = 300, eval.max = 300) # Max iterations for fitting
+      ),
+      dispformula = ~ indiv                  # Variance structure for dispersion
     )
     
-    reduced_model <- lme(
-      log(Kmax) ~ 1,             # Fixed effects
-      random = ~ 1 | indiv,    # Random effects
-      data = subset_data,
-      control = list(maxIter = 150, msMaxIter = 150),
-      weights = varIdent(form = ~ 1 | ssp),
-      method = "ML"
+    reduced_model <- glmmTMB(
+      Kmax ~ 1+ (1 |indiv), # Fixed and random effects
+      data = subset_data,              # Data frame
+      family = gaussian(link = "log"),    # Use a log link for the response
+      control = glmmTMBControl(
+        optCtrl = list(iter.max = 300, eval.max = 300) # Max iterations for fitting
+      ),
+      dispformula = ~ indiv                  # Variance structure for dispersion
     )
     
     # Print model summary
@@ -870,30 +889,43 @@ for (pair in species_pairs) {
     print(summary(full_model))
     print(anova( reduced_model,full_model))
     
-    # Extract fixed effects, variance, and residuals
-    fixed_effects <- round(fixed.effects(full_model), digits = 2)
-    re <- VarCorr(full_model)[1,"Variance"] %>% as.numeric()
-
-    variance_explained_by_RE <-re/sum(as.numeric(VarCorr(full_model)[,"Variance"]))
-    conf_int <- emmeans(full_model,~ssp) %>% summary()
+    fixed_effects <- fixef(full_model)
+    
+    # Extract variance components
+    var_components <- VarCorr(full_model) 
+    
+    re <- var_components$cond %>% as.data.frame() %>% sum()
+    residual_variance <- var(exp(residuals(full_model, type = "pearson")), na.rm = TRUE)
+    
+    total_variance <- re + residual_variance
+    variance_explained_by_RE <-re/total_variance 
+    
+    # Extract confidence intervals for fixed effects only
+    ci_fixed <- confint(full_model, parm = "beta_")
+    ci_fixed <- ci_fixed[grep("^cond", rownames(ci_fixed)), ]
+    # View the fixed effects confidence intervals
+    print(ci_fixed)
     
     # Extract the CI for the intercept (Parasite) and parasitismHost (Host)
-    CI_Parasite <- c(conf_int$lower.CL[1],fixed_effects[1],conf_int$upper.CL[1]) %>% round(digits = 2)
-    CI_Host <-c(conf_int$lower.CL[2],sum(fixed_effects),conf_int$upper.CL[2]) %>% round(digits = 2) # Adding Intercept to Host effect
+    CI_Parasite <- ci_fixed[1,] %>% exp()%>% round(digits = 2)  # CI for PaDevasite (Intercept)
+    CI_Host <-(ci_fixed[2, ] + ci_fixed[1, ] )%>% exp() %>% round(digits = 2)
     
-    # Likelihood ratio test
+    CI_Parasite <- c(CI_Parasite[1], CI_Parasite[3], CI_Parasite[2])
+    CI_Host <- c(CI_Host[1], CI_Host[3], CI_Host[2])
+    # Variance explained by random effects
+    
+    
+    # Perform likelihood ratio test (LRT)
+    lrt <- anova(reduced_model,full_model)
+    delta_aic <- diff(lrt$AIC)
+    pv <- na.omit(lrt$`Pr(>Chisq)`)
     
     
     residplot(full_model,newwd = F)
     title(sub = paste0(pair,collapse = " x "))
     print(check_model(full_model,show_dots = F))
-    print(CookD(full_model, idn = 20,newwd = F))
-    abline(h=4/nrow(Hydraulic_data),col="red")
-    title(sub=paste0(pair,collacpse=" x "))
-    # Perform likelihood ratio test for the pair
-    lrt <- anova(reduced_model, full_model)
-    delta_aic <- diff(lrt$AIC)
-    pv <- na.omit(lrt$`p-value`)
+    simulateResiduals(fittedModel = full_model) %>% plot() %>% print()
+    title(sub = paste0(pair,collapse = " x "))
     
     # Append results for the species pair
     Kmax_AIC <- rbind(Kmax_AIC, data.frame(
@@ -901,7 +933,7 @@ for (pair in species_pairs) {
       ParasiteMean = paste0(CI_Parasite,collapse = "-"),
       HostMean = paste0(CI_Host,collapse = "-"),
       REVariance = variance_explained_by_RE * 100,
-      RelDiff = fixed_effects[2] / fixed_effects[1],
+      RelDiff = exp(fixed_effects$cond[2]) / exp(fixed_effects$cond[1]),
       DeltaAIC = delta_aic,
       p_value = pv,
       stringsAsFactors = FALSE
@@ -911,8 +943,6 @@ for (pair in species_pairs) {
     cat("\nAn error occurred for pair", paste(pair, collapse = " vs "), ":", e$message, "\n")
   })
 }
-
-
 
 
 ############################################
@@ -1079,7 +1109,12 @@ PitOpening_null <- lme(
   control = list(maxIter = 150, msMaxIter = 150),
   weights = varIdent(form = ~ 1 | ssp)
 )
-
+residplot(PitOpening_full,newwd = F)
+title(sub = paste0("Pit Opening PxH",collapse = " x "))
+print(check_model(PitOpening_full,show_dots = F))
+print(CookD(PitOpening_full, idn = 20,newwd = F))
+abline(h=4/nrow(PitDiOp_data),col="red")
+title(sub=paste0(pair,collacpse=" x "))
 # Extract fixed effects, random effects variance, and residuals
 fixed_effects <- round(fixed.effects(PitOpening_full), digits = 2)
 re <- as.numeric(VarCorr(PitOpening_full)[, "Variance"])
@@ -1110,6 +1145,8 @@ PitOpening_AIC <- rbind(PitOpening_AIC, data.frame(
   stringsAsFactors = FALSE
 ))
 
+
+PitDiOp_data[615,"PitOpening"] <- rev(sort(PitDiOp_data$PitOpening[PitDiOp_data$indiv=="Tapirira guianensis 1"]))[2]
 # Iterate through species pairs
 for (pair in species_pairs) {
   subset_data <- subset(PitDiOp_data, ssp %in% pair)
@@ -1152,19 +1189,19 @@ for (pair in species_pairs) {
     variance_explained_by_RE <-re/sum(as.numeric(VarCorr(full_model)[,"Variance"]))
 
     
-    residplot(full_model,newwd = F)
-    title(sub = paste0(pair,collapse = " x "))
-    print(check_model(full_model,show_dots = F))
-    print(CookD(full_model, idn = 20,newwd = F))
-    abline(h=4/nrow(Hydraulic_data),col="red")
-    title(sub=paste0(pair,collacpse=" x "))
+    # residplot(full_model,newwd = F)
+    # title(sub = paste0(pair,collapse = " x "))
+    # print(check_model(full_model,show_dots = F))
+    # print(CookD(full_model, idn = 20,newwd = F))
+    # abline(h=4/nrow(Hydraulic_data),col="red")
+    # title(sub=paste0(pair,collacpse=" x "))
     # Perform likelihood ratio test for the pair
     lrt <- anova(reduced_model, full_model)
     delta_aic <- diff(lrt$AIC)
     pv <- na.omit(lrt$`p-value`)
     
     # Append results for the species pair
-    PitOpening_AIC <- rbind(PitPitDiameter_AIC, data.frame(
+    PitOpening_AIC <- rbind(PitOpening_AIC, data.frame(
       PairTested = paste(pair, collapse = " vs "),
       ParasiteMean = paste0(CI_Parasite,collapse = "-"),
       HostMean = paste0(CI_Host,collapse = "-"),
@@ -1194,7 +1231,7 @@ PitFraction_AIC <- data.frame(
 PitFraction_full <- lme(
   PitFraction ~ parasitism,       # Fixed effects
   random = ~ 1 | ssp / indiv,       # Random effects
-  data = Hydraulic_data,                 # Data frame
+  data = PitFraction_data,                 # Data frame
   method = "ML",
   control = list(maxIter = 150, msMaxIter = 150),
   weights = varIdent(form = ~ 1 | ssp)
@@ -1203,7 +1240,7 @@ PitFraction_full <- lme(
 PitFraction_null <- lme(
   PitFraction ~ 1,       # Fixed effects
   random = ~ 1 | ssp / indiv,       # Random effects
-  data = Hydraulic_data,                 # Data frame
+  data = PitFraction_data,                 # Data frame
   method = "ML",
   control = list(maxIter = 150, msMaxIter = 150),
   weights = varIdent(form = ~ 1 | ssp)
@@ -1239,10 +1276,40 @@ PitFraction_AIC <- rbind(PitFraction_AIC, data.frame(
   p_value = pv,
   stringsAsFactors = FALSE
 ))
+residplot(PitFraction_full,newwd = F)
+title(sub = paste0("Pit fraction PxH",collapse = " x "))
+print(check_model(PitFraction_full,show_dots = F))
+print(CookD(PitFraction_full, idn = 20,newwd = F))
+abline(h=4/nrow(PitDiOp_data),col="red")
+title(sub=paste0(pair,collacpse=" x "))
+
+
+PitFraction_data[161,"PitFraction"] <- rev(sort(PitFraction_data$PitFraction[PitFraction_data$indiv=="Viscum album 1"]))[2]
+PitFraction_data[81,"PitFraction"] <- rev(sort(PitFraction_data$PitFraction[PitFraction_data$indiv=="Struthanthus rhynchophyllus 2"]))[2]
+PitFraction_data[85,"PitFraction"] <- sort(PitFraction_data$PitFraction[PitFraction_data$indiv=="Struthanthus rhynchophyllus 3"])[2]
+PitFraction_data[c(146,151),"PitFraction"] <- sort(PitFraction_data$PitFraction[PitFraction_data$indiv=="Tipuana tipu 3"])[3]
+PitFraction_data[19,"PitFraction"] <- sort(PitFraction_data$PitFraction[PitFraction_data$indiv=="Phoradendron perrotettii 2"])[2]
+PitFraction_data[109,"PitFraction"] <- sort(PitFraction_data$PitFraction[PitFraction_data$indiv=="Tapirira guianensis 2"])[2]
+
+PitFraction_data[34,"PitFraction"] <- sort(PitFraction_data$PitFraction[PitFraction_data$indiv=="Psittacanthus robustus 1"])[2]
+PitFraction_data[56,"PitFraction"] <- rev(sort(PitFraction_data$PitFraction[PitFraction_data$indiv=="Psittacanthus robustus 3"]))[2]
+PitFraction_data[c(44,47),"PitFraction"] <- sort(PitFraction_data$PitFraction[PitFraction_data$indiv=="Psittacanthus robustus 2"])[3]
+PitFraction_data[c(185,195),"PitFraction"] <- sort(PitFraction_data$PitFraction[PitFraction_data$indiv=="Vochysia thyrsoidea 1"])[3]
+PitFraction_data[191,"PitFraction"] <- rev(sort(PitFraction_data$PitFraction[PitFraction_data$indiv=="Vochysia thyrsoidea 1"]))[2]
+PitFraction_data[c(202),"PitFraction"] <- sort(PitFraction_data$PitFraction[PitFraction_data$indiv=="Vochysia thyrsoidea 2"])[2]
+PitFraction_data[c(206),"PitFraction"] <- rev(sort(PitFraction_data$PitFraction[PitFraction_data$indiv=="Vochysia thyrsoidea 2"]))[2]
+PitFraction_data[c(208,209,210),"PitFraction"] <- rev(sort(PitFraction_data$PitFraction[PitFraction_data$indiv=="Vochysia thyrsoidea 3"]))[4]
+PitFraction_data[c(214),"PitFraction"] <- sort(PitFraction_data$PitFraction[PitFraction_data$indiv=="Vochysia thyrsoidea 3"])[2]
+
+
+
+
+
+
 
 # Iterate through species pairs
 for (pair in species_pairs) {
-  subset_data <- subset(Hydraulic_data, ssp %in% pair)
+  subset_data <- subset(PitFraction_data, ssp %in% pair)
   
   tryCatch({
     # Fit models for the species pair
