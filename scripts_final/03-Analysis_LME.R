@@ -5,9 +5,10 @@ library(glmmTMB)
 library(tidyverse)
 library(here)
 library(nlme)
-#library(predictmeans)
+library(report)
 library(emmeans)
 library(performance)
+library(predictmeans)
 source(here("scripts","00-library.R"))
 
 # Load data
@@ -228,7 +229,7 @@ CI_Host <-c(conf_int$lower.CL[2],sum(fixed_effects),conf_int$upper.CL[2]) %>% ro
 # Perform likelihood ratio test (LRT)
 lrt <- anova(VesselDiameter_null,VesselDiameter_full)
 delta_aic <- diff(lrt$AIC)
-pv <- na.omit(lrt$`p-value`) %>% round(digits = 3)
+pv <- na.omit(lrt$`p-value`) 
 
 residplot(VesselDiameter_full,newwd = F)
 title(sub = "VDiameter PxH")
@@ -275,14 +276,14 @@ for (pair in species_pairs) {
     )
     
 
-    
-    residplot(full_model,newwd = F)
-    title(sub = paste0(pair,collapse = " x "))
-    print(check_model(full_model,show_dots = F))
-    print(CookD(full_model, idn = 20,newwd = F))
-    abline(h=4/nrow(subset_data),col="red")
-    title(sub=paste0(pair,collacpse=" x "))
-    
+    # 
+    # residplot(full_model,newwd = F)
+    # title(sub = paste0(pair,collapse = " x "))
+    # print(check_model(full_model,show_dots = F))
+    # print(CookD(full_model, idn = 20,newwd = F))
+    # abline(h=4/nrow(subset_data),col="red")
+    # title(sub=paste0(pair,collacpse=" x "))
+    # 
     fixed_effects <- round(fixed.effects(full_model), digits = 2)
     re <- VarCorr(full_model)[1,"Variance"] %>% as.numeric()
     residuals <- VarCorr(full_model)[2,"Variance"] %>% as.numeric()
@@ -296,7 +297,7 @@ for (pair in species_pairs) {
     # Likelihood ratio test
     lrt <- anova(reduced_model, full_model)
     delta_aic <- diff(lrt$AIC)
-    pv <- na.omit(lrt$`p-value`) %>% round(digits = 3)
+    pv <- na.omit(lrt$`p-value`)
     
     # Log progress
     cat("\nCompleted pair:", paste(pair, collapse = " vs "), "\n")
@@ -430,13 +431,13 @@ for (pair in species_pairs) {
     lrt <- anova(reduced_model, full_model)
     delta_aic <- diff(lrt$AIC)
     pv <- na.omit(lrt$`p-value`)
-    residplot(full_model,newwd = F)
-    title(sub = paste0(pair,collapse = " x "))
-    print(check_model(full_model,show_dots = F))
-    print(CookD(full_model, idn = 20,newwd = F))
-    abline(h=4/nrow(subset_data),col="red")
-    title(sub=paste0(pair,collacpse=" x "))
-    
+    # residplot(full_model,newwd = F)
+    # title(sub = paste0(pair,collapse = " x "))
+    # print(check_model(full_model,show_dots = F))
+    # print(CookD(full_model, idn = 20,newwd = F))
+    # abline(h=4/nrow(subset_data),col="red")
+    # title(sub=paste0(pair,collacpse=" x "))
+    # 
     # Append results for the species pair
     new_row <- data.frame(
       PairTested = paste(pair, collapse = " vs "),
@@ -603,8 +604,7 @@ for (pair in species_pairs) {
     title(sub = paste0(pair,collapse = " x "))
     print(check_model(full_model,show_dots = F))
 
-    simulateResiduals(fittedModel = full_model) %>% plot() %>% print()
-    testDispersion(simulateResiduals(fittedModel = full_model)) %>% print()
+
     
     # Append global model results
     VDensity_AIC <- rbind(VDensity_AIC, data.frame(
@@ -921,12 +921,12 @@ for (pair in species_pairs) {
     pv <- na.omit(lrt$`Pr(>Chisq)`)
     
     
-    residplot(full_model,newwd = F)
-    title(sub = paste0(pair,collapse = " x "))
-    print(check_model(full_model,show_dots = F))
-    simulateResiduals(fittedModel = full_model) %>% plot() %>% print()
-    title(sub = paste0(pair,collapse = " x "))
-    
+    # residplot(full_model,newwd = F)
+    # title(sub = paste0(pair,collapse = " x "))
+    # print(check_model(full_model,show_dots = F))
+    # simulateResiduals(fittedModel = full_model) %>% plot() %>% print()
+    # title(sub = paste0(pair,collapse = " x "))
+    # 
     # Append results for the species pair
     Kmax_AIC <- rbind(Kmax_AIC, data.frame(
       PairTested = paste(pair, collapse = " vs "),
@@ -952,7 +952,7 @@ PitDiameter_AIC <- data.frame(
   REVariance = numeric(), RelDiff = numeric(), DeltaAIC = numeric(),
   p_value = numeric(), stringsAsFactors = FALSE
 )
-PitDiOp_data[59,]
+
 
 
 # Fit global models
@@ -1054,12 +1054,12 @@ for (pair in species_pairs) {
     CI_Host <-c(conf_int$lower.CL[2],sum(fixed_effects),conf_int$upper.CL[2]) %>% round(digits = 2) # Adding Intercept to Host effect
     
     # Likelihood ratio test
-    residplot(full_model,newwd = F)
-    title(sub = paste0(pair,collapse = " x "))
-    print(check_model(full_model,show_dots = F))
-    print(CookD(full_model, idn = 20,newwd = F))
-    abline(h=4/nrow(Hydraulic_data),col="red")
-    title(sub=paste0(pair,collacpse=" x "))
+    # residplot(full_model,newwd = F)
+    # title(sub = paste0(pair,collapse = " x "))
+    # print(check_model(full_model,show_dots = F))
+    # print(CookD(full_model, idn = 20,newwd = F))
+    # abline(h=4/nrow(Hydraulic_data),col="red")
+    # title(sub=paste0(pair,collacpse=" x "))
     # Perform likelihood ratio test for the pair
     lrt <- anova(reduced_model, full_model)
     delta_aic <- diff(lrt$AIC)
@@ -1248,17 +1248,24 @@ PitFraction_null <- lme(
 
 # Extract fixed effects, random effects variance, and residuals
 fixed_effects <- round(fixed.effects(PitFraction_full), digits = 2)
-re <- VarCorr(full_model)[1,"Variance"] %>% as.numeric()
-residuals <- VarCorr(full_model)[2,"Variance"] %>% as.numeric()
-variance_explained_by_RE <-re/sum(as.numeric(VarCorr(full_model)[,"Variance"]))variance_explained_by_RE <-re/sum(as.numeric(VarCorr(full_model)[,"Variance"]))
+# Extract variances from VarCorr and remove NA values
+re <- VarCorr(PitFraction_full)[,"Variance"] %>%
+  as.numeric() %>%
+  .[!is.na(.)]
+
+# Print the result
+
+
+residuals <- re[3]
+variance_explained_by_RE <-(re[1]+re[2])/sum(re)
 conf_int <- emmeans(PitFraction_full,~parasitism) %>% summary()
 
 # Extract the CI for the intercept (Parasite) and parasitismHost (Host)
 CI_Parasite <- c(conf_int$lower.CL[1],fixed_effects[1],conf_int$upper.CL[1]) %>% round(digits = 2)
 CI_Host <-c(conf_int$lower.CL[2],sum(fixed_effects),conf_int$upper.CL[2]) %>% round(digits = 2) # Adding Intercept to Host effect
 
-# Variance explained by random effects
-variance_explained_by_RE <- (re[2] + re[4]) / (re[5] + re[2] + re[4])
+
+
 
 # Perform likelihood ratio test (LRT)
 lrt <- anova(PitFraction_null,PitFraction_full)
@@ -1375,3 +1382,37 @@ for (pair in species_pairs) {
     cat("\nAn error occurred for pair", paste(pair, collapse = " vs "), ":", e$message, "\n")
   })
 }
+
+
+
+AIC_tables <- list(VWall_AIC,
+                   VDiameter_AIC,
+                   HDiameter_AIC,
+                   VDensity_AIC,
+                   VFraction_AIC,
+                   Kmax_AIC,
+                   PitDiameter_AIC,
+                   PitOpening_AIC,
+                   PitFraction_AIC
+)
+# Assign names to each element in the list
+names(AIC_tables) <- c(
+  "VWall_AIC",
+  "VDiameter_AIC",
+  "HDiameter_AIC",
+  "VDensity_AIC",
+  "VFraction_AIC",
+  "Kmax_AIC",
+  "PitDiameter_AIC",
+  "PitOpening_AIC",
+  "PitFraction_AIC"
+)
+
+# Save each element in the list as a CSV file
+lapply(names(AIC_tables), function(name) {
+  write.csv(
+    AIC_tables[[name]],                 # The data to write
+    file = here("outputs","tables",paste0(name, ".csv")),        # File name based on the element name
+    row.names = FALSE                   # Exclude row names
+  )
+})
