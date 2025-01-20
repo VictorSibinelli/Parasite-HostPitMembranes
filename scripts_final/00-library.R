@@ -10,7 +10,7 @@
 packages <- c(
   "tidyverse", "here", "plotly", "data.table","sjPlot","GGally","ggstatsplot",
   "groundhog", "car", "htmlwidgets","DHARMa","emmeans","devtools","ggbiplot",
-  "lattice", "lme4", "nlme", "predictmeans", "performance"
+  "nlme", "predictmeans", "performance","FactoMiner","patchwork","ggrepel","factoextra"
 )
 
 # Install packages not yet installed

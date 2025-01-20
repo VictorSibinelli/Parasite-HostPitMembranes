@@ -149,4 +149,5 @@ lapply(seq_along(Boots), function(i) {
   })
 })
 
+rm(list=ls())
 

@@ -148,13 +148,19 @@ Median_data <- list(
       Wthickness = median(WallThickness, na.rm = TRUE),
       .groups = "drop"
     ),
+  VesselDiameter_data %>%
+    group_by(indiv, ssp)  %>%
+    summarise(
+VesselDiameter = median(VesselDiameter, na.rm = TRUE),
+      .groups = "drop"
+    ),
   
   VesselDiameter_data %>%
     group_by(indiv, ssp) %>%
     mutate(threshold = quantile(VesselDiameter, 0.9, na.rm = TRUE)) %>%
     filter(VesselDiameter >= threshold) %>%
     summarise(
-      VesselDiameter = median(VesselDiameter, na.rm = TRUE),
+      TopVesselDiameter = median(VesselDiameter, na.rm = TRUE),
       .groups = "drop"
     ),
   
@@ -193,11 +199,18 @@ Mean_data <- list(
     group_by(indiv, ssp) %>%
     summarise(Wthickness = mean(WallThickness, na.rm = TRUE), .groups = "drop"),
   VesselDiameter_data %>%
+    group_by(indiv, ssp)  %>%
+    summarise(
+      VesselDiameter = mean(VesselDiameter, na.rm = TRUE),
+      .groups = "drop"
+    ),
+  
+  VesselDiameter_data %>%
     group_by(indiv, ssp) %>%
     mutate(threshold = quantile(VesselDiameter, 0.9, na.rm = TRUE)) %>%
     filter(VesselDiameter >= threshold) %>%
     summarise(
-      VesselDiameter = median(VesselDiameter, na.rm = TRUE),
+      TopVesselDiameter = mean(VesselDiameter, na.rm = TRUE),
       .groups = "drop"
     ),
   PitFraction_data %>%

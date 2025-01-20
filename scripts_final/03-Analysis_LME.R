@@ -13,9 +13,7 @@ source(here("scripts","00-library.R"))
 
 # Load data
 Wall_data <- read.csv(here("data", "processed", "Wall_data.csv"))
-VesselDiameter_data<- read.csv(here("data", "processed", "VesselDiameter_data.csv")) %>% group_by(ssp,indiv) %>%
-  filter(VesselDiameter >= quantile(VesselDiameter, 0.9)) %>%
-  ungroup()
+VesselDiameter_data<- read.csv(here("data", "processed", "VesselDiameter_data.csv")) 
 Hydraulic_data<- read.csv(here("data", "processed", "HydraulicData.csv"))
 PitFraction_data<- read.csv(here("data", "processed", "PitFraction_data.csv"))
 PitDiOp_data<- read.csv(here("data", "processed", "PitDiOp_data.csv"))
@@ -196,7 +194,7 @@ VDiameter_AIC <- data.frame(
 
 # Fit global models
 VesselDiameter_full <- lme(
-  log(VesselDiameter) ~ parasitism,       # Fixed effects
+  VesselDiameter ~ parasitism,       # Fixed effects
   random = ~ 1 | ssp / indiv,       # Random effects
   data = VesselDiameter_data,                 # Data frame
   method = "ML",
@@ -205,7 +203,7 @@ VesselDiameter_full <- lme(
 )
 
 VesselDiameter_null <- lme(
-  log(VesselDiameter) ~ 1,       # Fixed effects
+  VesselDiameter ~ 1,       # Fixed effects
   random = ~ 1 | ssp / indiv,       # Random effects
   data = VesselDiameter_data,                 # Data frame
   method = "ML",
@@ -233,9 +231,7 @@ pv <- na.omit(lrt$`p-value`)
 
 residplot(VesselDiameter_full,newwd = F)
 title(sub = "VDiameter PxH")
-check_model(VesselDiameter_full,show_dots = F)
-CookD(VesselDiameter_full, idn = 20,newwd = F)
-abline(h=4/nrow(VesselDiameter_data),col="red")
+# check_model(VesselDiameter_full,show_dots = F)
 
 
 VDiameter_AIC <- rbind(VDiameter_AIC, data.frame(
@@ -258,7 +254,7 @@ for (pair in species_pairs) {
   tryCatch({
     # Fit models
     full_model <- lme(
-      log(VesselDiameter) ~ ssp,
+    VesselDiameter ~ ssp,
       random = ~ 1 | indiv,
       data = subset_data,
       control = list(maxIter = 150, msMaxIter = 150),
@@ -267,7 +263,7 @@ for (pair in species_pairs) {
     )
     
     reduced_model <- lme(
-      log(VesselDiameter) ~ 1,
+      VesselDiameter ~ 1,
       random = ~ 1 | indiv,
       data = subset_data,
       control = list(maxIter = 150, msMaxIter = 150),
@@ -276,14 +272,11 @@ for (pair in species_pairs) {
     )
     
 
-    # 
-    # residplot(full_model,newwd = F)
-    # title(sub = paste0(pair,collapse = " x "))
-    # print(check_model(full_model,show_dots = F))
-    # print(CookD(full_model, idn = 20,newwd = F))
-    # abline(h=4/nrow(subset_data),col="red")
-    # title(sub=paste0(pair,collacpse=" x "))
-    # 
+
+    residplot(full_model,newwd = F)
+    title(sub = paste0(pair,collapse = " x "))
+     # print(check_model(full_model,show_dots = F))
+
     fixed_effects <- round(fixed.effects(full_model), digits = 2)
     re <- VarCorr(full_model)[1,"Variance"] %>% as.numeric()
     residuals <- VarCorr(full_model)[2,"Variance"] %>% as.numeric()
@@ -318,10 +311,152 @@ for (pair in species_pairs) {
     NULL
   })
 }
-
+plot(VesselDiameter_data$VesselDiameter~VesselDiameter_data$parasitism)
+print(VDiameter_AIC)
+##############################################################################################
  
 
+TopVDiameter_AIC <- data.frame(
+  PairTested = character(), ParasiteMean = numeric(), HostMean = numeric(),
+  REVariance = numeric(), RelDiff = numeric(), DeltaAIC = numeric(),
+  p_value = numeric(), stringsAsFactors = FALSE
+)
 
+
+
+
+# Fit global models
+TopVesselDiameter_full <- lme(
+  log(VesselDiameter) ~ parasitism,       # Fixed effects
+  random = ~ 1 | ssp / indiv,       # Random effects
+  data = VesselDiameter_data %>% group_by(ssp,indiv) %>%
+    filter(VesselDiameter >= quantile(VesselDiameter, 0.9)) %>%
+    ungroup(),                 # Data frame
+  method = "ML",
+  control = list(maxIter = 150, msMaxIter = 150),
+  weights = varIdent(form = ~ 1 | ssp)
+)
+
+TopVesselDiameter_null <- lme(
+  log(VesselDiameter) ~ 1,       # Fixed effects
+  random = ~ 1 | ssp / indiv,       # Random effects
+  data = VesselDiameter_data%>% group_by(ssp,indiv) %>%
+    filter(VesselDiameter >= quantile(VesselDiameter, 0.9)) %>%
+    ungroup(),                 # Data frame
+  method = "ML",
+  control = list(maxIter = 150, msMaxIter = 150),
+  weights = varIdent(form = ~ 1 | ssp)
+)
+
+# Extract fixed effects, random effects variance, and residuals
+fixed_effects <- round(fixed.effects(TopVesselDiameter_full), digits = 2)
+re <- as.numeric(VarCorr(TopVesselDiameter_full)[, "Variance"])
+variance_explained_by_RE <- (re[2] + re[4]) / (re[5] + re[2] + re[4])
+
+# Calculate 95% Confidence Intervals using intervals() for the lme model
+conf_int <- emmeans(TopVesselDiameter_full,~parasitism) %>% summary()
+
+# Extract the CI for the intercept (Parasite) and parasitismHost (Host)
+CI_Parasite <- c(conf_int$lower.CL[1],fixed_effects[1],conf_int$upper.CL[1]) %>% exp() %>% round(digits = 2)
+CI_Host <-c(conf_int$lower.CL[2],sum(fixed_effects),conf_int$upper.CL[2]) %>%exp() %>%  round(digits = 2) 
+
+
+# Perform likelihood ratio test (LRT)
+lrt <- anova(TopVesselDiameter_null,TopVesselDiameter_full)
+delta_aic <- diff(lrt$AIC)
+pv <- na.omit(lrt$`p-value`) 
+
+residplot(TopVesselDiameter_full,newwd = F)
+title(sub = "TopVDiameter PxH")
+check_model(TopVesselDiameter_full,show_dots = F)
+CookD(TopVesselDiameter_full, idn = 20,newwd = F)
+abline(h=4/nrow(TopVesselDiameter_data),col="red")
+
+
+TopVDiameter_AIC <- rbind(TopVDiameter_AIC, data.frame(
+  PairTested = paste(levels(VesselDiameter_data$parasitism), collapse = " vs "),
+  ParasiteMean = paste0(CI_Parasite,collapse = "-"),
+  HostMean = paste0(CI_Host,collapse = "-"),
+  REVariance = variance_explained_by_RE * 100,
+  RelDiff = fixed_effects[2] / fixed_effects[1],
+  DeltaAIC = delta_aic,
+  p_value = pv,
+  stringsAsFactors = FALSE
+))
+
+
+
+
+
+for (pair in species_pairs) {
+  subset_data <- subset(VesselDiameter_data, ssp %in% pair) 
+  tryCatch({
+    # Fit models
+    full_model <- lme(
+      log(VesselDiameter) ~ ssp,
+      random = ~ 1 | indiv,
+      data = subset_data%>% group_by(ssp,indiv) %>%
+        filter(VesselDiameter >= quantile(VesselDiameter, 0.9)) %>%
+        ungroup(),
+      control = list(maxIter = 150, msMaxIter = 150),
+      weights = varIdent(form = ~ 1 | ssp),
+      method = "ML"
+    )
+    
+    reduced_model <- lme(
+      log(VesselDiameter) ~ 1,
+      random = ~ 1 | indiv,
+      data = subset_data%>% group_by(ssp,indiv) %>%
+        filter(VesselDiameter >= quantile(VesselDiameter, 0.9)) %>%
+        ungroup(),
+      control = list(maxIter = 150, msMaxIter = 150),
+      weights = varIdent(form = ~ 1 | ssp),
+      method = "ML"
+    )
+    
+    
+    # 
+    # residplot(full_model,newwd = F)
+    # title(sub = paste0(pair,collapse = " x "))
+    # print(check_model(full_model,show_dots = F))
+    # print(CookD(full_model, idn = 20,newwd = F))
+    # abline(h=4/nrow(subset_data),col="red")
+    # title(sub=paste0(pair,collacpse=" x "))
+    # 
+    fixed_effects <- round(fixed.effects(full_model), digits = 2)
+    re <- VarCorr(full_model)[1,"Variance"] %>% as.numeric()
+    residuals <- VarCorr(full_model)[2,"Variance"] %>% as.numeric()
+    variance_explained_by_RE <-re/sum(as.numeric(VarCorr(full_model)[,"Variance"]))
+    conf_int <- emmeans(full_model,~ssp) %>% summary()
+    
+    # Extract the CI for the intercept (Parasite) and parasitismHost (Host)
+    CI_Parasite <- c(conf_int$lower.CL[1],fixed_effects[1],conf_int$upper.CL[1]) %>% exp() %>% round(digits = 2)
+    CI_Host <-c(conf_int$lower.CL[2],sum(fixed_effects),conf_int$upper.CL[2]) %>%exp() %>%  round(digits = 2) # Adding Intercept to Host effect
+    
+    # Likelihood ratio test
+    lrt <- anova(reduced_model, full_model)
+    delta_aic <- diff(lrt$AIC)
+    pv <- na.omit(lrt$`p-value`)
+    
+    # Log progress
+    cat("\nCompleted pair:", paste(pair, collapse = " vs "), "\n")
+    
+    # Return results
+    TopVDiameter_AIC <-rbind(TopVDiameter_AIC,data.frame(
+      PairTested = paste(pair, collapse = " vs "),
+      ParasiteMean = paste0(CI_Parasite,collapse = "-"),
+      HostMean = paste0(CI_Host,collapse = "-"),
+      REVariance = variance_explained_by_RE * 100,
+      RelDiff = fixed_effects[2] / fixed_effects[1],
+      DeltaAIC = delta_aic,
+      p_value = pv,
+      stringsAsFactors = FALSE
+    ))
+  }, error = function(e) {
+    cat("\nAn error occurred for pair", paste(pair, collapse = " vs "), ":", e$message, "\n")
+    NULL
+  })
+}
 
 ###############################################
 ################################################

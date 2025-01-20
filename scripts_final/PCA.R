@@ -29,14 +29,14 @@ Median_data$ssp_short <- short_names[Median_data$ssp]
 
 # Assign different point shapes for each species
 shapes <- c(
-  "P. robustus" = 16,  # Circle
-  "V. thyrsoidea" = 17,  # Triangle
-  "P. perrotettii" = 18,  # Diamond
-  "T. guianensis" = 19,  # Circle (larger)
-  "S. rhynchophyllus" = 15,  # Square
-  "T. tipu" = 3,  # Plus
-  "V. album" = 4,  # Cross
-  "P. nigra" = 8   # Star
+  "P. robustus" = 0,  # Circle
+  "V. thyrsoidea" = 15,  # Triangle
+  "P. perrotettii" = 1,  # Diamond
+  "T. guianensis" = 16,  # Circle (larger)
+  "S. rhynchophyllus" = 2,  # Square
+  "T. tipu" = 17,  # Plus
+  "V. album" = 5,  # Cross
+  "P. nigra" = 18   # Star
 )
 
 # --- Step 2: Perform PCA ---
@@ -57,6 +57,7 @@ print(loadings)
 scree_plot <- fviz_eig(pca_result, addlabels = TRUE, ylim = c(0, 100)) +
   labs(title = "Scree Plot", x = "Principal Components", y = "% of Variance Explained") +
   theme_minimal()
+print(scree_plot)
 
 # --- Step 5: Variable Contributions Plot ---
 variable_plot <- fviz_pca_var(
@@ -72,7 +73,22 @@ variable_plot <- fviz_pca_var(
     axis.title = element_text(size = 12, face = "bold"),
     plot.title = element_text(size = 14, face = "bold", hjust = 0.5)
   )
+variable_plot
 
+variable_plot2 <- fviz_pca_var(
+  pca_result,axes = c(2,3),
+  col.var = "contrib",                         # Color by contribution
+  gradient.cols = viridis::magma(10)[3:9],          # Use viridis color scale
+  repel = TRUE                                 # Avoid overlapping text
+) +
+  labs(title = "PCA: Variable Contributions") +
+  theme_minimal() +
+  theme(
+    axis.text = element_text(size = 10),
+    axis.title = element_text(size = 12, face = "bold"),
+    plot.title = element_text(size = 14, face = "bold", hjust = 0.5)
+  )
+print(variable_plot2)
 # --- Step 6: PCA Biplot ---
 # Perform PCA with prcomp for ggbiplot compatibility
 pc <- prcomp(Median_data[, 3:11], center = TRUE, scale. = TRUE)
@@ -88,14 +104,15 @@ biplot <- ggbiplot(pc,
                    groups = Median_data$parasitism, 
                    ellipse = TRUE, 
                    circle = TRUE, 
-                   ellipse.prob = 0.68) +
+                   ellipse.prob = 0.68,
+                   point.size = 0) +
   scale_colour_manual(
     values = c("Parasite" = alpha("red", 0.8), "Host" = alpha("grey", 0.8))  # Apply alpha blending
   ) +
   scale_fill_manual(
     values = c("Parasite" = alpha("red", 0.5), "Host" = alpha("grey", 0.5))  # Apply alpha blending
   ) +
-  geom_point(aes(shape = Median_data$ssp_short,colour = Median_data$parasitism), size = 2) +  # Different point types for each species
+  geom_point(aes(shape = Median_data$ssp_short,colour = Median_data$parasitism), size = 3) +  # Different point types for each species
   scale_shape_manual(values = shapes) +  
   xlab(paste0("Dim1 (", round(summary(pc)$importance[2, 1] * 100, 1), "% variance)")) +
   ylab(paste0("Dim2 (", round(summary(pc)$importance[2, 2] * 100, 1), "% variance)")) +
@@ -112,8 +129,45 @@ biplot <- ggbiplot(pc,
     shape = "Species"
   )
 
+biplot2 <- ggbiplot(pc, 
+         choices = c(2, 3),
+         obs.scale = 1, 
+         var.scale = 1, 
+         groups = Median_data$parasitism, 
+         ellipse = TRUE, 
+         circle = TRUE, 
+         ellipse.prob = 0.68,
+         point.size = 0) +
+  scale_colour_manual(
+    values = c("Parasite" = alpha("red", 0.8), "Host" = alpha("grey", 0.8))
+  ) +
+  scale_fill_manual(
+    values = c("Parasite" = alpha("red", 0.5), "Host" = alpha("grey", 0.5))
+  ) +
+  geom_point(aes(shape = Median_data$ssp_short, colour = Median_data$parasitism), size = 3) +  # Adjust size as needed
+  scale_shape_manual(values = shapes) +  # Define 'shapes' appropriately
+  theme_minimal() +
+  theme(
+    axis.text = element_text(size = 10),
+    axis.title = element_text(size = 12, face = "bold"),
+    plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
+    legend.position = "right"
+  ) +
+  xlab(paste0("Dim2 (", round(summary(pc)$importance[2, 2] * 100, 1), "% variance)")) +
+  ylab(paste0("Dim3 (", round(summary(pc)$importance[2, 3] * 100, 1), "% variance)")) +
+  labs(
+    title = "PCA Biplot: Parasites vs Hosts",
+    color = "Parasitism",
+    shape = "Species"
+  )
+
+print(biplot)
+print(biplot2)
 # --- Combine Plots into a Board ---
 board <- biplot + variable_plot
+board2 <- biplot2 + variable_plot2
 
 ggsave(filename = here("outputs","figs","PCA_plot.png"),board,width = 20,height = 10,units = "in",dpi = 600)
+ggsave(filename = here("outputs","figs","PCA_plot2.png"),board2,width = 20,height = 10,units = "in",dpi = 600)
 ggsave(filename = here("outputs","figs","PCA_scree_plot.png"),scree_plot,dpi = 600)
+write.csv(loadings,file = here("outputs","tables","PCA_loadings.csv"))
