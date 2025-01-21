@@ -14,79 +14,87 @@ Median_data<- read.csv(here("data", "processed", "Median_data.csv"))
 Median_data$Kmax <- log(Median_data$Kmax)
 
 head(Median_data)
-var_names <- c("Dpo","Dpit","Tvw","D","Dtop","Fpit","Dh","VD","Fv","Kmax")
-colnames(Median_data)[3:11] <- var_names
+var_names <- c("Dpo","Dpit","Tvw","D","Dtop","Fpit","Dh","VD","Fv","log_Kmax")
+colnames(Median_data)[3:12] <- var_names
 # Create the ggpairs plot
 
-# Scatter plot with separate regression lines for each group
-grouped_ggscatterstats(
-  data = Median_data,
-  x = "Dtop",
-  y = "VD",
-  xlab = "Top Diameter",
-  ylab = "Vessel Diameter",
-  type = "robust",
-  grouping.var = parasitism,
-  show.ci = TRUE,         # Show confidence intervals for regression lines
-  ggtheme = ggplot2::theme_minimal()
-)
 
-
+# Create the ggpairs plot with robust regression and Spearman correlation
 spearman_plot <- ggpairs(
   Median_data,
-  columns = 3:11,
+  columns = 3:12,
   aes(colour = parasitism, fill = parasitism),  # Map both colour and fill to parasitism
   lower = list(
-    continuous = wrap("smooth", method = "rlm")  # Use robust regression in lower panels
+    continuous = wrap("smooth", method = "rlm", maxit = 50)  # Robust regression
   ),
-  upper = list(continuous = wrap("cor", method = "spearman",size=6))  # Correlation in upper panels
-) +
-  scale_colour_manual(
-    values = c("Parasite" = alpha("red", 0.7), "Host" = alpha("grey", 0.8))  # Customize line and point colors
-  ) +
-  scale_fill_manual(
-    values = c("Parasite" = alpha("red", 0.7), "Host" = alpha("grey", 0.8))  # Customize fill colors
-  ) +
-  theme_minimal()+
-  theme(
-    axis.text = element_text(size = 20),   # Axis labels
-    strip.text = element_text(size = 20),  # Facet strip text
-    legend.text = element_text(size = 20)  # Legend text
-  )  # Apply a minimal theme
+  upper = list(
+    continuous = wrap("cor", method = "spearman", size = 6)  # Spearman correlation
+  )
+)+
+  ggplot2::scale_fill_manual(
+    values = c("Parasite" = alpha("red", 0.7), "Host" = alpha("grey", 0.8))
+  )
 
+# Customize color and fill scales for the ggpairs object
+spearman_plot <- spearman_plot +
+  ggplot2::scale_colour_manual(
+    values = c("Parasite" = alpha("red", 0.7), "Host" = alpha("grey", 0.8))
+  ) +
+  ggplot2::scale_fill_manual(
+    values = c("Parasite" = alpha("red", 0.7), "Host" = alpha("grey", 0.8))
+  )
+
+# Customize the theme using the ggmatrix theme method
+spearman_plot$theme <- ggplot2::theme_minimal() +
+  ggplot2::theme(
+    axis.text = element_text(size = 20),    # Axis labels
+    strip.text = element_text(size = 20),   # Facet strip text
+    legend.text = element_text(size = 20)   # Legend text
+  )
+
+# Print the customized ggpairs plot
 print(spearman_plot)
 
-
-# # Create the correlation matrix for "Host"
-# host_corr <- ggcorrmat(
-#   data = subset(Median_data, parasitism == "Host"),
-#   type = "robust",
-#   label = TRUE,
-#   p.adjust.method = "BH"
-# ) +
-#   scale_fill_viridis_c(option = "viridis", alpha = 0.8) +
-#   labs(title = "Host")
-# 
-# # Create the correlation matrix for "Parasite"
-# parasite_corr <- ggcorrmat(
-#   data = subset(Median_data, parasitism == "Parasite"),
-#   type = "np",
-#   method = "spearman",
-#   label = TRUE
-# ) +
-#   scale_fill_viridis_c(option = "viridis", alpha = 0.8) +
-#   labs(title = "Parasite") +
-#   theme(legend.position = "none") +  # Remove the legend for the second plot
-#   guides(fill = "none")             # Remove the color scale for the second plot
-# 
-# # Combine the two plots
-# combined_plot <- host_corr + parasite_corr + 
-#   plot_annotation(title = "spearman's Correlation Matrix")&
-#   theme(plot.title = element_text(size = 20, hjust = 0.5))  
-# 
-# # Display the combined plot
-# print(combined_plot)
-
+CorMat_plot <- # Create the correlation matrix using the magma palette with lighter extremes
+  ggcorrmat(
+    data = Median_data %>% filter(parasitism=="Parasite"),
+    type = "robust",
+    label = TRUE,
+    grouping.var = parasitism,
+    p.adjust.method = "fdr",
+    digits = 3
+  ) +
+  # Apply the viridis magma palette with adjusted scaling
+  scale_fill_viridis_c(
+    option = "magma", 
+    name = "Winsorized pearson's \nCorrelation",
+    limits = c(-1, 1),              
+    begin = 0.25,                    
+    end = 1                
+  ) +
+  theme(legend.position = "none")+
+  # Create the correlation matrix using the magma palette with lighter extremes
+  ggcorrmat(
+    data = Median_data %>% filter(parasitism=="Host"),
+    type = "robust",
+    label = TRUE,
+    grouping.var = parasitism,
+    p.adjust.method = "fdr",
+    digits = 3
+  ) +
+  # Apply the viridis magma palette with adjusted scaling
+  scale_fill_viridis_c(
+    option = "magma", 
+    name = "Winsorized pearson's \nCorrelation",
+    limits = c(-1, 1),              
+    begin = 0.25,                    
+    end = 1                
+  ) +
+  theme(
+    legend.position = "right",       # Adjust legend position
+    legend.title = element_text(size = 12, face = "bold"),
+    legend.text = element_text(size = 10)
+  )
 
 trait_pairs <- combn(var_names, 2, simplify = TRUE)
 
@@ -127,7 +135,8 @@ for (pair in sig_slopes$trait_pair) {
   # Fit the robust linear model
   model <- rlm(as.formula(paste(trait1, "~", trait2, "* parasitism")),
                data = Median_data, maxit = 100)
-  
+  model2 <- rlm(as.formula(paste(trait1, "~", trait2)),
+                data = Median_data, maxit = 100)
   # Perform Type III ANOVA
   anova_results <- Anova(model, type = 3)
   model$coefficients
@@ -140,36 +149,72 @@ for (pair in sig_slopes$trait_pair) {
   host_slope <- coef(model)[trait2]
   
   # Generate the plot
+  # Fit the robust regression model for the whole dataset
+  
   plot <- Median_data %>%
     ggplot(aes(x = .data[[trait2]], y = .data[[trait1]])) +  # Map column names dynamically
-    geom_point(aes(color = parasitism),size=3) +
-    stat_smooth(method = function(formula, data, weights = weight) 
-      rlm(formula, data, weights = weight, method = "MM"),
-      aes(color = parasitism),size=3) +
+    geom_point(aes(color = parasitism), size = 3) +
+    
+    # Group-specific robust regression lines
+    stat_smooth(
+      method = function(formula, data, weights = weight) 
+        rlm(formula, data, weights = weight, method = "MM"),
+      aes(color = parasitism), size = 3
+    ) +
+    
+    # Add dashed line for the whole dataset regression
+    geom_abline(
+      intercept = coef(model2)[1], 
+      slope = coef(model2)[2], 
+      color = "blue", 
+      linetype = "dashed", 
+      size = 1
+    ) +
+    
+    # Customize colors for groups
     scale_colour_manual(values = c("Parasite" = alpha("red", 0.7), "Host" = alpha("black", 0.7))) +
     scale_fill_manual(values = c("Parasite" = alpha("red", 0.7), "Host" = alpha("black", 0.7))) +
-    annotate("text", 
-             x = max(Median_data[[trait2]])*0.75,  # Move annotation outside the plot area
-             y = max(Median_data[[trait1]])*1.35 , 
-             label = paste0("Parasite slope: ", round(parasite_slope, 3)),
-             hjust = 0, vjust = 1, color = "red",size=6) +
-    annotate("text", 
-             x = max(Median_data[[trait2]]) * 0.75,  # Move annotation outside the plot area
-             y = max(Median_data[[trait1]]) * 1.3, 
-             label = paste0("Host slope: ", round(host_slope, 3)),
-             hjust = 0, vjust = 1, color = "black",size=6) +
-    annotate("text", 
-             x = max(Median_data[[trait2]]) * 0.75,  # Move annotation outside the plot area
-             y = max(Median_data[[trait1]]) * 1.25, 
-             label = paste0("p-value: ", round(p_value, 4)),
-             hjust = 0, vjust = 1, color = "black",size=6) +
+    
+    # Parasite slope annotation
+    annotate(
+      "text", 
+      x = max(Median_data[[trait2]]) * 0.75,  # Position annotation
+      y = max(Median_data[[trait1]]) * 1.35, 
+      label = paste0("Parasite slope: ", round(parasite_slope, 3)),
+      hjust = 0, vjust = 1, color = "red", size = 6
+    ) +
+    
+    # Host slope annotation
+    annotate(
+      "text", 
+      x = max(Median_data[[trait2]]) * 0.75,  # Position annotation
+      y = max(Median_data[[trait1]]) * 1.3, 
+      label = paste0("Host slope: ", round(host_slope, 3)),
+      hjust = 0, vjust = 1, color = "black", size = 6
+    ) +
+    
+    # p-value annotation with dynamic display
+    annotate(
+      "text", 
+      x = max(Median_data[[trait2]]) * 0.75,  # Position annotation
+      y = max(Median_data[[trait1]]) * 1.25, 
+      label = ifelse(p_value < 0.001, "p-value < 0.001", paste0("p-value: ", round(p_value, 4))),
+      hjust = 0, vjust = 1, color = "black", size = 6
+    ) +
+    
+    # Styling and theme adjustments
     theme_minimal() +
-    theme(legend.position = "none",
-            axis.title = element_text(size = 20),  # Axis titles
-            axis.text = element_text(size = 17),
-           )+
-    xlim(c(0, max(Median_data[[trait2]]) * 1.2))+
-    ylim(c(0,max(Median_data[[trait1]])*1.35))# Adjust margin to fit annotations outside
+    theme(
+      legend.position = "none",
+      axis.title = element_text(size = 20),  # Axis titles
+      axis.text = element_text(size = 17)
+    ) +
+    
+    xlim(c(0, max(Median_data[[trait2]]) * 1.2)) +
+    ylim(c(0, max(Median_data[[trait1]]) * 1.35))  # Adjust margins to fit annotations outside
+  
+  # Print the plot
+  print(plot)
   
   # Print the plot
   print(plot)
