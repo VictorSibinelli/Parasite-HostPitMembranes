@@ -14,9 +14,9 @@ Median_data<- read.csv(here("data", "processed", "Median_data.csv"))
 Median_data$Kmax <- log(Median_data$Kmax)
 
 head(Median_data)
-var_names <- c("Dpo","Dpit","Tvw","D","Dtop","Fpit","Dh","VD","Fv","log_Kmax")
+var_names <- c("Dpo","Dpit","Tvw","D","Dtop","Fpit","Dh","VD","Fv","logKmax")
 colnames(Median_data)[3:12] <- var_names
-# Create the ggpairs plot
+
 
 
 # Create the ggpairs plot with robust regression and Spearman correlation
@@ -31,27 +31,18 @@ spearman_plot <- ggpairs(
     continuous = wrap("cor", method = "spearman", size = 6)  # Spearman correlation
   )
 )+
+  ggplot2::scale_color_manual(
+    values = c("Parasite" = alpha("red", 0.7), "Host" = alpha("grey", 0.8))
+  )+
   ggplot2::scale_fill_manual(
     values = c("Parasite" = alpha("red", 0.7), "Host" = alpha("grey", 0.8))
-  )
-
-# Customize color and fill scales for the ggpairs object
-spearman_plot <- spearman_plot +
-  ggplot2::scale_colour_manual(
-    values = c("Parasite" = alpha("red", 0.7), "Host" = alpha("grey", 0.8))
-  ) +
-  ggplot2::scale_fill_manual(
-    values = c("Parasite" = alpha("red", 0.7), "Host" = alpha("grey", 0.8))
-  )
-
-# Customize the theme using the ggmatrix theme method
-spearman_plot$theme <- ggplot2::theme_minimal() +
+  )+
+  ggplot2::theme_minimal() +
   ggplot2::theme(
     axis.text = element_text(size = 20),    # Axis labels
     strip.text = element_text(size = 20),   # Facet strip text
     legend.text = element_text(size = 20)   # Legend text
   )
-
 # Print the customized ggpairs plot
 print(spearman_plot)
 
@@ -95,7 +86,7 @@ CorMat_plot <- # Create the correlation matrix using the magma palette with ligh
     legend.title = element_text(size = 12, face = "bold"),
     legend.text = element_text(size = 10)
   )
-
+CorMat_plot
 trait_pairs <- combn(var_names, 2, simplify = TRUE)
 
 # Create the slope_differences data frame with p_value column
@@ -158,7 +149,7 @@ for (pair in sig_slopes$trait_pair) {
     # Group-specific robust regression lines
     stat_smooth(
       method = function(formula, data, weights = weight) 
-        rlm(formula, data, weights = weight, method = "MM"),
+        rlm(formula, data, weights = weight, method = "MM",maxit = 100),
       aes(color = parasitism), size = 3
     ) +
     

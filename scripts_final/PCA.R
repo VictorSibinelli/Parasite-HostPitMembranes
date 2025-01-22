@@ -89,6 +89,43 @@ variable_plot2 <- fviz_pca_var(
     plot.title = element_text(size = 14, face = "bold", hjust = 0.5)
   )
 print(variable_plot2)
+
+
+filtered_data <- Median_data %>%
+  filter(parasitism == "Parasite") 
+
+p1 <- fviz_pca_var(
+  PCA(filtered_data[3:12], scale.unit = TRUE, graph = FALSE),axes = c(1,2),
+  col.var = "contrib",                         # Color by contribution
+  gradient.cols = viridis::magma(10)[3:9],          # Use viridis color scale
+  repel = TRUE                                 # Avoid overlapping text
+) +
+  labs(title = "PCA: Variable Contributions") +
+  theme_minimal() +
+  theme(
+    axis.text = element_text(size = 10),
+    axis.title = element_text(size = 12, face = "bold"),
+    plot.title = element_text(size = 14, face = "bold", hjust = 0.5)
+  )
+
+filtered_data <- Median_data %>%
+  filter(parasitism == "Host") 
+p2 <- fviz_pca_var(
+  PCA(filtered_data[3:12], scale.unit = TRUE, graph = FALSE),axes = c(1,2),
+  col.var = "contrib",                         # Color by contribution
+  gradient.cols = viridis::magma(10)[3:9],          # Use viridis color scale
+  repel = TRUE                                 # Avoid overlapping text
+) +
+  labs(title = "PCA: Variable Contributions") +
+  theme_minimal() +
+  theme(
+    axis.text = element_text(size = 10),
+    axis.title = element_text(size = 12, face = "bold"),
+    plot.title = element_text(size = 14, face = "bold", hjust = 0.5)
+  )
+p1+p2
+
+
 # --- Step 6: PCA Biplot ---
 # Perform PCA with prcomp for ggbiplot compatibility
 pc <- prcomp(Median_data[, 3:11], center = TRUE, scale. = TRUE)
