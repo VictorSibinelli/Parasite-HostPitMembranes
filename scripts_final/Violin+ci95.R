@@ -3,12 +3,10 @@ library(dplyr)
 library(ggplot2)
 library(here)
 library(patchwork)
+
 # Load data
 Wall_data <- read.csv(here("data", "processed", "Wall_data.csv"))
-VesselDiameter_data <- read.csv(here("data", "processed", "VesselDiameter_data.csv")) %>%
-  group_by(ssp, indiv) %>%
-  filter(VesselDiameter >= quantile(VesselDiameter, 0.9)) %>%
-  ungroup()
+VesselDiameter_data <- read.csv(here("data", "processed", "VesselDiameter_data.csv"))
 Hydraulic_data <- read.csv(here("data", "processed", "HydraulicData.csv"))
 PitFraction_data <- read.csv(here("data", "processed", "PitFraction_data.csv"))
 PitDiOp_data <- read.csv(here("data", "processed", "PitDiOp_data.csv"))
@@ -102,6 +100,7 @@ for (e in seq_along(CI95)) {
     ) +
     scale_color_manual(values = rep(c("firebrick", "black"), length.out = nlevels(data$Grouping))) +
     theme_minimal() +
+    scale_x_discrete(labels = short_names)+
     theme(
       legend.position = "none",
       axis.text.y = element_text(face = "italic",size = 15),
@@ -113,14 +112,6 @@ for (e in seq_along(CI95)) {
   
   plots[[e]] <- g  # Store each plot in the list
 }
-
-# Combine all plots into one figure
-combined_plot1 <- wrap_plots(plots, ncol = 2)  # Adjust `ncol` to set the layout
-print(combined_plot1)
-x11(width = 14,height = 18)
-
-
-
 # Format and combine confidence interval results
 pcd_CI95 <- tapply(PitMembrane_data$pcd, PitMembrane_data$parasitism, t.test)
 Tpm_CI95 <- tapply(PitMembrane_data$Tpm, PitMembrane_data$parasitism, t.test)
@@ -146,6 +137,82 @@ result_df$Pcd <- Pcd_CI_combined$CI[match(rownames(result_df), Pcd_CI_combined$G
 result_df$Tpm <- Tpm_CI_combined$CI[match(rownames(result_df), Tpm_CI_combined$Group)]
 
 print(result_df)
+
+Pcd_CI_combined <- Pcd_CI_combined %>%
+  separate(CI, into = c("Lower_CI", "Mean", "Upper_CI"), sep = " - ", convert = TRUE)
+Pcd_CI_combined$Group <- factor(Pcd_CI_combined$Group, levels = c(
+  "Parasite", "Host",
+  "Psittacanthus robustus", "Vochysia thyrsoidea",
+  "Phoradendron perrotettii", "Tapirira guianensis",
+  "Struthanthus rhynchophyllus", "Tipuana tipu",
+  "Viscum album", "Populus nigra"
+))
+Tpm_CI_combined <- Tpm_CI_combined %>%
+  separate(CI, into = c("Lower_CI", "Mean", "Upper_CI"), sep = " - ", convert = TRUE)
+Tpm_CI_combined$Group <- factor(Tpm_CI_combined$Group, levels = c(
+  "Parasite", "Host",
+  "Psittacanthus robustus", "Vochysia thyrsoidea",
+  "Phoradendron perrotettii", "Tapirira guianensis",
+  "Struthanthus rhynchophyllus", "Tipuana tipu",
+  "Viscum album", "Populus nigra"
+))
+# Plot for Pcd
+Pcd_plot <- Pcd_CI_combined %>%
+  ggplot(aes(x = Group, y = Mean)) +
+  geom_point(size = 5, aes(color = Group)) +
+  geom_errorbar(aes(ymin = Lower_CI, ymax = Upper_CI), width = 0.2) +
+  coord_flip() +
+  labs(
+    title = "95% CI for Pcd", 
+    y = "Pcd Estimate"
+  ) +
+  scale_color_manual(values = rep(c("firebrick", "black"),times=5)) +
+  theme_minimal() +
+  scale_x_discrete(labels = short_names)+
+  theme(
+    legend.position = "none",
+    axis.text.y = element_text(face = "italic", size = 15),
+    axis.text.x = element_text(size = 15),
+    plot.title = element_text(hjust = 0.5, size = 15),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank()
+  )
+
+# Plot for Tpm
+Tpm_plot <- Tpm_CI_combined %>%
+  ggplot(aes(x = Group, y = Mean)) +
+  geom_point(size = 5, aes(color = Group)) +
+  geom_errorbar(aes(ymin = Lower_CI, ymax = Upper_CI), width = 0.2) +
+  coord_flip() +
+  labs(
+    title = "95% CI for Tpm", 
+    y = "Tpm Estimate"
+  ) +
+  scale_x_discrete(labels = short_names)+
+  scale_color_manual(values = rep(c("firebrick", "black"),times=5)) +
+  theme_minimal() +
+  theme(
+    legend.position = "none",
+    axis.text.y = element_text(face = "italic", size = 15),
+    axis.text.x = element_text(size = 15),
+    plot.title = element_text(hjust = 0.5, size = 15),
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank()
+  )
+
+# Print the plots
+print(Pcd_plot)
+print(Tpm_plot)
+plots[[11]] <- Pcd_plot
+plots[[12]] <- Tpm_plot
+# Combine all plots into one figure
+combined_plot1 <- wrap_plots(plots, ncol = 2)  # Adjust `ncol` to set the layout
+print(combined_plot1)
+x11(width = 10,height = 14)
+
+
+
+
 
 
 w_plot <- Wall_data %>% 
@@ -181,8 +248,8 @@ w_plot
 
 d_plot <- VesselDiameter_data %>% ggplot( aes(x = ssp, y = VesselDiameter, fill = parasitism)) +
   geom_jitter(
-              size = 1, alpha=0.4, position = position_jitter(width = 0.3)) +
-  geom_violin(color = "black", alpha = 0.6, position = position_dodge(width = 0.9),adjust=2) +
+              size = 0.5, alpha=0.3, position = position_jitter(width = 0.3)) +
+  geom_violin(color = "black", alpha = 0.7, position = position_dodge(width = 0.9),adjust=2) +
   scale_fill_manual(
     values = c("Parasite" = "firebrick", "Host" = "grey"),
     name = "Parasitism"
@@ -211,6 +278,41 @@ d_plot <- VesselDiameter_data %>% ggplot( aes(x = ssp, y = VesselDiameter, fill 
                      expand = expansion(mult = c(0, 0.1)))
                      
 d_plot
+
+
+dtop_plot <- VesselDiameter_data %>% group_by(indiv,ssp) %>% 
+  filter(VesselDiameter>=quantile(VesselDiameter,0.9)) %>% ungroup() %>%
+  ggplot( aes(x = ssp, y = VesselDiameter, fill = parasitism)) +
+  geom_jitter(
+    size = 0.5, alpha=0.3, position = position_jitter(width = 0.3)) +
+  geom_violin(color = "black", alpha = 0.7, position = position_dodge(width = 0.9),adjust=2) +
+  scale_fill_manual(
+    values = c("Parasite" = "firebrick", "Host" = "grey"),
+    name = "Parasitism"
+  )+
+  
+  geom_vline(xintercept = c(2.5,4.5,6.5)) +
+  theme_classic() +
+  scale_x_discrete(labels = short_names,guide = guide_axis(angle = 45))  +
+  labs(
+    x = "Species",
+    y = "Dtop (µm)") +
+  annotate("text", x = c(1.5,3.5,5.5,7.5),
+           y = max(VesselDiameter_data$VesselDiameter) + 5, label = c("*"), size = 8)+
+  annotate("text", x = c(1.5,3.5,5.5,7.5),
+           y = max(VesselDiameter_data$VesselDiameter) + 5,
+           label = "",
+           size = 6)+
+  theme(
+    legend.position = "none",  # Removes the legend
+    axis.title.x = element_blank(),  # Removes x-axis title
+    axis.text.x = element_blank(),  # Removes x-axis tick labels
+    axis.ticks.x = element_blank()  # Removes x-axis tick marks
+  ) +
+  guides(fill = "none", color = "none")+
+  scale_y_continuous(limits = c(0,max(VesselDiameter_data$VesselDiameter)*1.15),
+                     expand = expansion(mult = c(0, 0.1)))
+dtop_plot
 
 hd_plot <- Hydraulic_data %>% 
   ggplot(aes(x = ssp, y = HydraulicDiameter, fill = parasitism)) +
@@ -354,41 +456,6 @@ kmax_plot <- Hydraulic_data %>%
 kmax_plot
 
 
-fp_plot <- PitFraction_data %>% 
-  ggplot(aes(x = ssp, y = PitFraction, fill = parasitism)) +
-  geom_jitter(
-              size = 1, alpha=0.5, position = position_jitter(width = 0.3)) +
-  geom_violin(color = "black", alpha = 0.5, position = position_dodge(width = 0.9)) +
-  scale_fill_manual(
-    values = c("Parasite" = "firebrick", "Host" = "grey"),
-    name = "Parasitism"
-  ) +
-
-  geom_vline(xintercept = c(2.5, 4.5, 6.5)) +
-  theme_classic() +
-  scale_x_discrete(labels = short_names, guide = guide_axis(angle = 45)) +
-  labs(
-       x = "Species",
-       y = "Fp (%)") +
-  annotate("text", x = c(1.5, 3.5, 5.5, 7.5),
-           y = max(PitFraction_data$PitFraction) * 1.1,  # Adjust for log scale
-           label = c("ns","ns","*","*"), size = c(5,5,8,8)) +
-  annotate("text", x = c(1.5, 3.5, 5.5, 7.5),
-           y = max(PitFraction_data$PitFraction) * 1.1,
-           label = "",
-           size = 6) +
-  theme(
-    legend.position = "none",  # Removes the legend
-    axis.title.x = element_blank(),  # Removes x-axis title
-    axis.text.x = element_blank(),  # Removes x-axis tick labels
-    axis.ticks.x = element_blank()  # Removes x-axis tick marks
-  ) +
-  guides(fill = "none", color = "none")+
-  scale_y_continuous(limits=c(0,110),
-    expand = expansion(mult = c(0, 0.1))  # Adds extra space above the highest y value
-  )
-fp_plot
-
 pd_plot <- PitDiOp_data %>% 
   ggplot(aes(x = ssp, y = PitDiameter, fill = parasitism)) +
   geom_jitter(
@@ -461,6 +528,39 @@ po_plot <- PitDiOp_data %>%
 po_plot
 
 
+
+fp_plot <- PitFraction_data %>% 
+  ggplot(aes(x = ssp, y = PitFraction, fill = parasitism)) +
+  geom_jitter(
+    size = 1, alpha=0.5, position = position_jitter(width = 0.3)) +
+  geom_violin(color = "black", alpha = 0.5, position = position_dodge(width = 0.9)) +
+  scale_fill_manual(
+    values = c("Parasite" = "firebrick", "Host" = "grey"),
+    name = "Parasitism"
+  ) +
+  
+  geom_vline(xintercept = c(2.5, 4.5, 6.5)) +
+  theme_classic() +
+  scale_x_discrete(labels = short_names, guide = guide_axis(angle = 45)) +
+  labs(
+    x = "Species",
+    y = "Fp (%)") +
+  annotate("text", x = c(1.5, 3.5, 5.5, 7.5),
+           y = max(PitFraction_data$PitFraction) * 1.1,  # Adjust for log scale
+           label = c("ns","ns","*","*"), size = c(5,5,8,8)) +
+  annotate("text", x = c(1.5, 3.5, 5.5, 7.5),
+           y = max(PitFraction_data$PitFraction) * 1.1,
+           label = "",
+           size = 6) +
+  theme(
+    legend.position = "none"
+  ) +
+  guides(fill = "none", color = "none")+
+  scale_y_continuous(limits=c(0,110),
+                     expand = expansion(mult = c(0, 0.1))  # Adds extra space above the highest y value
+  )
+fp_plot
+
 pcd_plot <- PitMembrane_data %>% 
   ggplot(aes(x = ssp, y = pcd, fill = parasitism)) +
   geom_jitter(
@@ -532,15 +632,15 @@ Tpm_plot
 
 
 combined_plot2 <- 
-  (d_plot + hd_plot + vd_plot) /
+  (d_plot + hd_plot + dtop_plot) /
   (fv_plot + kmax_plot + w_plot) /
-  (fp_plot + pd_plot + po_plot) /
-  (pcd_plot + Tpm_plot + plot_spacer()) +
+  ( vd_plot+ pd_plot + po_plot) /
+  (pcd_plot + Tpm_plot +fp_plot) +
   plot_layout(guides = "collect") &  # Collect legends and place them
   theme(legend.position = "bottom")            # Place the legend at the bottom
 
 x11(width = 12,height = 12)
 ggsave(file=here("outputs","figs","trait_violin_plot.png"),
-       combined_plot2,units = "in",dpi = 600,height = 12,width = 12)
+       combined_plot2,units = "in",dpi = 600,height = 14,width = 10)
 ggsave(file=here("outputs","figs","trait_CI95.png"),
-       combined_plot1,units = "in",dpi = 600,height = 18,width = 12)
+       combined_plot1,units = "in",dpi = 600,height = 14,width = 10)

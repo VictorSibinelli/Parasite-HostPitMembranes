@@ -17,7 +17,7 @@ head(Median_data)
 var_names <- c("Dpo","Dpit","Tvw","D","Dtop","Fpit","Dh","VD","Fv","logKmax")
 colnames(Median_data)[3:12] <- var_names
 
-
+source(here("scripts", "Functions.R"))
 
 # Create the ggpairs plot with robust regression and Spearman correlation
 spearman_plot <- ggpairs(
@@ -28,22 +28,25 @@ spearman_plot <- ggpairs(
     continuous = wrap("smooth", method = "rlm", maxit = 50)  # Robust regression
   ),
   upper = list(
-    continuous = wrap("cor", method = "spearman", size = 6)  # Spearman correlation
+    continuous = wrap("cor", method = "spearman", size = 7)  # Spearman correlation
   )
-)+
+) +
   ggplot2::scale_color_manual(
+    labels = c("P", "H"),  # Custom legend labels
     values = c("Parasite" = alpha("red", 0.7), "Host" = alpha("grey", 0.8))
-  )+
+  ) +
   ggplot2::scale_fill_manual(
+    labels = c("P", "H"),  # Custom legend labels
     values = c("Parasite" = alpha("red", 0.7), "Host" = alpha("grey", 0.8))
-  )+
+  ) +
   ggplot2::theme_minimal() +
   ggplot2::theme(
     axis.text = element_text(size = 20),    # Axis labels
     strip.text = element_text(size = 20),   # Facet strip text
     legend.text = element_text(size = 20)   # Legend text
   )
-# Print the customized ggpairs plot
+
+# Print the plot
 print(spearman_plot)
 
 CorMat_plot <- # Create the correlation matrix using the magma palette with lighter extremes
@@ -70,6 +73,7 @@ CorMat_plot <- # Create the correlation matrix using the magma palette with ligh
     type = "robust",
     label = TRUE,
     grouping.var = parasitism,
+    size = 0,
     p.adjust.method = "fdr",
     digits = 3
   ) +
@@ -169,27 +173,27 @@ for (pair in sig_slopes$trait_pair) {
     # Parasite slope annotation
     annotate(
       "text", 
-      x = max(Median_data[[trait2]]) * 0.75,  # Position annotation
-      y = max(Median_data[[trait1]]) * 1.35, 
-      label = paste0("Parasite slope: ", round(parasite_slope, 3)),
+      x = max(Median_data[[trait2]]) * 0.5,  # Position annotation
+      y = max(Median_data[[trait1]]) * 0.25, 
+      label = paste0("Parasite slope: ", signif(parasite_slope,2)),
       hjust = 0, vjust = 1, color = "red", size = 6
     ) +
     
     # Host slope annotation
     annotate(
       "text", 
-      x = max(Median_data[[trait2]]) * 0.75,  # Position annotation
-      y = max(Median_data[[trait1]]) * 1.3, 
-      label = paste0("Host slope: ", round(host_slope, 3)),
+      x = max(Median_data[[trait2]]) * 0.5,  # Position annotation
+      y = max(Median_data[[trait1]]) * 0.15, 
+      label = paste0("Host slope: ", signif(host_slope, 2)),
       hjust = 0, vjust = 1, color = "black", size = 6
     ) +
     
     # p-value annotation with dynamic display
     annotate(
       "text", 
-      x = max(Median_data[[trait2]]) * 0.75,  # Position annotation
-      y = max(Median_data[[trait1]]) * 1.25, 
-      label = ifelse(p_value < 0.001, "p-value < 0.001", paste0("p-value: ", round(p_value, 4))),
+      x = max(Median_data[[trait2]]) * 0.5,  # Position annotation
+      y = max(Median_data[[trait1]]) * 0.05, 
+      label = ifelse(p_value < 0.001, "p-value < 0.001", paste0("p-value: ", round(p_value, 3))),
       hjust = 0, vjust = 1, color = "black", size = 6
     ) +
     
@@ -197,8 +201,8 @@ for (pair in sig_slopes$trait_pair) {
     theme_minimal() +
     theme(
       legend.position = "none",
-      axis.title = element_text(size = 20),  # Axis titles
-      axis.text = element_text(size = 17)
+      axis.title = element_text(size = 15),  # Axis titles
+      axis.text = element_text(size = 14)
     ) +
     
     xlim(c(0, max(Median_data[[trait2]]) * 1.2)) +
@@ -211,11 +215,16 @@ for (pair in sig_slopes$trait_pair) {
   print(plot)
   regression_plots[[pair]] <- plot
 }
-
+spur <- c(11,13,15,19)
+regression_plots <- regression_plots[-spur]
 # Combine all plots and save
-regression_plots <- patchwork::wrap_plots(regression_plots)
+regression_board <- lapply(regression_plots, function(p) p + theme(aspect.ratio = 1))
+# Combine the plots into rows using valid list subsetting
+regression_board <- patchwork::wrap_plots(regression_board, ncol = 3)
 
-ggsave(filename = here("outputs", "figs", "trait_regression_plot.png"),regression_plots,
-       dpi = 600, units = "in", height = 30, width = 30)
+
+ggsave(filename = here("outputs", "figs", "trait_regression_plot.png"),regression_board,
+       dpi = 600, units = "in", height = 28, width = 24)
 ggsave(filename = here("outputs", "figs", "spearman_plot.png"),spearman_plot,
-       dpi = 600, units = "in", height = 15, width = 18)
+       dpi = 600, units = "in", height = 28, width = 28)
+ggsave(filename = here("outputs","figs","CorrMat_plot.png"),CorMat_plot,dpi=600,units = "in",height = 9,width = 12)
