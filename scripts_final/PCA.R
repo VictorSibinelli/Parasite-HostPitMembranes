@@ -8,7 +8,7 @@ library(ggrepel)
 library(factoextra)
 library(patchwork)  # For arranging multiple plots
 library(viridis)  # For viridis color scale
-
+source(here("scripts","Functions.R"))
 # Load data
 Median_data <- read.csv(here("data", "processed", "Median_data.csv"))
 PitMembrane_data<- read.csv(here("data", "processed", "PitMembrane_data.csv"))
@@ -57,6 +57,8 @@ shapes <- c(
 # --- Step 2: Perform PCA ---
 pca_result <- PCA(Median_data %>%
                     select(where(is.numeric)), scale.unit = TRUE, graph = FALSE)
+
+relevel_factors(ls())
 
 # --- Step 3: PCA Summary ---
 # Extract and print eigenvalues

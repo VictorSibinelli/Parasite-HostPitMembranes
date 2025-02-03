@@ -85,3 +85,59 @@ relevel_factors <- function(dataframes) {
     assign(df_name, df, envir = .GlobalEnv)
   }
 }
+perform_t_tests <- function(data, trait_col, indiv_test) {
+  # Ensure 'indiv' column exists
+  if (!"indiv" %in% colnames(data)) {
+    stop(paste("Error: 'indiv' column not found in dataset for trait:", trait_col))
+  }
+  
+  results_df <- data.frame(
+    indiv_tested = character(),
+    difference_observed = numeric(),
+    CI95 = character(),
+    pvalue = numeric(),
+    Rdiff = numeric(),  # New column
+    stringsAsFactors = FALSE
+  )
+  
+  for (ind in indiv_test) {
+    filtered_data <- data %>% filter(indiv %in% ind)
+    
+    if (length(unique(filtered_data$indiv)) == 2) {
+      group1 <- filtered_data[[trait_col]][filtered_data$indiv == ind[1]]
+      group2 <- filtered_data[[trait_col]][filtered_data$indiv == ind[2]]
+      
+      if (length(group1) > 1 & length(group2) > 1) {
+        result <- t.test(group1, group2, var.equal = FALSE)
+        indiv_tested <- paste(ind[1], "vs", ind[2])
+        difference_observed <- result$estimate[1] - result$estimate[2]
+        CI95 <- paste0("(", round(result$conf.int[1], 2), ", ", round(result$conf.int[2], 2), ")")
+        pvalue <- result$p.value
+        mean_group2 <- mean(group2, na.rm = TRUE)  # Compute mean of group 2
+        print(result)
+        # Compute Rdiff safely (avoid division by zero)
+        Rdiff <- ifelse(mean_group2 != 0, (difference_observed / mean_group2)*100, NA)
+        
+        results_df <- rbind(
+          results_df,
+          data.frame(
+            indiv_tested = indiv_tested,
+            difference_observed = round(difference_observed, 3),
+            CI95 = CI95,
+            pvalue = round(pvalue, 5),
+            Rdiff = round(Rdiff, 3),  # Store Rdiff in the results
+            stringsAsFactors = FALSE
+          )
+        )
+      } else {
+        cat("\nSkipping pair:", ind, "- Not enough data for valid t-test.\n")
+      }
+    } else {
+      cat("\nSkipping pair:", ind, "- Insufficient or invalid data.\n")
+    }
+  }
+  
+  return(results_df)
+}
+
+

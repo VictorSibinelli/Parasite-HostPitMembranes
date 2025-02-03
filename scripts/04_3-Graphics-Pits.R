@@ -264,7 +264,9 @@ ggsave(here("outputs","figs" ,"PitOpening.png"), plot = PO_plot, dpi = 600, widt
 # Wave graph base don Kaack 2021.
 # Function definition
 
-# Function definition
+#PitMembrane_data<- read.csv(here("data", "processed", "PitMembrane_data.csv"))
+source(here("scripts", "Functions.R"))
+relevel_factors(ls())
 lucian_model <- function(n_pits, tpm_layer, prob_lp_layer = 0.25) {
   1 - (1 - prob_lp_layer^((tpm_layer + 20) / 40))^n_pits
 }
@@ -278,19 +280,20 @@ background_plot <- outer(number_of_pits, pit_membrane_thickness, lucian_model)
 # Define the range of parasitic plants
 ptm_range_plant1 <- seq(338, 1021, 1) # Min to max range
 plant1_plot <- outer(number_of_pits, ptm_range_plant1, lucian_model)
-mean_ptm_plant1 <- mean(pitdata_clean$pitavg[pitdata_clean$parasitism == "p"], na.rm = T) * 1000
+mean_ptm_plant1 <- mean(PitMembrane_data$Tpm[PitMembrane_data$parasitism == "Parasite"], na.rm = T)
 
 # Plot
-wave <- plot_ly(
-  x = ~pit_membrane_thickness,
-  y = ~number_of_pits,
-  z = ~background_plot
-) %>%
+wave <-
+  plot_ly(
+    x = ~pit_membrane_thickness,
+    y = ~number_of_pits,
+    z = ~background_plot
+  ) %>%
   layout(
     scene = list(
       xaxis = list(title = "Tpm (nm)"),
       yaxis = list(title = "Number of pits in a <br> average vessel"),
-      zaxis = list(title = "Probability of encountering <br> a large pore in a vessel")
+      zaxis = list(title = "Embolism risk")
     )
   ) %>%
   add_surface(colorbar = list(title = "Probability")) %>%
@@ -303,7 +306,7 @@ wave <- plot_ly(
       list(0.05, "pink"),
       list(0.1, "red")
     ),
-    colorbar = list(title = "Parasitic Plant Probability")
+    colorbar = list(title = "Parasite Tpm Probability")
   ) %>%
   add_trace(
     x = rep(mean_ptm_plant1, length(number_of_pits)),
