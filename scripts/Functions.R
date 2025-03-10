@@ -140,4 +140,37 @@ perform_t_tests <- function(data, trait_col, indiv_test) {
   return(results_df)
 }
 
-
+table_model <- function(full_model, null_model, data, response_var, predictor_var) {
+  # Extract fixed effects and random effects variance
+  fixed_effects <- round(fixef(full_model)$cond, digits = 2)
+  re <- as.numeric(VarCorr(full_model)[, "Variance"])
+  
+  # Calculate 95% Confidence Intervals for the predictor variable
+  conf_int <- emmeans(full_model, ~ get(predictor_var)) %>% summary()
+  
+  # Extract confidence intervals for both groups
+  CI_Group1 <- c(conf_int$lower.CL[1], fixed_effects[1], conf_int$upper.CL[1]) %>% round(digits = 2)
+  CI_Group2 <- c(conf_int$lower.CL[2], sum(fixed_effects), conf_int$upper.CL[2]) %>% round(digits = 2) # Adding Intercept to effect
+  
+  # Variance explained by random effects
+  variance_explained_by_RE <- (re[2] + re[4]) / (sum(re, na.rm = TRUE))
+  
+  # Perform likelihood ratio test (LRT) between full and null models
+  lrt <- anova(null_model, full_model)
+  delta_aic <- diff(lrt$AIC)
+  pv <- na.omit(lrt$`p-value`)
+  
+  # Append global model results to a data frame
+  model_results <- data.frame(
+    PairTested = paste(levels(data[[predictor_var]]), collapse = " vs "),
+    Group1Mean = paste0(CI_Group1, collapse = "-"),
+    Group2Mean = paste0(CI_Group2, collapse = "-"),
+    REVariance = variance_explained_by_RE * 100,
+    RelDiff = fixed_effects[2] / fixed_effects[1],
+    DeltaAIC = delta_aic,
+    p_value = pv,
+    stringsAsFactors = FALSE
+  )
+  
+  return(model_results)
+}

@@ -1,16 +1,14 @@
+
 ### LME analysis
-
-
 library(glmmTMB)
 library(tidyverse)
 library(here)
 library(nlme)
-library(report)
 library(emmeans)
 library(performance)
 library(predictmeans)
-source(here("scripts","00-library.R"))
-
+library(DHARMa)
+library(sjPlot)
 # Load data
 Wall_data <- read.csv(here("data", "processed", "Wall_data.csv"))
 VesselDiameter_data<- read.csv(here("data", "processed", "VesselDiameter_data.csv")) 
@@ -19,7 +17,7 @@ PitFraction_data<- read.csv(here("data", "processed", "PitFraction_data.csv"))
 PitDiOp_data<- read.csv(here("data", "processed", "PitDiOp_data.csv"))
 
 source(here("scripts", "Functions.R"))
-
+output_dir <- here("outputs", "tables", "Models")
 
 # List of species pairs for comparison
 species_pairs <- list(
@@ -92,11 +90,13 @@ VWall_AIC <- rbind(VWall_AIC, data.frame(
 ))
 
 
-# residplot(Wall_full,newwd = F)
-# title(sub = "Wall Thickness PxH")
-# check_model(Wall_full,show_dots = F)
-# CookD(Wall_full, idn = 20,newwd = F)
-# abline(h=4/nrow(Wall_data),col="red")
+residplot(Wall_full,newwd = F)
+title(sub = "Wall Thickness PxH")
+check_model(Wall_full,show_dots = F)
+CookD(Wall_full, idn = 20,newwd = F)
+abline(h=4/nrow(Wall_data),col="red")
+
+
 
 Wall_data[510,"WallThickness"] <- rev(sort(Wall_data$WallThickness[Wall_data$indiv=="Tipuana tipu 2"]))[2]
 
@@ -165,7 +165,29 @@ for (pair in species_pairs) {
       p_value = pv,
       stringsAsFactors = FALSE
     ))
-    
+    file_name <-paste("Tvw",
+                      paste0(
+                        paste(str_extract(pair, "^\\S+"), collapse = "_"), 
+                        "-Tvw.doc"
+                      ))
+                      file_path <- here(output_dir, file_name)
+                      
+                      # Create and save the model table
+                      tab_m <- sjPlot::tab_model(
+                        reduced_model, 
+                        full_model,
+                        title = paste("Vessel Wall Thickness -", paste(pair, collapse = " vs ")),
+                        file = file_path,
+                        show.aic = TRUE,
+                        show.r2
+                        show.reflvl = TRUE,
+                        pred.labels = c("Intercept", "Species Effect"),
+                        dv.labels = c("Null Model", "Full Model"),
+                        p.style = "numeric_stars"
+                      )
+                      
+                      # Explicitly print the table to save it
+                      print(tab_m)
   }, error = function(e) {
     cat("\nAn error occurred for pair", paste(pair, collapse = " vs "), ":", e$message, "\n")
   })
@@ -174,9 +196,15 @@ for (pair in species_pairs) {
 
 print(VWall_AIC)
 
+sjPlot::tab_model(Wall_null,Wall_full,show.aic = T,show.reflvl = T,
+                  title = "Vessel Wall Thickness - Parasites vs Hosts",
+                  pred.labels = c("Parasitism","Host"),
+                  dv.labels = c("Null Model","Full Model"),
+                  p.style = "numeric_stars",
+                  file = here("outputs","tables","Tvw_tab_model.doc")
+                  )
 
-
-#############################################################
+#######################
 ####################################################################
 
 
@@ -229,9 +257,9 @@ lrt <- anova(VesselDiameter_null,VesselDiameter_full)
 delta_aic <- diff(lrt$AIC)
 pv <- na.omit(lrt$`p-value`) 
 
-residplot(VesselDiameter_full,newwd = F)
-title(sub = "VDiameter PxH")
-# check_model(VesselDiameter_full,show_dots = F)
+# residplot(VesselDiameter_full,newwd = F)
+# title(sub = "VDiameter PxH")
+# # check_model(VesselDiameter_full,show_dots = F)
 
 
 VDiameter_AIC <- rbind(VDiameter_AIC, data.frame(
@@ -366,12 +394,12 @@ lrt <- anova(TopVesselDiameter_null,TopVesselDiameter_full)
 delta_aic <- diff(lrt$AIC)
 pv <- na.omit(lrt$`p-value`) 
 
-residplot(TopVesselDiameter_full,newwd = F)
-title(sub = "TopVDiameter PxH")
-check_model(TopVesselDiameter_full,show_dots = F)
-CookD(TopVesselDiameter_full, idn = 20,newwd = F)
-abline(h=4/nrow(TopVesselDiameter_data),col="red")
-
+# residplot(TopVesselDiameter_full,newwd = F)
+# title(sub = "TopVDiameter PxH")
+# check_model(TopVesselDiameter_full,show_dots = F)
+# CookD(TopVesselDiameter_full, idn = 20,newwd = F)
+# abline(h=4/nrow(TopVesselDiameter_data),col="red")
+# 
 
 TopVDiameter_AIC <- rbind(TopVDiameter_AIC, data.frame(
   PairTested = paste(levels(VesselDiameter_data$parasitism), collapse = " vs "),
@@ -510,11 +538,11 @@ lrt <- anova(Hydraulic_null,Hydraulic_full)
 delta_aic <- diff(lrt$AIC)
 pv <- na.omit(lrt$`p-value`)
 
-residplot(Hydraulic_full,newwd = F)
-title(sub = "HDiameter PxH")
-check_model(Hydraulic_full,show_dots = F)
-CookD(Hydraulic_full, idn = 20,newwd = F)
-abline(h=4/nrow(Hydraulic_data),col="red")
+# residplot(Hydraulic_full,newwd = F)
+# title(sub = "HDiameter PxH")
+# check_model(Hydraulic_full,show_dots = F)
+# CookD(Hydraulic_full, idn = 20,newwd = F)
+# abline(h=4/nrow(Hydraulic_data),col="red")
 # Append global model results
 HDiameter_AIC <- rbind(HDiameter_AIC, data.frame(
   PairTested = paste(levels(Hydraulic_data$parasitism), collapse = " vs "),
@@ -666,13 +694,13 @@ VDensity_AIC <- rbind(VDensity_AIC, data.frame(
   p_value = pv,
   stringsAsFactors = FALSE
 ))
-
-residplot(VDensity_glm,newwd = F)
-title(sub = "Vdens PxH")
-check_model(VDensity_glm,show_dots = F)
-
-simulateResiduals(fittedModel = VDensity_glm) %>% plot()
-testDispersion(simulateResiduals(fittedModel = VDensity_glm))
+# 
+# residplot(VDensity_glm,newwd = F)
+# title(sub = "Vdens PxH")
+# check_model(VDensity_glm,show_dots = F)
+# 
+# simulateResiduals(fittedModel = VDensity_glm) %>% plot()
+# testDispersion(simulateResiduals(fittedModel = VDensity_glm))
 # Iterate through species pairs
 for (pair in species_pairs) {
   subset_data <- subset(Hydraulic_data, ssp %in% pair)
@@ -734,11 +762,11 @@ for (pair in species_pairs) {
     delta_aic <- diff(lrt$AIC)
     pv <- na.omit(lrt$`Pr(>Chisq)`)
     
-    # Likelihood ratio test
-    residplot(full_model,newwd = F)
-    title(sub = paste0(pair,collapse = " x "))
-    print(check_model(full_model,show_dots = F))
-
+    # # Likelihood ratio test
+    # residplot(full_model,newwd = F)
+    # title(sub = paste0(pair,collapse = " x "))
+    # print(check_model(full_model,show_dots = F))
+    # 
 
     
     # Append global model results
@@ -772,23 +800,17 @@ VFraction_AIC <- data.frame(
 )
 
 # Fit global models
-VFraction_full <- lme(
-  VesselFraction ~ parasitism,       # Fixed effects
-  random = ~ 1 | ssp / indiv,       # Random effects
-  data = Hydraulic_data,                 # Data frame
-  method = "ML",
-  control = list(maxIter = 150, msMaxIter = 150),
-  weights = varIdent(form = ~ 1 | ssp)
-)
+VFraction_full <-  glmmTMB(
+  (VesselFraction/100) ~ parasitism + (1 | ssp / indiv),  # Fixed effect: species, Random effect: individual
+  family = beta_family(link = "logit"),  # Beta regression with logit link
+  data = Hydraulic_data
+) 
 
-VFraction_null <- lme(
-  VesselFraction ~ 1,       # Fixed effects
-  random = ~ 1 | ssp / indiv,       # Random effects
-  data = Hydraulic_data,                 # Data frame
-  method = "ML",
-  control = list(maxIter = 150, msMaxIter = 150),
-  weights = varIdent(form = ~ 1 | ssp)
-)
+VFraction_null <-  glmmTMB(
+  (VesselFraction/100) ~ (1 | ssp / indiv),  # Fixed effect: species, Random effect: individual
+  family = beta_family(link = "logit"),  # Beta regression with logit link
+  data = Hydraulic_data
+) 
 
 # Extract fixed effects, random effects variance, and residuals
 fixed_effects <- round(fixed.effects(VFraction_full), digits = 2)
@@ -807,11 +829,17 @@ lrt <- anova(VFraction_null,VFraction_full)
 delta_aic <- diff(lrt$AIC)
 pv <- na.omit(lrt$`p-value`)
 
-residplot(VFraction_full,newwd = F)
-title(sub = "VFraction PxH")
-check_model(VFraction_full,show_dots = F)
-CookD(VFraction_full, idn = 20,newwd = F)
-abline(h=4/nrow(Hydraulic_data),col="red")
+
+res <- simulateResiduals(VFraction_full)
+plot(res)  # Check for residual patterns
+
+# Model fit assessment
+check_model(VFraction_full)
+ residplot(VFraction_full,newwd = F)
+ title(sub = "VFraction PxH")
+ check_model(VFraction_full,show_dots = F)
+ CookD(VFraction_full, idn = 20,newwd = F)
+ abline(h=4/nrow(Hydraulic_data),col="red")
 
 # Append global model results
 VFraction_AIC <- rbind(VFraction_AIC, data.frame(
@@ -824,45 +852,38 @@ VFraction_AIC <- rbind(VFraction_AIC, data.frame(
   p_value = pv,
   stringsAsFactors = FALSE
 ))
-
-Hydraulic_data[84,"VesselFraction"] <-
-  rev(sort(Hydraulic_data$VesselFraction[Hydraulic_data$indiv=="Psittacanthus robustus 2"]))[2]
-Hydraulic_data[222,"VesselFraction"] <- 
-  rev(sort(Hydraulic_data$VesselFraction[Hydraulic_data$indiv=="Vochysia thyrsoidea 1"]))[2]
-Hydraulic_data[c(237),"VesselFraction"] <- 
-  rev(sort(Hydraulic_data$VesselFraction[Hydraulic_data$indiv=="Vochysia thyrsoidea 2"]))[2]
-Hydraulic_data[c(232,236,238),"VesselFraction"] <- 
-  sort(Hydraulic_data$VesselFraction[Hydraulic_data$indiv=="Vochysia thyrsoidea 2"])[4]
-Hydraulic_data[c(239,240),"VesselFraction"] <- 
-  rev(sort(Hydraulic_data$VesselFraction[Hydraulic_data$indiv=="Vochysia thyrsoidea 3"]))[3]
-Hydraulic_data[135,"VesselFraction"] <- 
-  rev(sort(Hydraulic_data$VesselFraction[Hydraulic_data$indiv=="Tapirira guianensis 2"]))[2]
-Hydraulic_data[c(127,132),"VesselFraction"] <- 
-sort(Hydraulic_data$VesselFraction[Hydraulic_data$indiv=="Tapirira guianensis 2"])[3] 
+# 
+# Hydraulic_data[84,"VesselFraction"] <-
+#   rev(sort(Hydraulic_data$VesselFraction[Hydraulic_data$indiv=="Psittacanthus robustus 2"]))[2]
+# Hydraulic_data[222,"VesselFraction"] <- 
+#   rev(sort(Hydraulic_data$VesselFraction[Hydraulic_data$indiv=="Vochysia thyrsoidea 1"]))[2]
+# Hydraulic_data[c(237),"VesselFraction"] <- 
+#   rev(sort(Hydraulic_data$VesselFraction[Hydraulic_data$indiv=="Vochysia thyrsoidea 2"]))[2]
+# Hydraulic_data[c(232,236,238),"VesselFraction"] <- 
+#   sort(Hydraulic_data$VesselFraction[Hydraulic_data$indiv=="Vochysia thyrsoidea 2"])[4]
+# Hydraulic_data[c(239,240),"VesselFraction"] <- 
+#   rev(sort(Hydraulic_data$VesselFraction[Hydraulic_data$indiv=="Vochysia thyrsoidea 3"]))[3]
+# Hydraulic_data[135,"VesselFraction"] <- 
+#   rev(sort(Hydraulic_data$VesselFraction[Hydraulic_data$indiv=="Tapirira guianensis 2"]))[2]
+# Hydraulic_data[c(127,132),"VesselFraction"] <- 
+# sort(Hydraulic_data$VesselFraction[Hydraulic_data$indiv=="Tapirira guianensis 2"])[3] 
 # Iterate through species pairs
 for (pair in species_pairs) {
   subset_data <- subset(Hydraulic_data, ssp %in% pair)
   
   tryCatch({
     # Fit models for the species pair
-    full_model <- lme(
-      VesselFraction ~ ssp,           # Fixed effects
-      random = ~ 1 | indiv,    # Random effects
-      data = subset_data,            # Subset data
-      control = list(maxIter = 150, msMaxIter = 150),
-      weights = varIdent(form = ~ 1 | ssp),
-      method = "ML"
-    )
+    full_model <- glmmTMB(
+      (VesselFraction/100) ~ ssp + (1 | indiv),  # Fixed effect: species, Random effect: individual
+      family = beta_family(link = "logit"),  # Beta regression with logit link
+      data = Hydraulic_data
+    ) 
     
-    reduced_model <- lme(
-      VesselFraction ~ 1,             # Fixed effects
-      random = ~ 1 |indiv,    # Random effects
-      data = subset_data,
-      control = list(maxIter = 150, msMaxIter = 150),
-      weights = varIdent(form = ~ 1 | ssp),
-      method = "ML"
-    )
-    
+    reduced_model <- glmmTMB(
+      (VesselFraction/100) ~ (1 | indiv),  # Fixed effect: species, Random effect: individual
+      family = beta_family(link = "logit"),  # Beta regression with logit link
+      data = Hydraulic_data
+    ) 
     # Print model summary
     cat("\nModel Summary for Full Model (", paste(pair, collapse = " vs "), "):\n")
     print(summary(full_model))
@@ -881,6 +902,10 @@ for (pair in species_pairs) {
     CI_Host <-c(conf_int$lower.CL[2],sum(fixed_effects),conf_int$upper.CL[2]) %>% round(digits = 2) # Adding Intercept to Host effect
     
     
+    res <- simulateResiduals(full_model)
+    plot(res)  # Check for residual patterns
+    
+    check_model(full_model)
     residplot(full_model,newwd = F)
     title(sub = paste0(pair,collapse = " x "))
     print(check_model(full_model,show_dots = F))
@@ -1522,6 +1547,7 @@ for (pair in species_pairs) {
 
 AIC_tables <- list(VWall_AIC,
                    VDiameter_AIC,
+                   TopVDiameter_AIC,
                    HDiameter_AIC,
                    VDensity_AIC,
                    VFraction_AIC,
@@ -1534,6 +1560,7 @@ AIC_tables <- list(VWall_AIC,
 names(AIC_tables) <- c(
   "VWall_AIC",
   "VDiameter_AIC",
+  "TopVDiameter_AIC",
   "HDiameter_AIC",
   "VDensity_AIC",
   "VFraction_AIC",

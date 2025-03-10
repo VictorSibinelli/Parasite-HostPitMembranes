@@ -1,0 +1,249 @@
+Label,ssp,indiv,HydraulicDiameter,VesselDensity,VesselFraction,Kmax,parasitism
+p_nigra_3_1.tif,Populus nigra,Populus nigra 2,46.4796398325302,187.04448090677,10.06,2.13444840570749e-05,Host
+p_nigra_3_10.tif,Populus nigra,Populus nigra 2,45.2033498210697,167.688824700181,8.654,1.71189193738728e-05,Host
+p_nigra_3_2.tif,Populus nigra,Populus nigra 2,49.8156185383587,145.810164753914,9.261,2.19553141806453e-05,Host
+p_nigra_3_3.tif,Populus nigra,Populus nigra 2,60.8534370447092,118.109853878547,11.779,3.96019279518772e-05,Host
+p_nigra_3_4.tif,Populus nigra,Populus nigra 2,61.0764326422726,110.813255863091,11.617,3.77030178429359e-05,Host
+p_nigra_3_5.tif,Populus nigra,Populus nigra 2,60.3356691374931,126.857356554702,12.599,4.11056896070196e-05,Host
+p_nigra_3_6.tif,Populus nigra,Populus nigra 2,45.8475180456753,193.937002489452,11.07,2.09514336710305e-05,Host
+p_nigra_3_7.tif,Populus nigra,Populus nigra 2,59.983818811075,145.145142078333,12.887,4.59439887387322e-05,Host
+p_nigra_3_8.tif,Populus nigra,Populus nigra 2,45.8847112627691,215.837496366806,11.832,2.33931472463746e-05,Host
+p_nigra_3_9.tif,Populus nigra,Populus nigra 2,45.3520269846886,209.062207339061,10.982,2.16247994311336e-05,Host
+p_nigra_4_1.tif,Populus nigra,Populus nigra 3,49.4659046619649,117.56023452151,8.198,1.72097283551285e-05,Host
+p_nigra_4_10.tif,Populus nigra,Populus nigra 3,56.0960389540638,156.737517684599,12.702,3.79482274912525e-05,Host
+p_nigra_4_11.tif,Populus nigra,Populus nigra 3,47.7938244521956,145.470704282996,8.424,1.8558908250574e-05,Host
+p_nigra_4_12.tif,Populus nigra,Populus nigra 3,46.6540082644051,126.160722282684,7.223,1.46140221611703e-05,Host
+p_nigra_4_2.tif,Populus nigra,Populus nigra 3,49.2754769728787,118.781706333548,7.246,1.71223217638111e-05,Host
+p_nigra_4_3.tif,Populus nigra,Populus nigra 3,46.7001869937004,159.886986620507,9.225,1.8594193352979e-05,Host
+p_nigra_4_4.tif,Populus nigra,Populus nigra 3,57.3826005776762,105.41364064244,9.837,2.79452156922073e-05,Host
+p_nigra_4_5.tif,Populus nigra,Populus nigra 3,54.5325048132681,160.602453481192,11.943,3.47267154218861e-05,Host
+p_nigra_4_7.tif,Populus nigra,Populus nigra 3,48.2546618710484,183.974428230559,11.173,2.43895796882728e-05,Host
+p_nigra_4_8.tif,Populus nigra,Populus nigra 3,51.1997880214449,181.044331940455,11.441,3.0419167993098e-05,Host
+Phoradendron perrotettii 1 - GC4841 x10 001-1.tif,Phoradendron perrotettii,Phoradendron perrotettii 1,65.9856509748379,58.6111832790502,7.41,2.71686624783343e-05,Parasite
+Phoradendron perrotettii 1 - GC4841 x10 002-1.tif,Phoradendron perrotettii,Phoradendron perrotettii 1,71.506535599755,36.9211170779385,5.33,2.36019306360389e-05,Parasite
+Phoradendron perrotettii 1 - GC4841 x10 003-1.tif,Phoradendron perrotettii,Phoradendron perrotettii 1,67.8733816008048,38.7603214165165,5.09,2.01129172001298e-05,Parasite
+Phoradendron perrotettii 1 - GC4841 x10 004-1.tif,Phoradendron perrotettii,Phoradendron perrotettii 1,70.3083405405627,46.869033483112,6.72,2.80029080979052e-05,Parasite
+Phoradendron perrotettii 1 - GC4841 x10 005-1.tif,Phoradendron perrotettii,Phoradendron perrotettii 1,69.1206896526738,36.931108303561,5.4,2.0611724965033e-05,Parasite
+Phoradendron perrotettii 1 - GC4841 x10 006-1.tif,Phoradendron perrotettii,Phoradendron perrotettii 1,62.5386342557266,71.169578674829,7.69,2.66181404752515e-05,Parasite
+Phoradendron perrotettii 1 - GC4841 x10 007-1.tif,Phoradendron perrotettii,Phoradendron perrotettii 1,70.4363040580823,44.1811581715715,6.08,2.65896782135625e-05,Parasite
+Phoradendron perrotettii 1 - GC4841 x10 008-1.tif,Phoradendron perrotettii,Phoradendron perrotettii 1,66.3473327264352,45.0542530834385,5.92,2.13461429801674e-05,Parasite
+Phoradendron perrotettii 1 - GC4841 x10 009-1.tif,Phoradendron perrotettii,Phoradendron perrotettii 1,68.666184298528,46.8311840590322,6.12,2.54563741068679e-05,Parasite
+Phoradendron perrotettii 1 - GC4841 x10 010-1.tif,Phoradendron perrotettii,Phoradendron perrotettii 1,72.8047476219123,42.3232778027915,6.65,2.90742047794182e-05,Parasite
+Phoradendron perrotettii 1 - GC4841 x10 011-1.tif,Phoradendron perrotettii,Phoradendron perrotettii 1,68.6785175130542,34.2275642846285,5.09,1.86187015176907e-05,Parasite
+Phoradendron perrotettii 1 - GC4841 x10 012-1.tif,Phoradendron perrotettii,Phoradendron perrotettii 1,64.813314898798,58.6135264531429,7.08,2.52897499287231e-05,Parasite
+Phoradendron perrotettii 2 - GC4841 x10 001-Recovered-2.tif,Phoradendron perrotettii,Phoradendron perrotettii 2,65.6773747809057,37.7430655287596,4.7,1.71707813675906e-05,Parasite
+Phoradendron perrotettii 2 - GC4841 x10 002-1.tif,Phoradendron perrotettii,Phoradendron perrotettii 2,70.0487849345691,49.8354061764616,6.74,2.93379777583297e-05,Parasite
+Phoradendron perrotettii 2 - GC4841 x10 003-1.tif,Phoradendron perrotettii,Phoradendron perrotettii 2,68.3500156575553,46.3532879103048,5.97,2.47357319131645e-05,Parasite
+Phoradendron perrotettii 2 - GC4841 x10 004-1.tif,Phoradendron perrotettii,Phoradendron perrotettii 2,68.8894863573007,32.3679310750527,4.9,1.78244638042244e-05,Parasite
+Phoradendron perrotettii 2 - GC4841 x10 005-1.tif,Phoradendron perrotettii,Phoradendron perrotettii 2,72.5211188398567,30.6300162317809,4.73,2.07154778952652e-05,Parasite
+Phoradendron perrotettii 2 - GC4841 x10 006-1.tif,Phoradendron perrotettii,Phoradendron perrotettii 2,70.7782040452673,40.2032923411086,5.96,2.46688850265678e-05,Parasite
+Phoradendron perrotettii 2 - GC4841 x10 007-1.tif,Phoradendron perrotettii,Phoradendron perrotettii 2,67.5502024427899,39.3228898346091,5.36,2.00189729737049e-05,Parasite
+Phoradendron perrotettii 2 - GC4841 x10 008-1.tif,Phoradendron perrotettii,Phoradendron perrotettii 2,73.9241366470965,31.5160711760388,5.07,2.30126622892802e-05,Parasite
+Phoradendron perrotettii 2 - GC4841 x10 009-1.tif,Phoradendron perrotettii,Phoradendron perrotettii 2,73.6708739382254,39.3361713921097,6.51,2.83312099081948e-05,Parasite
+Phoradendron perrotettii 2 - GC4841 x10 011-1.tif,Phoradendron perrotettii,Phoradendron perrotettii 2,65.1583629587683,45.480043891369,6.21,2.00443178252613e-05,Parasite
+Phoradendron perrotettii 2 - GC4841 x10 012-1.tif,Phoradendron perrotettii,Phoradendron perrotettii 2,72.1797835915569,35.8810032949343,5.43,2.38131379433277e-05,Parasite
+Phoradendron Perrottettii 3- GC4841 x10 001.tif,Phoradendron perrotettii,Phoradendron perrotettii 3,71.4070803613081,43.4947308145489,6.81,2.76497685167877e-05,Parasite
+Phoradendron Perrottettii 3- GC4841 x10 002.tif,Phoradendron perrotettii,Phoradendron perrotettii 3,77.6476146621763,37.4943677988285,6.99,3.33248541388949e-05,Parasite
+Phoradendron Perrottettii 3- GC4841 x10 003.tif,Phoradendron perrotettii,Phoradendron perrotettii 3,78.5228557296487,45.0056385196323,8.78,4.18351198480577e-05,Parasite
+Phoradendron Perrottettii 3- GC4841 x10 004.tif,Phoradendron perrotettii,Phoradendron perrotettii 3,81.772785623246,42.7306728042415,9.12,4.67158922073768e-05,Parasite
+Phoradendron Perrottettii 3- GC4841 x10 005.tif,Phoradendron perrotettii,Phoradendron perrotettii 3,78.5728714183934,45.0155714240775,9.54,4.19510671394356e-05,Parasite
+Phoradendron Perrottettii 3- GC4841 x10 006.tif,Phoradendron perrotettii,Phoradendron perrotettii 3,77.6392328805235,45.73700945457,8.89,4.06333336473908e-05,Parasite
+Phoradendron Perrottettii 3- GC4841 x10 007.tif,Phoradendron perrotettii,Phoradendron perrotettii 3,68.4585044178701,32.9969387605642,5.12,1.7720379808786e-05,Parasite
+Phoradendron Perrottettii 3- GC4841 x10 008.tif,Phoradendron perrotettii,Phoradendron perrotettii 3,83.8413806755938,32.2484191951375,7.65,3.89611586522903e-05,Parasite
+Phoradendron Perrottettii 3- GC4841 x10 009.tif,Phoradendron perrotettii,Phoradendron perrotettii 3,75.9217009521073,40.5019623043752,7.74,3.29025479015098e-05,Parasite
+Phoradendron Perrottettii 3- GC4841 x10 010.tif,Phoradendron perrotettii,Phoradendron perrotettii 3,77.18578115491,50.3183813469082,8.66,4.36682335442909e-05,Parasite
+Populus nigra - VSB x10 006-1.tif,Populus nigra,Populus nigra 1,55.6995797277333,191.883866380238,18.97,4.51581228725372e-05,Host
+Populus nigra - VSB x10 007-1.tif,Populus nigra,Populus nigra 1,53.5743562912629,221.379965836431,19.9,4.45918930248702e-05,Host
+Populus nigra - VSB x10 008-1.tif,Populus nigra,Populus nigra 1,50.3999226603404,218.547576126187,17.29,3.44790444462035e-05,Host
+Populus nigra - VSB x10 009-1.tif,Populus nigra,Populus nigra 1,52.1940139819853,243.273836021963,20.67,4.41436195912866e-05,Host
+Populus nigra - VSB x10 010-1.tif,Populus nigra,Populus nigra 1,58.470011978203,188.170946833711,19.74,5.37743350084098e-05,Host
+Populus nigra - VSB x10 011-1.tif,Populus nigra,Populus nigra 1,59.3661818621254,235.618680800338,25.56,7.15576286088346e-05,Host
+Populus nigra - VSB x10 012-1.tif,Populus nigra,Populus nigra 1,47.6307585118342,266.939423704642,19.24,3.35932835819012e-05,Host
+Populus nigra - VSB x10 013-1.tif,Populus nigra,Populus nigra 1,66.104082417658,195.756401422999,24.74,9.13942439928727e-05,Host
+Populus nigra - VSB x10 014-1.tif,Populus nigra,Populus nigra 1,50.0090695814129,223.339376657547,18.29,3.41546740471238e-05,Host
+Populus nigra - VSB x10 015-1.tif,Populus nigra,Populus nigra 1,60.0227519558413,202.357674817158,23.01,6.4220405111135e-05,Host
+Populus nigra - VSB x10 016.tif,Populus nigra,Populus nigra 1,60.2416253053136,196.030732156209,21.9,6.31248895266431e-05,Host
+Psittacanthus robustus 1 - GC 4842 x5 001.tif,Psittacanthus robustus,Psittacanthus robustus 1,104.845010812806,21.6112478669815,7.06,6.38499654760118e-05,Parasite
+Psittacanthus robustus 1 - GC 4842 x5 002.tif,Psittacanthus robustus,Psittacanthus robustus 1,102.524626965868,17.8926809788187,5.84,4.8336806796643e-05,Parasite
+Psittacanthus robustus 1 - GC 4842 x5 003.tif,Psittacanthus robustus,Psittacanthus robustus 1,101.348168638594,19.87169314173,6.17,5.12611377055984e-05,Parasite
+Psittacanthus robustus 1 - GC 4842 x5 004.tif,Psittacanthus robustus,Psittacanthus robustus 1,93.66861951587,17.2322749254265,4.13,3.24346219664582e-05,Parasite
+Psittacanthus robustus 1 - GC 4842 x5 005.tif,Psittacanthus robustus,Psittacanthus robustus 1,101.727335474038,18.7755140031361,6.38,4.91623075380144e-05,Parasite
+Psittacanthus robustus 1 - GC 4842 x5 006.tif,Psittacanthus robustus,Psittacanthus robustus 1,91.304825494021,28.8095320506379,6.52,4.89554305313632e-05,Parasite
+Psittacanthus robustus 1 - GC 4842 x5 007.tif,Psittacanthus robustus,Psittacanthus robustus 1,101.327747527946,17.4594542046559,5.59,4.50022227088287e-05,Parasite
+Psittacanthus robustus 1 - GC 4842 x5 008.tif,Psittacanthus robustus,Psittacanthus robustus 1,99.1740699648201,15.7147025375279,4.48,3.71696487861049e-05,Parasite
+Psittacanthus robustus 1 - GC 4842 x5 009.tif,Psittacanthus robustus,Psittacanthus robustus 1,95.6496560813322,20.0973497358041,5.55,4.11303294807629e-05,Parasite
+Psittacanthus robustus 1 - GC 4842 x5 010.tif,Psittacanthus robustus,Psittacanthus robustus 1,94.226424477629,23.3656462219012,6.24,4.50358527484626e-05,Parasite
+Psittacanthus robustus 1 - GC 4842 x5 011.tif,Psittacanthus robustus,Psittacanthus robustus 1,97.817336912132,20.5337270713637,5.89,4.59643234353029e-05,Parasite
+Psittacanthus robustus 2 - GC4842 x5 001-1.tif,Psittacanthus robustus,Psittacanthus robustus 2,86.8721133202261,21.3534631878689,4.77,2.97357991204083e-05,Parasite
+Psittacanthus robustus 2 - GC4842 x5 002-1.tif,Psittacanthus robustus,Psittacanthus robustus 2,102.962469833382,15.2744041207937,4.93,4.19729825502248e-05,Parasite
+Psittacanthus robustus 2 - GC4842 x5 003-1.tif,Psittacanthus robustus,Psittacanthus robustus 2,89.6567990298694,18.669040223108,4.52,2.94947457019904e-05,Parasite
+Psittacanthus robustus 2 - GC4842 x5 004-1.tif,Psittacanthus robustus,Psittacanthus robustus 2,88.4829649139878,17.5656355353249,4.07,2.63264488327414e-05,Parasite
+Psittacanthus robustus 2 - GC4842 x5 005-1.tif,Psittacanthus robustus,Psittacanthus robustus 2,93.4630188232195,14.2448391398915,3.73,2.65770341394337e-05,Parasite
+Psittacanthus robustus 2 - GC4842 x5 006-1.tif,Psittacanthus robustus,Psittacanthus robustus 2,99.4908540059542,18.0016492540678,5.41,4.31255530616466e-05,Parasite
+Psittacanthus robustus 2 - GC4842 x5 007-1.tif,Psittacanthus robustus,Psittacanthus robustus 2,96.4531141797288,20.8152942119398,5.83,4.40491282389902e-05,Parasite
+Psittacanthus robustus 2 - GC4842 x5 008-1.tif,Psittacanthus robustus,Psittacanthus robustus 2,83.7021331071074,31.0571977736522,7.1,3.72733234776012e-05,Parasite
+Psittacanthus robustus 2 - GC4842 x5 009-1.tif,Psittacanthus robustus,Psittacanthus robustus 2,100.139480615005,27.2408702016943,8.47,6.69779825720205e-05,Parasite
+Psittacanthus robustus 2 - GC4842 x5 010-1.tif,Psittacanthus robustus,Psittacanthus robustus 2,87.3115816563488,17.4172003103317,3.8,2.47488780620588e-05,Parasite
+psittacanthus robustus 3 - GC 4842 x5 001.tif,Psittacanthus robustus,Psittacanthus robustus 3,105.554762499684,13.8782834113783,4.28,4.21247009497606e-05,Parasite
+psittacanthus robustus 3 - GC 4842 x5 002.tif,Psittacanthus robustus,Psittacanthus robustus 3,104.961930699924,16.0536266732827,4.97,4.7642018000803e-05,Parasite
+psittacanthus robustus 3 - GC 4842 x5 003.tif,Psittacanthus robustus,Psittacanthus robustus 3,105.247680612048,15.8240908997274,4.89,4.74743089333581e-05,Parasite
+psittacanthus robustus 3 - GC 4842 x5 004.tif,Psittacanthus robustus,Psittacanthus robustus 3,101.676651567029,13.8840753447008,4.16,3.62820360845213e-05,Parasite
+psittacanthus robustus 3 - GC 4842 x5 005.tif,Psittacanthus robustus,Psittacanthus robustus 3,98.852511445988,12.3448326862584,3.37,2.88221109132402e-05,Parasite
+psittacanthus robustus 3 - GC 4842 x5 006.tif,Psittacanthus robustus,Psittacanthus robustus 3,96.0170187182868,13.8830890378864,3.62,2.88515217670468e-05,Parasite
+psittacanthus robustus 3 - GC 4842 x5 007.tif,Psittacanthus robustus,Psittacanthus robustus 3,104.368887943503,13.6602563139073,4.26,3.96307982067584e-05,Parasite
+psittacanthus robustus 3 - GC 4842 x5 010.tif,Psittacanthus robustus,Psittacanthus robustus 3,98.7308435469301,13.6663840211599,4.04,3.17508062290963e-05,Parasite
+psittacanthus robustus 3 - GC 4842 x5 011.tif,Psittacanthus robustus,Psittacanthus robustus 3,97.7604160450045,14.2976984044001,4.14,3.19306708874831e-05,Parasite
+psittacanthus robustus 3 - GC 4842 x5 012.tif,Psittacanthus robustus,Psittacanthus robustus 3,100.274578642906,17.3351013334367,5.29,4.28528306598367e-05,Parasite
+Struthanthus rhynchophyllus - VSB25 x10 001-1.tif,Struthanthus rhynchophyllus,Struthanthus rhynchophyllus 1,60.6590915575248,58.8404508486101,6,1.94782235796286e-05,Parasite
+Struthanthus rhynchophyllus - VSB25 x10 002-1.tif,Struthanthus rhynchophyllus,Struthanthus rhynchophyllus 1,62.12114946214,58.8931169333513,6.72,2.14443170526117e-05,Parasite
+Struthanthus rhynchophyllus - VSB25 x10 003-1.tif,Struthanthus rhynchophyllus,Struthanthus rhynchophyllus 1,62.787871510826,59.7595398358532,6.31,2.2709105876891e-05,Parasite
+Struthanthus rhynchophyllus - VSB25 x10 004-1.tif,Struthanthus rhynchophyllus,Struthanthus rhynchophyllus 1,58.8666130408796,69.560891627671,6.59,2.0423542937523e-05,Parasite
+Struthanthus rhynchophyllus - VSB25 x10 005-1.tif,Struthanthus rhynchophyllus,Struthanthus rhynchophyllus 1,61.0476925503864,45.4530042866484,4.6,1.54358075166872e-05,Parasite
+Struthanthus rhynchophyllus - VSB25 x10 006-1.tif,Struthanthus rhynchophyllus,Struthanthus rhynchophyllus 1,69.4506260359603,58.8629495376517,7.88,3.34839301057419e-05,Parasite
+Struthanthus rhynchophyllus - VSB25 x10 007-1.tif,Struthanthus rhynchophyllus,Struthanthus rhynchophyllus 1,67.3593894336731,59.7384243146061,7.1,3.00701834799438e-05,Parasite
+Struthanthus rhynchophyllus - VSB25 x10 008-1.tif,Struthanthus rhynchophyllus,Struthanthus rhynchophyllus 1,57.8332702268368,70.5049093617698,6.76,1.92850206269631e-05,Parasite
+Struthanthus rhynchophyllus - VSB25 x10 009-1.tif,Struthanthus rhynchophyllus,Struthanthus rhynchophyllus 1,64.8352497204103,65.0921579713156,7.84,2.81230985333793e-05,Parasite
+Struthanthus rhynchophyllus - VSB25 x10 010-1.tif,Struthanthus rhynchophyllus,Struthanthus rhynchophyllus 1,55.737019307244,64.2854466279517,5.79,1.51697132729545e-05,Parasite
+Struthanthus rhynchophyllus - VSB26 x10 001-1.tif,Struthanthus rhynchophyllus,Struthanthus rhynchophyllus 2,58.0348787652361,88.3410230205677,8.17,2.4502392779379e-05,Parasite
+Struthanthus rhynchophyllus - VSB26 x10 002-1.tif,Struthanthus rhynchophyllus,Struthanthus rhynchophyllus 2,55.4314811763459,108.892715396027,8.94,2.51370615535157e-05,Parasite
+Struthanthus rhynchophyllus - VSB26 x10 003-1.tif,Struthanthus rhynchophyllus,Struthanthus rhynchophyllus 2,57.5962573900428,99.933594569573,9.02,2.68892266297562e-05,Parasite
+Struthanthus rhynchophyllus - VSB26 x10 004-1.tif,Struthanthus rhynchophyllus,Struthanthus rhynchophyllus 2,64.6217898752692,68.6766311766312,8.05,2.92829389230767e-05,Parasite
+Struthanthus rhynchophyllus - VSB26 x10 005-1.tif,Struthanthus rhynchophyllus,Struthanthus rhynchophyllus 2,67.4088968976103,74.9735207959963,9.69,3.78500566704612e-05,Parasite
+Struthanthus rhynchophyllus - VSB26 x10 006-1.tif,Struthanthus rhynchophyllus,Struthanthus rhynchophyllus 2,63.1914958290872,66.9590010100769,6.98,2.61055745535986e-05,Parasite
+Struthanthus rhynchophyllus - VSB26 x10 007-1.tif,Struthanthus rhynchophyllus,Struthanthus rhynchophyllus 2,63.6708621700992,91.9285887387614,9.94,3.69405419704592e-05,Parasite
+Struthanthus rhynchophyllus - VSB26 x10 008-1.tif,Struthanthus rhynchophyllus,Struthanthus rhynchophyllus 2,54.8700901334741,109.675262905972,8.83,2.43075465200125e-05,Parasite
+Struthanthus rhynchophyllus - VSB26 x10 009-1.tif,Struthanthus rhynchophyllus,Struthanthus rhynchophyllus 2,60.32282860409,103.532969561276,10.41,3.35193207517309e-05,Parasite
+Struthanthus rhynchophyllus - VSB26 x10 011-1.tif,Struthanthus rhynchophyllus,Struthanthus rhynchophyllus 2,59.3696220168581,52.6040158156892,4.99,1.5979595534231e-05,Parasite
+Struthanthus rhynchophyllus - VSB27 x10 001-1.tif,Struthanthus rhynchophyllus,Struthanthus rhynchophyllus 3,55.0674661072051,38.3407708720271,3.53,8.62047030536802e-06,Parasite
+Struthanthus rhynchophyllus - VSB27 x10 002-1.tif,Struthanthus rhynchophyllus,Struthanthus rhynchophyllus 3,49.6804451745011,33.0405394657115,2.47,4.92128811991618e-06,Parasite
+Struthanthus rhynchophyllus - VSB27 x10 003-1.tif,Struthanthus rhynchophyllus,Struthanthus rhynchophyllus 3,58.1992906669764,50.8316501366987,5.02,1.42591855830102e-05,Parasite
+Struthanthus rhynchophyllus - VSB27 x10 004-1.tif,Struthanthus rhynchophyllus,Struthanthus rhynchophyllus 3,50.9410075151113,49.1067153407921,4.41,8.08538592015239e-06,Parasite
+Struthanthus rhynchophyllus - VSB27 x10 005-1.tif,Struthanthus rhynchophyllus,Struthanthus rhynchophyllus 3,59.4141236568,55.3079596044745,5.96,1.68514069685482e-05,Parasite
+Struthanthus rhynchophyllus - VSB27 x10 006-1.tif,Struthanthus rhynchophyllus,Struthanthus rhynchophyllus 3,52.5919151791393,66.0255314994264,5.41,1.23503025892155e-05,Parasite
+Struthanthus rhynchophyllus - VSB27 x10 007-1.tif,Struthanthus rhynchophyllus,Struthanthus rhynchophyllus 3,57.9430654750582,60.7070910482776,6.14,1.67315062963353e-05,Parasite
+Struthanthus rhynchophyllus - VSB27 x10 008-1.tif,Struthanthus rhynchophyllus,Struthanthus rhynchophyllus 3,57.9654313899658,69.5851628229252,6.99,1.92080237525377e-05,Parasite
+Struthanthus rhynchophyllus - VSB27 x10 009-1.tif,Struthanthus rhynchophyllus,Struthanthus rhynchophyllus 3,55.9294395860397,45.546346217545,4.02,1.08969550886742e-05,Parasite
+Struthanthus rhynchophyllus - VSB27 x10 010-1.tif,Struthanthus rhynchophyllus,Struthanthus rhynchophyllus 3,56.2101803633798,70.4974490300997,6.31,1.72077094554723e-05,Parasite
+Tapirira guianensis 2 - GC4841 x10 002.tif,Tapirira guianensis,Tapirira guianensis 2,68.3334248813876,150.132431616375,18.06,8.00381456916171e-05,Host
+Tapirira guianensis 2 - GC4841 x10 003.tif,Tapirira guianensis,Tapirira guianensis 2,73.3655012204481,72.9000158314322,10.48,5.16398444398883e-05,Host
+Tapirira guianensis 2 - GC4841 x10 004.tif,Tapirira guianensis,Tapirira guianensis 2,65.7577879226551,91.3534485242986,10.79,4.17641333886585e-05,Host
+Tapirira guianensis 2 - GC4841 x10 005.tif,Tapirira guianensis,Tapirira guianensis 2,74.2425761733036,98.3266783558522,14.3,7.3042099540022e-05,Host
+Tapirira guianensis 2 - GC4841 x10 006.tif,Tapirira guianensis,Tapirira guianensis 2,73.0077853673451,84.3117211238513,11.98,5.85671917840261e-05,Host
+Tapirira guianensis 2 - GC4841 x10 007.tif,Tapirira guianensis,Tapirira guianensis 2,51.6365488052358,167.984184533385,13.61,2.92002771999686e-05,Host
+Tapirira guianensis 2 - GC4841 x10 008.tif,Tapirira guianensis,Tapirira guianensis 2,73.3075918603466,70.8189097290008,10.25,5.00074600283983e-05,Host
+Tapirira guianensis 2 - GC4841 x10 009.tif,Tapirira guianensis,Tapirira guianensis 2,66.5526399036471,124.571640051002,15.13,5.9754425796577e-05,Host
+Tapirira guianensis 2 - GC4841 x10 010.tif,Tapirira guianensis,Tapirira guianensis 2,65.3705329022391,146.073191045811,17.25,6.52211369481616e-05,Host
+Tapirira guianensis 2 - GC4841 x10 011.tif,Tapirira guianensis,Tapirira guianensis 2,102.288324108941,65.4408403927572,18.86,0.000175163198848097,Host
+Tapirira guianensis 3 - GC4841 x5 001-1.tif,Tapirira guianensis,Tapirira guianensis 3,111.643991622027,56.0825352422406,17,0.000213038848926783,Host
+Tapirira guianensis 3 - GC4841 x5 003-1.tif,Tapirira guianensis,Tapirira guianensis 3,105.329613539508,54.8787493280624,16.36,0.000165156593027479,Host
+Tapirira guianensis 3 - GC4841 x5 004-1.tif,Tapirira guianensis,Tapirira guianensis 3,108.339775251673,53.0772750030458,16.8,0.000178792824942527,Host
+Tapirira guianensis 3 - GC4841 x5 005-1.tif,Tapirira guianensis,Tapirira guianensis 3,114.019825231015,50.7123245541069,18.01,0.00020956789405679,Host
+Tapirira guianensis 3 - GC4841 x5 006-1.tif,Tapirira guianensis,Tapirira guianensis 3,107.316884866656,47.4350114139801,14.22,0.000153837065643775,Host
+Tapirira guianensis 3 - GC4841 x5 007-1.tif,Tapirira guianensis,Tapirira guianensis 3,106.904663812961,53.9658457497497,16.19,0.000172343672509645,Host
+Tapirira guianensis 3 - GC4841 x5 008-1.tif,Tapirira guianensis,Tapirira guianensis 3,119.229325460616,57.5729824553707,21.08,0.000284472849244562,Host
+Tapirira guianensis 3 - GC4841 x5 009-1.tif,Tapirira guianensis,Tapirira guianensis 3,117.330112620114,56.9561757317164,19.32,0.00026391770045278,Host
+Tapirira guianensis 3 - GC4841 x5 010-1.tif,Tapirira guianensis,Tapirira guianensis 3,121.020973976085,53.6838644793908,20.72,0.000281563330485352,Host
+Tapirira guianensis 3 - GC4841 x5 011-1.tif,Tapirira guianensis,Tapirira guianensis 3,120.160518600804,49.5027198911956,20.53,0.000252328313375648,Host
+Tapirira guianensis1 - GC4841 x5 002-2.tif,Tapirira guianensis,Tapirira guianensis 1,131.963807249573,38.804724035741,17.99,0.000287735663045966,Host
+Tapirira guianensis1 - GC4841 x5 003-1.tif,Tapirira guianensis,Tapirira guianensis 1,120.999951697909,31.7309308823572,12.09,0.000166308079308869,Host
+Tapirira guianensis1 - GC4841 x5 004-1.tif,Tapirira guianensis,Tapirira guianensis 1,113.360723832438,34.676016881754,12.11,0.000140013332983456,Host
+Tapirira guianensis1 - GC4841 x5 005-1.tif,Tapirira guianensis,Tapirira guianensis 1,120.475130234567,50.8400887059336,19.45,0.000261869949513046,Host
+Tapirira guianensis1 - GC4841 x5 006-1.tif,Tapirira guianensis,Tapirira guianensis 1,116.040815867108,48.2022632523996,17.51,0.000213697908527039,Host
+Tapirira guianensis1 - GC4841 x5 007-1.tif,Tapirira guianensis,Tapirira guianensis 1,112.832564294552,49.0782861504816,16.45,0.000194498818969041,Host
+Tapirira guianensis1 - GC4841 x5 008-1.tif,Tapirira guianensis,Tapirira guianensis 1,120.650695677404,45.5669755579,16.94,0.000236080041356261,Host
+Tapirira guianensis1 - GC4841 x5 009-1.tif,Tapirira guianensis,Tapirira guianensis 1,118.465863601452,35.2672388769127,13.9,0.000169837702187828,Host
+Tapirira guianensis1 - GC4841 x5 010-1.tif,Tapirira guianensis,Tapirira guianensis 1,120.366468892986,34.6739249231188,13.47,0.000177956900113377,Host
+Tapirira guianensis1 - GC4841 x5 011-1.tif,Tapirira guianensis,Tapirira guianensis 1,118.163081887958,33.5038554521096,12.57,0.000159702520934466,Host
+Tipuana tipu - VSB25 x10 001-1.tif,Tipuana tipu,Tipuana tipu 1,87.212848600591,54.6842637057818,10.69,7.73524375181202e-05,Host
+Tipuana tipu - VSB25 x10 002-1.tif,Tipuana tipu,Tipuana tipu 1,96.0866879628103,50.1381377911571,12.15,0.000104498688981915,Host
+Tipuana tipu - VSB25 x10 003-1.tif,Tipuana tipu,Tipuana tipu 1,113.173717137067,43.3070077498695,17.58,0.000173712170194509,Host
+Tipuana tipu - VSB25 x10 004-1.tif,Tipuana tipu,Tipuana tipu 1,114.960878931096,33.0528531371224,14.47,0.000141155889500614,Host
+Tipuana tipu - VSB25 x10 005-1.tif,Tipuana tipu,Tipuana tipu 1,131.415927091103,34.1791689784042,16.05,0.000249254644215614,Host
+Tipuana tipu - VSB25 x10 006-1.tif,Tipuana tipu,Tipuana tipu 1,94.5287831481897,41.0042467088844,11.22,8.00524917013714e-05,Host
+Tipuana tipu - VSB25 x10 007-1.tif,Tipuana tipu,Tipuana tipu 1,103.737156058509,27.3337430930077,11.09,7.73973704675557e-05,Host
+Tipuana tipu - VSB25 x10 008-1.tif,Tipuana tipu,Tipuana tipu 1,96.7279529927494,41.0046392577188,15.13,8.77668943376833e-05,Host
+Tipuana tipu - VSB25 x10 009-1.tif,Tipuana tipu,Tipuana tipu 1,102.848119151246,39.8922676840741,13.76,0.000109134958379269,Host
+Tipuana tipu - VSB25 x10 010-1.tif,Tipuana tipu,Tipuana tipu 1,76.9452945773803,70.635742681214,14.65,6.0540015723194e-05,Host
+Tipuana tipu - VSB26 x10 001-1.tif,Tipuana tipu,Tipuana tipu 2,180.49461048438,28.4826594856417,23.94,0.000739140907822515,Host
+Tipuana tipu - VSB26 x10 002-1.tif,Tipuana tipu,Tipuana tipu 2,117.771703875487,66.0767600270682,20.46,0.000310815250737228,Host
+Tipuana tipu - VSB26 x10 003-1.tif,Tipuana tipu,Tipuana tipu 2,155.187711355951,48.9938612722916,28.75,0.000694801470143656,Host
+Tipuana tipu - VSB26 x10 004-1.tif,Tipuana tipu,Tipuana tipu 2,159.206313341183,45.5700132741742,31.35,0.000715830246589632,Host
+Tipuana tipu - VSB26 x10 005-1.tif,Tipuana tipu,Tipuana tipu 2,149.367056444174,45.58024045855,26.51,0.000554735103773469,Host
+Tipuana tipu - VSB26 x10 006-1.tif,Tipuana tipu,Tipuana tipu 2,166.290737830452,43.2962752963925,26.68,0.000809491931818267,Host
+Tipuana tipu - VSB26 x10 007-1.tif,Tipuana tipu,Tipuana tipu 2,170.305463679053,30.7552467400009,19.77,0.000632591405034565,Host
+Tipuana tipu - VSB26 x10 009-1.tif,Tipuana tipu,Tipuana tipu 2,160.603566044173,39.8825870907703,25.55,0.000648774551014665,Host
+Tipuana tipu - VSB26 x10 010-1.tif,Tipuana tipu,Tipuana tipu 2,181.568225069452,29.6270920711668,26.93,0.000787296220698892,Host
+Tipuana tipu - VSB26 x10 011-1.tif,Tipuana tipu,Tipuana tipu 2,170.905069545533,26.1994526099094,21.35,0.00054651457180393,Host
+Tipuana tipu - VSB27 x10 001-1.tif,Tipuana tipu,Tipuana tipu 3,125.832625919749,23.9305380449403,8.79,0.000146694978940151,Host
+Tipuana tipu - VSB27 x10 002-1.tif,Tipuana tipu,Tipuana tipu 3,129.445330270141,25.0626914994082,9.01,0.000172053300077911,Host
+Tipuana tipu - VSB27 x10 003-1.tif,Tipuana tipu,Tipuana tipu 3,114.875959336912,26.2033161982832,8.02,0.000111573898890222,Host
+Tipuana tipu - VSB27 x10 004-1.tif,Tipuana tipu,Tipuana tipu 3,123.446181181379,25.0636943689498,9.3,0.000142313294078147,Host
+Tipuana tipu - VSB27 x10 005-1.tif,Tipuana tipu,Tipuana tipu 3,78.2671149237457,101.356028307943,8.07,9.29943647174734e-05,Host
+Tipuana tipu - VSB27 x10 006-1.tif,Tipuana tipu,Tipuana tipu 3,137.15192304059,34.1814000147416,16.37,0.000295724427102508,Host
+Tipuana tipu - VSB27 x10 007-1.tif,Tipuana tipu,Tipuana tipu 3,130.646942335056,19.360376828323,8.26,0.00013791152248574,Host
+Tipuana tipu - VSB27 x10 008-1.tif,Tipuana tipu,Tipuana tipu 3,149.954845368413,20.5138743944407,13.62,0.000253617637311801,Host
+Tipuana tipu - VSB27 x10 009-1.tif,Tipuana tipu,Tipuana tipu 3,115.162114062599,55.8312329292616,14.97,0.000240107364361923,Host
+Tipuana tipu - VSB27 x10 010-1.tif,Tipuana tipu,Tipuana tipu 3,131.877979901927,17.0829835042441,7.04,0.000126340506217228,Host
+Tipuana tipu - VSB27 x10 010-1.tif,Tipuana tipu,Tipuana tipu 3,131.877979901927,15.9521702994718,6.97,0.000117977358603549,Host
+Viscum album 1 - VSB30 x10 001-1.tif,Viscum album,Viscum album 1,31.3459186996051,167.594251382059,4.36,3.95615115278602e-06,Parasite
+Viscum album 1 - VSB30 x10 002-1.tif,Viscum album,Viscum album 1,33.2722076546092,91.3518733851094,2.55,2.73737109080169e-06,Parasite
+Viscum album 1 - VSB30 x10 003-1.tif,Viscum album,Viscum album 1,29.669769189739,119.347664594742,2.75,2.26131125045255e-06,Parasite
+Viscum album 1 - VSB30 x10 004-1.tif,Viscum album,Viscum album 1,29.6440705963031,208.265398917956,5.09,3.93240486740461e-06,Parasite
+Viscum album 1 - VSB30 x10 005-1.tif,Viscum album,Viscum album 1,29.273004198623,149.699314863866,3.55,2.68768730431597e-06,Parasite
+Viscum album 1 - VSB30 x10 006-1.tif,Viscum album,Viscum album 1,26.7286031631153,190.323685969311,3.74,2.37513139088966e-06,Parasite
+Viscum album 1 - VSB30 x10 007-1.tif,Viscum album,Viscum album 1,30.0078875449887,170.258829420721,4.08,3.37552310243784e-06,Parasite
+Viscum album 1 - VSB30 x10 008-1.tif,Viscum album,Viscum album 1,30.1092267783307,190.354810450274,4.65,3.82518121468042e-06,Parasite
+Viscum album 1 - VSB30 x10 009-1.tif,Viscum album,Viscum album 1,29.4313185453265,137.01199130713,3.22,2.51354811139761e-06,Parasite
+Viscum album 1 - VSB30 x10 010-1.tif,Viscum album,Viscum album 1,30.1394823948766,151.198108396693,3.69,3.05055783670509e-06,Parasite
+Viscum album 1 - VSB30 x10 011-1.tif,Viscum album,Viscum album 1,30.5491874063874,139.832065065361,3.54,2.97779755725277e-06,Parasite
+Viscum album 2 - VSB30 x10 001-1.tif,Viscum album,Viscum album 2,30.8493626269311,156.053445755278,4.05,3.45579436365332e-06,Parasite
+Viscum album 2 - VSB30 x10 002-1.tif,Viscum album,Viscum album 2,31.1655138712564,184.909214463692,4.95,4.26525960067051e-06,Parasite
+Viscum album 2 - VSB30 x10 003-1.tif,Viscum album,Viscum album 2,32.4954011774248,173.058290457811,4.92,4.71812853677577e-06,Parasite
+Viscum album 2 - VSB30 x10 004-1.tif,Viscum album,Viscum album 2,32.1261222383442,165.13143113907,4.76,4.30083441086785e-06,Parasite
+Viscum album 2 - VSB30 x10 005-1.tif,Viscum album,Viscum album 2,29.4203424735391,150.814510041991,3.64,2.76263665784778e-06,Parasite
+Viscum album 2 - VSB30 x10 006-1.tif,Viscum album,Viscum album 2,30.9598273808744,101.104934907776,2.73,2.27120441242403e-06,Parasite
+Viscum album 2 - VSB30 x10 007-1.tif,Viscum album,Viscum album 2,33.8765365726789,137.734240300877,4.38,4.43534776244654e-06,Parasite
+Viscum album 2 - VSB30 x10 008-1.tif,Viscum album,Viscum album 2,33.7556436990292,175.792148859878,5.56,5.58052166465369e-06,Parasite
+Viscum album 2 - VSB30 x10 009-1.tif,Viscum album,Viscum album 2,32.881623492129,180.925708553265,5.34,5.17133935268129e-06,Parasite
+Viscum album 2 - VSB30 x10 010-1.tif,Viscum album,Viscum album 2,30.3730770442996,146.821010506092,3.75,3.05515411612121e-06,Parasite
+Viscum album 3 - VSB30 x10 001.tif,Viscum album,Viscum album 3,31.9147982830873,130.359054772057,3.47,3.3067347937927e-06,Parasite
+Viscum album 3 - VSB30 x10 002.tif,Viscum album,Viscum album 3,29.9355730185252,182.477875116704,4.48,3.58302851941071e-06,Parasite
+Viscum album 3 - VSB30 x10 003.tif,Viscum album,Viscum album 3,30.0506099513515,181.340806523494,4.52,3.6157505090882e-06,Parasite
+Viscum album 3 - VSB30 x10 004.tif,Viscum album,Viscum album 3,28.3946022939888,149.428059081287,3.18,2.37500792504033e-06,Parasite
+Viscum album 3 - VSB30 x10 005.tif,Viscum album,Viscum album 3,28.537811643336,155.681166105302,3.41,2.52469251049309e-06,Parasite
+Viscum album 3 - VSB30 x10 006.tif,Viscum album,Viscum album 3,28.0538374839362,135.016771624439,2.84,2.04477992908423e-06,Parasite
+Viscum album 3 - VSB30 x10 007.tif,Viscum album,Viscum album 3,28.8317774153261,155.589513176365,3.48,2.62878903752586e-06,Parasite
+Viscum album 3 - VSB30 x10 008.tif,Viscum album,Viscum album 3,31.080531309095,204.654075663231,5.2,4.66943013909028e-06,Parasite
+Viscum album 3 - VSB30 x10 009.tif,Viscum album,Viscum album 3,29.5277186536827,181.195822897839,4.18,3.36788695204608e-06,Parasite
+Viscum album 3 - VSB30 x10 010.tif,Viscum album,Viscum album 3,29.0602613135551,188.065992277279,4.19,3.27942782827834e-06,Parasite
+Vochysia thyrsoidea 1 - GC 4842 x5 001-1.tif,Vochysia thyrsoidea,Vochysia thyrsoidea 1,151.122522520705,16.5772023650745,10.34,0.000211406220909576,Host
+Vochysia thyrsoidea 1 - GC 4842 x5 002-1.tif,Vochysia thyrsoidea,Vochysia thyrsoidea 1,160.079816426361,15.2198305541868,10.29,0.000244368866738044,Host
+Vochysia thyrsoidea 1 - GC 4842 x5 003-1.tif,Vochysia thyrsoidea,Vochysia thyrsoidea 1,144.198343835245,17.0306055086821,9.32,0.000180036651063285,Host
+Vochysia thyrsoidea 1 - GC 4842 x5 004-1.tif,Vochysia thyrsoidea,Vochysia thyrsoidea 1,144.501560186049,19.0678469680995,11.89,0.000203273867253876,Host
+Vochysia thyrsoidea 1 - GC 4842 x5 005-1.tif,Vochysia thyrsoidea,Vochysia thyrsoidea 1,140.38863592805,22.4752191171705,13.02,0.000213462454395083,Host
+Vochysia thyrsoidea 1 - GC 4842 x5 006-1.tif,Vochysia thyrsoidea,Vochysia thyrsoidea 1,134.533868185755,22.7102665430965,11.29,0.000181902428083126,Host
+Vochysia thyrsoidea 1 - GC 4842 x5 007-1.tif,Vochysia thyrsoidea,Vochysia thyrsoidea 1,133.3113112954,17.2596579492506,8.47,0.000133287656744413,Host
+Vochysia thyrsoidea 1 - GC 4842 x5 008-1.tif,Vochysia thyrsoidea,Vochysia thyrsoidea 1,145.615464013436,15.8878907610875,9.16,0.000174656995893759,Host
+Vochysia thyrsoidea 1 - GC 4842 x5 009-1.tif,Vochysia thyrsoidea,Vochysia thyrsoidea 1,151.549725184715,15.6714210960172,9.61,0.000202124398321099,Host
+Vochysia thyrsoidea 1 - GC 4842 x5 010-1.tif,Vochysia thyrsoidea,Vochysia thyrsoidea 1,135.471028383894,17.0232654121538,8.83,0.000140190417100412,Host
+Vochysia thyrsoidea 1 - GC 4842 x5 011-1.tif,Vochysia thyrsoidea,Vochysia thyrsoidea 1,119.496512022756,19.0847273788156,7.54,9.51473337951033e-05,Host
+Vochysia thyrsoidea 2- GC 4842 x5 001-1.tif,Vochysia thyrsoidea,Vochysia thyrsoidea 2,138.306622609524,16.5710137589072,9.01,0.000148255471240644,Host
+Vochysia thyrsoidea 2- GC 4842 x5 002-1.tif,Vochysia thyrsoidea,Vochysia thyrsoidea 2,119.913356913166,18.386051032174,8.02,9.29497984209789e-05,Host
+Vochysia thyrsoidea 2- GC 4842 x5 003-1.tif,Vochysia thyrsoidea,Vochysia thyrsoidea 2,117.463688865215,18.8558700415202,7.42,8.77709633483451e-05,Host
+Vochysia thyrsoidea 2- GC 4842 x5 004-1.tif,Vochysia thyrsoidea,Vochysia thyrsoidea 2,138.686340098421,8.40888231085177,4.59,7.60611295715982e-05,Host
+Vochysia thyrsoidea 2- GC 4842 x5 005-1.tif,Vochysia thyrsoidea,Vochysia thyrsoidea 2,136.682802718429,12.0392860839361,6.38,0.000102741519331797,Host
+Vochysia thyrsoidea 2- GC 4842 x5 006-1.tif,Vochysia thyrsoidea,Vochysia thyrsoidea 2,136.233655899946,14.0705286951378,7.34,0.000118505309376445,Host
+Vochysia thyrsoidea 2- GC 4842 x5 007-1.tif,Vochysia thyrsoidea,Vochysia thyrsoidea 2,125.06809291134,22.4861990163254,9.7,0.000134521563877627,Host
+Vochysia thyrsoidea 2- GC 4842 x5 008-1.tif,Vochysia thyrsoidea,Vochysia thyrsoidea 2,129.667037637782,9.08781603409268,4.08,6.28156170705976e-05,Host
+Vochysia thyrsoidea 2- GC 4842 x5 009-1.tif,Vochysia thyrsoidea,Vochysia thyrsoidea 2,116.282840474095,28.1431936651035,10.34,0.000125813039272166,Host
+Vochysia thyrsoidea 2- GC 4842 x5 010-1.tif,Vochysia thyrsoidea,Vochysia thyrsoidea 2,128.274557028836,11.8145341840264,5.2,7.82111090966839e-05,Host
+Vochysia thyrsoidea 3 - GC4842 x10 002-1.tif,Vochysia thyrsoidea,Vochysia thyrsoidea 3,132.086872392253,27.8013818638804,13.87,0.000206916325593072,Host
+Vochysia thyrsoidea 3 - GC4842 x10 003-1.tif,Vochysia thyrsoidea,Vochysia thyrsoidea 3,124.07920523466,25.1092041189862,11.06,0.000145518666513738,Host
+Vochysia thyrsoidea 3 - GC4842 x10 004-1.tif,Vochysia thyrsoidea,Vochysia thyrsoidea 3,114.961216870218,19.7290786335427,7.18,8.4256217695638e-05,Host
+Vochysia thyrsoidea 3 - GC4842 x10 005-1.tif,Vochysia thyrsoidea,Vochysia thyrsoidea 3,89.1732735477932,26.0184550240505,5.97,4.02263002726576e-05,Host
+Vochysia thyrsoidea 3 - GC4842 x10 006-1.tif,Vochysia thyrsoidea,Vochysia thyrsoidea 3,94.2079357393096,23.30211550008,5.82,4.4878160621524e-05,Host
+Vochysia thyrsoidea 3 - GC4842 x10 007-1.tif,Vochysia thyrsoidea,Vochysia thyrsoidea 3,157.151046208225,9.86175557234152,6.58,0.000147066273377657,Host
+Vochysia thyrsoidea 3 - GC4842 x10 008-1.tif,Vochysia thyrsoidea,Vochysia thyrsoidea 3,86.6138586871828,27.7933104872342,5.74,3.82454323065521e-05,Host
+Vochysia thyrsoidea 3 - GC4842 x10 009-1.tif,Vochysia thyrsoidea,Vochysia thyrsoidea 3,108.774087514529,22.407487029171,8.08,7.66981159403488e-05,Host
+Vochysia thyrsoidea 3 - GC4842 x10 010-1.tif,Vochysia thyrsoidea,Vochysia thyrsoidea 3,149.359536260897,14.349308784893,9.59,0.00017460334296643,Host
+Vochysia thyrsoidea 3 - GC4842 x10 011-1.tif,Vochysia thyrsoidea,Vochysia thyrsoidea 3,134.38539927772,16.1291461162187,7.87,0.000128620284920885,Host

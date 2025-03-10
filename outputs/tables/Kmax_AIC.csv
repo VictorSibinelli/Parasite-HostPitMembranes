@@ -1,2 +1,6 @@
-"PairTested","ParasiteMean","HostMean","REVariance","RelDiff","DeltaAIC","p_value"
-"Parasite vs Host","7.15-16.41-37.65","14.74-109.67-816.26",14.2979936702828,0.407370531397883,-4.49823894960218,0.0107981395264638
+"PairTested","RelDiff","DeltaAIC","p_value"
+"Parasite vs Host",397813.485354001,-4.50802526397547,0.0107388700156036
+"Psittacanthus robustus vs Vochysia thyrsoidea",78298.1547163992,-11.7157433452012,0.000212664305756327
+"Phoradendron perrotettii vs Tapirira guianensis",193802.935419471,-8.02974355860579,0.00154032480400129
+"Struthanthus rhynchophyllus vs Tipuana tipu",568402.180755985,-8.33147084107077,0.00130780945704614
+"Viscum album vs Populus nigra",2923173.37707454,-16.4974162179285,1.70134789351573e-05

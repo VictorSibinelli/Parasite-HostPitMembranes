@@ -128,7 +128,7 @@ pw <- 998.2            # Density of water in kg/m³
 
 # Calculate Kmax
 HydraulicData$Kmax <- ((pi * pw) / (n * 128)) *      # Constants
-  (HydraulicData$VesselDensity * 1e6) *             # Vessel density in vessels/m²
+  (HydraulicData$VesselDensity) *             # Vessel density in vessels/m²
   ((HydraulicData$HydraulicDiameter * 1e-6)^4)      # Vessel diameter in meters (to the 4th power)
 
 
