@@ -248,12 +248,12 @@ for (pair in species_pairs) {
     )
     
     
-    residplot(full_model,newwd = F)
-    title(sub = paste0(pair,collapse = " x "))
-    print(check_model(full_model,show_dots = F))
-    print(CookD(full_model, idn = 20,newwd = F))
-    abline(h=4/nrow(subset_data),col="red")
-    title(sub=paste0(pair,collacpse=" x "))
+    # residplot(full_model,newwd = F)
+    # title(sub = paste0(pair,collapse = " x "))
+    # print(check_model(full_model,show_dots = F))
+    # print(CookD(full_model, idn = 20,newwd = F))
+    # abline(h=4/nrow(subset_data),col="red")
+    # title(sub=paste0(pair,collacpse=" x "))
 
     lrt <- anova(reduced_model, full_model)
     
@@ -666,6 +666,7 @@ VFraction_full <- glmmTMB(
   family = beta_family(link = "logit"),  # Beta regression with logit link
   data = Hydraulic_data
 ) 
+summary(VFraction_full)
 VFractio_null <- glmmTMB(
   (VesselFraction/100) ~  + (1 | ssp / indiv),  # Fixed effect: species, Random effect: individual
   family = beta_family(link = "logit"),  # Beta regression with logit link
@@ -687,7 +688,8 @@ plot(res)
 
 VFraction_AIC <- rbind(VFraction_AIC, data.frame(
   PairTested = paste(levels(Hydraulic_data$parasitism), collapse = " vs "),
-  RelDiff = fixef(VFraction_full)$cond[2]/fixef(VFraction_full)$cond[1],
+  RelDiff = plogis(fixef(VFraction_full)$cond[1] + fixef(VFraction_full)$cond[2]) / 
+    plogis(fixef(VFraction_full)$cond[1]),
   DeltaAIC = delta_aic,
   p_value = pv,
   stringsAsFactors = FALSE
@@ -737,7 +739,9 @@ for (pair in species_pairs) {
     # Append results for the species pair
     VFraction_AIC <- rbind(VFraction_AIC, data.frame(
       PairTested = paste(pair, collapse = " vs "),
-      RelDiff =fixef(full_model)$cond[2]/fixef(full_model)$cond[1],
+      RelDiff =plogis(fixef(full_model)$cond[1] + fixef(full_model)$cond[2]) / 
+        plogis(fixef(full_model)$cond[1])
+      ,
       DeltaAIC = delta_aic,
       p_value = pv,
       stringsAsFactors = FALSE
@@ -768,52 +772,52 @@ for (pair in species_pairs) {
 #################################################################################
 ##################################################################################
 # Initialize results dataframe
+
 Kmax_AIC <- data.frame(
   PairTested = character(), RelDiff = numeric(), DeltaAIC = numeric(),
   p_value = numeric(), stringsAsFactors = FALSE
 )
 
-# Fit global models
-Kmax_full <-  glmmTMB(
-  Kmax ~ parasitism + (1 | ssp/indiv),  # Fixed and random effects
-  family = Gamma(link = "log"),               # Gamma family with log link
+# Fit full and null models
+Kmax_full <- glmmTMB(
+  Kmax ~ parasitism + (1 | ssp/indiv),
+  family = Gamma(link = "log"),
   data = Hydraulic_data,
   control = glmmTMBControl(
-    optimizer = optim,                        # Use base R optimizer
-    optArgs = list(method = "BFGS")           # Use BFGS method for optimization
-  ))
+    optimizer = optim,
+    optArgs = list(method = "BFGS")
+  )
+)
 
 Kmax_null <- glmmTMB(
-  Kmax ~  (1 | ssp/indiv),  # Fixed and random effects
-  family = Gamma(link = "log"),               # Gamma family with log link
+  Kmax ~ (1 | ssp/indiv),
+  family = Gamma(link = "log"),
   data = Hydraulic_data,
   control = glmmTMBControl(
-    optimizer = optim,                        # Use base R optimizer
-    optArgs = list(method = "BFGS")           # Use BFGS method for optimization
-  ))
+    optimizer = optim,
+    optArgs = list(method = "BFGS")
+  )
+)
 
 # Perform likelihood ratio test (LRT)
 lrt <- anova(Kmax_full, Kmax_null)
-delta_aic <- diff(lrt$AIC)
-pv <- na.omit(lrt$`Pr(>Chisq)`)[1]
+delta_aic <- AIC(Kmax_full) - AIC(Kmax_null)
+pv <- lrt$`Pr(>Chisq)`[2]
 
 # Model checks
-residplot(Kmax_full, newwd = FALSE)
-check_model(Kmax_full, show_dots = FALSE)
-
 res <- simulateResiduals(Kmax_full)
 plot(res) 
 
 # Append results for the global model
 Kmax_AIC <- rbind(Kmax_AIC, data.frame(
   PairTested = paste(levels(Hydraulic_data$parasitism), collapse = " vs "),
-  RelDiff = exp(fixef(Kmax_full)$cond[2]) / exp(fixef(Kmax_full)$cond[1]),
+  RelDiff =exp(fixef(Kmax_full)$cond[2]) /exp(fixef(Kmax_full)$cond[1]),
   DeltaAIC = delta_aic,
   p_value = pv,
   stringsAsFactors = FALSE
 ))
 
-# Output using sjPlot for the global model
+# Output model summary
 sjPlot::tab_model(Kmax_null, Kmax_full, 
                   show.aic = TRUE, show.reflvl = TRUE,
                   title = "Kmax - Parasites vs Hosts",
@@ -827,70 +831,68 @@ for (pair in species_pairs) {
   subset_data <- subset(Hydraulic_data, ssp %in% pair)
   
   tryCatch({
-    # Fit models for the species pair
+    # Fit models for species pair
     full_model <- glmmTMB(
-      Kmax ~ ssp + (1 |indiv),  # Fixed and random effects
-      family = Gamma(link = "log"),               # Gamma family with log link
+      Kmax ~ ssp + (1 | indiv),
+      family = Gamma(link = "log"),
       data = subset_data,
       control = glmmTMBControl(
-        optimizer = optim,                        # Use base R optimizer
-        optArgs = list(method = "BFGS")           # Use BFGS method for optimization
-      ))
+        optimizer = optim,
+        optArgs = list(method = "BFGS")
+      )
+    )
     
-    reduced_model <-glmmTMB(
-      Kmax ~ (1 |indiv),  # Fixed and random effects
-      family = Gamma(link = "log"),               # Gamma family with log link
+    reduced_model <- glmmTMB(
+      Kmax ~ (1 | indiv),
+      family = Gamma(link = "log"),
       data = subset_data,
       control = glmmTMBControl(
-        optimizer = optim,                        # Use base R optimizer
-        optArgs = list(method = "BFGS")           # Use BFGS method for optimization
-      ))
+        optimizer = optim,
+        optArgs = list(method = "BFGS")
+      )
+    )
     
-    # Perform likelihood ratio test (LRT) for the pair
+    # Perform LRT for species pair
     lrt <- anova(reduced_model, full_model)
-    delta_aic <- diff(lrt$AIC)
-    pv <- na.omit(lrt$`Pr(>Chisq)`)[1]
+    delta_aic <- AIC(full_model) - AIC(reduced_model)
+    pv <- lrt$`Pr(>Chisq)`[2]
     
-    # Append results for the species pair
+    # Append results
     Kmax_AIC <- rbind(Kmax_AIC, data.frame(
       PairTested = paste(pair, collapse = " vs "),
-      RelDiff = exp(fixef(full_model)$cond[2]) / exp(fixef(full_model)$cond[1]),
+      RelDiff = exp(fixef(full_model)$cond[2]) /exp(fixef(reduced_model)$cond[1]),
       DeltaAIC = delta_aic,
       p_value = pv,
       stringsAsFactors = FALSE
     ))
-    res <- simulateResiduals(full_model)
-    plot(res)  
-    title(sub = paste0(pair,collapse = " x "))
-    residplot(full_model,newwd = F)
-    title(sub = paste0(pair,collapse = " x "))
-    print(check_model(full_model,show_dots = F))
-    title(sub=paste0(pair,collacpse=" x "))
     
-    # Output using sjPlot for the species pair models
+    # Residual diagnostics
+    res <- simulateResiduals(full_model)
+    plot(res, sub = paste0(pair, collapse = " x "))
+    
+    # Output model results
     file_name <- paste0("Kmax_", paste(pair, collapse = "_"), ".doc")
     file_path <- here(output_dir, file_name)
-   
     
-    suppressWarnings({
-      tab <-  sjPlot::tab_model(
-        reduced_model, full_model,
-        title = paste("Kmax -", paste(pair, collapse = " vs ")),
-        file = file_path,
-        show.aic = TRUE,
-        show.reflvl = TRUE,
-        pred.labels = c("Intercept", "Species Effect"),
-        dv.labels = c("Null Model", "Full Model"),
-        p.style = "numeric_stars"
-      )
-      
-      print(tab)
-    })
+    sjPlot::tab_model(
+      reduced_model, full_model,
+      title = paste("Kmax -", paste(pair, collapse = " vs ")),
+      file = file_path,
+      show.aic = TRUE,
+      show.reflvl = TRUE,
+      pred.labels = c("Intercept", "Species Effect"),
+      dv.labels = c("Null Model", "Full Model"),
+      p.style = "numeric_stars"
+    )
     Sys.sleep(0.5)
   }, error = function(e) {
-    cat("\nAn error occurred for pair", paste(pair, collapse = " vs "), ":", e$message, "\n")
+    cat("\nError in species pair:", paste(pair, collapse = " vs "), ":", e$message, "\n")
   })
 }
+
+# Output final results
+tab_model(Kmax_full)
+
 #############################################################################
 ############################################################################
 # Initialize results dataframe
@@ -1195,7 +1197,9 @@ plot(res)
 
 PitFraction_AIC <- rbind(PitFraction_AIC, data.frame(
   PairTested = paste(levels(PitDiOp_data$parasitism), collapse = " vs "),
-  RelDiff = fixef(PitFraction_full)$cond[2]/fixef(PitFraction_full)$cond[1],
+  RelDiff = plogis(fixef(PitFraction_full)$cond[1] + fixef(PitFraction_full)$cond[2]) / 
+    plogis(fixef(PitFraction_full)$cond[1])
+  ,
   DeltaAIC = delta_aic,
   p_value = pv,
   stringsAsFactors = FALSE
@@ -1248,7 +1252,9 @@ for (pair in species_pairs) {
     # Append results for the species pair
     PitFraction_AIC <- rbind(PitFraction_AIC, data.frame(
       PairTested = paste(pair, collapse = " vs "),
-      RelDiff =fixef(full_model)$cond[2]/fixef(full_model)$cond[1],
+      RelDiff =plogis(fixef(full_model)$cond[1] + fixef(full_model)$cond[2]) / 
+        plogis(fixef(full_model)$cond[1])
+      ,
       DeltaAIC = delta_aic,
       p_value = pv,
       stringsAsFactors = FALSE

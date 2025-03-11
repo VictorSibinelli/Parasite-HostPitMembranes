@@ -28,7 +28,7 @@ species_pairs <- list(
 )
 
 relevel_factors(ls())
-
+library(report)
 
 ####Wall thickness
 # Initialize data frames for results
