@@ -25,6 +25,24 @@ mean_diff_boot <- function(x, cols, cat) {
   return(results)
 }
 
+median_diff_boot <- function(x, cols, cat) {
+  shuffled <- x
+  
+  # Shuffle the categorical column with or without replacement
+  shuffled[[cols]] <- sample(shuffled[[cols]], size = length(shuffled[[cols]]), replace = T)
+  
+  # Calculate the mean for each level of the categorical variable
+  results <- diff(tapply(shuffled[[cols]], shuffled[[cat]], median, na.rm = TRUE))
+  
+  # Ensure the results are numeric and return as a matrix
+  results <- as.matrix(results)
+  
+  # Remove NA values, if needed
+  results <- results[!is.na(results)]
+  
+  return(results)
+}
+
 bootstrap_summary <- function(data, group_var, variables) {
   data %>%
     group_by(across(all_of(group_var))) %>%
@@ -138,39 +156,4 @@ perform_t_tests <- function(data, trait_col, indiv_test) {
   }
   
   return(results_df)
-}
-
-table_model <- function(full_model, null_model, data, response_var, predictor_var) {
-  # Extract fixed effects and random effects variance
-  fixed_effects <- round(fixef(full_model)$cond, digits = 2)
-  re <- as.numeric(VarCorr(full_model)[, "Variance"])
-  
-  # Calculate 95% Confidence Intervals for the predictor variable
-  conf_int <- emmeans(full_model, ~ get(predictor_var)) %>% summary()
-  
-  # Extract confidence intervals for both groups
-  CI_Group1 <- c(conf_int$lower.CL[1], fixed_effects[1], conf_int$upper.CL[1]) %>% round(digits = 2)
-  CI_Group2 <- c(conf_int$lower.CL[2], sum(fixed_effects), conf_int$upper.CL[2]) %>% round(digits = 2) # Adding Intercept to effect
-  
-  # Variance explained by random effects
-  variance_explained_by_RE <- (re[2] + re[4]) / (sum(re, na.rm = TRUE))
-  
-  # Perform likelihood ratio test (LRT) between full and null models
-  lrt <- anova(null_model, full_model)
-  delta_aic <- diff(lrt$AIC)
-  pv <- na.omit(lrt$`p-value`)
-  
-  # Append global model results to a data frame
-  model_results <- data.frame(
-    PairTested = paste(levels(data[[predictor_var]]), collapse = " vs "),
-    Group1Mean = paste0(CI_Group1, collapse = "-"),
-    Group2Mean = paste0(CI_Group2, collapse = "-"),
-    REVariance = variance_explained_by_RE * 100,
-    RelDiff = fixed_effects[2] / fixed_effects[1],
-    DeltaAIC = delta_aic,
-    p_value = pv,
-    stringsAsFactors = FALSE
-  )
-  
-  return(model_results)
 }

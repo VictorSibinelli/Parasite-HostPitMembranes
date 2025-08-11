@@ -9,23 +9,27 @@ library(patchwork)
 library(car)
 library(tidyverse)
 library(MASS)  # for rlm function
-
-Median_data<- read.csv(here("data", "processed", "Median_data.csv"))
-Median_data$Kmax <- log(Median_data$Kmax)
-
+Median_data <- read.csv(here("data", "processed", "Median_data.csv"))
 head(Median_data)
+Median_data$Kmax <- log(Median_data$Kmax)
 var_names <- c("Dpo","Dpit","Tvw","D","Dtop","Fpit","Dh","VD","Fv","logKmax")
 colnames(Median_data)[3:12] <- var_names
-
+trait_order <- c("parasitism","D", "Dtop", "Dh", "VD", "Fv", "logKmax", "Tvw", "Dpo", "Dpit", "Fpit")
+Median_data <- Median_data[, c(names(Median_data)[1:2], trait_order)]
 source(here("scripts", "Functions.R"))
 
+relevel_factors(ls())
+rlm_custom <- function(formula, data, ...) {
+  MASS::rlm(formula, data = data, maxit = 50)
+}
+
 # Create the ggpairs plot with robust regression and Spearman correlation
-spearman_plot <- ggpairs(
+pair_plot <- ggpairs(
   Median_data,
-  columns = 3:12,
+  columns = 4:13,
   aes(colour = parasitism, fill = parasitism),  # Map both colour and fill to parasitism
   lower = list(
-    continuous = wrap("smooth", method = "rlm", maxit = 50)  # Robust regression
+    continuous = wrap("smooth", method = rlm_custom,size =0.8)  # Robust regression
   ),
   upper = list(
     continuous = wrap("cor", method = "spearman", size = 7)  # Spearman correlation
@@ -33,11 +37,11 @@ spearman_plot <- ggpairs(
 ) +
   ggplot2::scale_color_manual(
     labels = c("P", "H"),  # Custom legend labels
-    values = c("Parasite" = alpha("red", 0.7), "Host" = alpha("grey", 0.8))
+    values = c("Parasite" = alpha("red", 0.5), "Host" = alpha("grey", 0.8))
   ) +
   ggplot2::scale_fill_manual(
     labels = c("P", "H"),  # Custom legend labels
-    values = c("Parasite" = alpha("red", 0.7), "Host" = alpha("grey", 0.8))
+    values = c("Parasite" = alpha("red", 0.5), "Host" = alpha("grey", 0.8))
   ) +
   ggplot2::theme_minimal() +
   ggplot2::theme(
@@ -47,13 +51,15 @@ spearman_plot <- ggpairs(
   )
 
 # Print the plot
-print(spearman_plot)
+print(pair_plot)
+
 
 CorMat_plot <- # Create the correlation matrix using the magma palette with lighter extremes
   ggcorrmat(
     data = Median_data %>% filter(parasitism=="Parasite"),
     type = "robust",
     label = TRUE,
+    title = "Parasite",
     grouping.var = parasitism,
     p.adjust.method = "fdr",
     digits = 3
@@ -72,6 +78,7 @@ CorMat_plot <- # Create the correlation matrix using the magma palette with ligh
     data = Median_data %>% filter(parasitism=="Host"),
     type = "robust",
     label = TRUE,
+    title = "Host",
     grouping.var = parasitism,
     size = 0,
     p.adjust.method = "fdr",
@@ -90,7 +97,11 @@ CorMat_plot <- # Create the correlation matrix using the magma palette with ligh
     legend.title = element_text(size = 12, face = "bold"),
     legend.text = element_text(size = 10)
   )
-CorMat_plot
+CorMat_plot <- CorMat_plot + plot_annotation(title = "Correlation matrix",
+                                             theme = theme(plot.title = element_text(size = 20)))
+
+
+
 trait_pairs <- combn(var_names, 2, simplify = TRUE)
 
 # Create the slope_differences data frame with p_value column
@@ -217,14 +228,17 @@ for (pair in sig_slopes$trait_pair) {
 }
 spur <- c(11,13,15,19)
 regression_plots <- regression_plots[-spur]
+
 # Combine all plots and save
 regression_board <- lapply(regression_plots, function(p) p + theme(aspect.ratio = 1))
 # Combine the plots into rows using valid list subsetting
 regression_board <- patchwork::wrap_plots(regression_board, ncol = 3)
 
 
+
+
 ggsave(filename = here("outputs", "figs", "trait_regression_plot.png"),regression_board,
        dpi = 600, units = "in", height = 28, width = 24)
-ggsave(filename = here("outputs", "figs", "spearman_plot.png"),spearman_plot,
-       dpi = 600, units = "in", height = 28, width = 28)
-ggsave(filename = here("outputs","figs","CorrMat_plot.png"),CorMat_plot,dpi=600,units = "in",height = 9,width = 12)
+ggsave(filename = here("outputs", "figs", "pair_plot.png"),pair_plot,
+       dpi = 600, units = "in", height = 24, width = 24)
+ggsave(filename = here("outputs","figs","CorrMat_plot.png"),CorMat_plot,dpi=600,units = "in",height = 8,width = 15)

@@ -3,7 +3,6 @@ library(here)
 library(FactoMineR)
 library(ggbiplot)
 library(tidyverse)
-library(GGally)
 library(ggrepel)
 library(factoextra)
 library(patchwork)  # For arranging multiple plots
@@ -11,6 +10,7 @@ library(viridis)  # For viridis color scale
 source(here("scripts","Functions.R"))
 # Load data
 Median_data <- read.csv(here("data", "processed", "Median_data.csv"))
+Mean_data <- read.csv(here("data", "processed", "Mean_data.csv"))
 PitMembrane_data<- read.csv(here("data", "processed", "PitMembrane_data.csv"))
 head(PitMembrane_data)
 
@@ -38,9 +38,6 @@ short_names <- c(
   "Populus nigra" = "P. nigra"
 )
 
-Median_data <- merge(Median_data,proxy, by="ssp")
-# Replace full names with short names in the data
-Median_data$ssp_short <- short_names[Median_data$ssp]
 
 # Assign different point shapes for each species
 shapes <- c(
@@ -53,6 +50,32 @@ shapes <- c(
   "V. album" = 5,  # Cross
   "P. nigra" = 18   # Star
 )
+trait_names <- c(
+  "VesselDiameter" = "D",
+  "TopVesselDiameter" = "Dtop",
+  "HydraulicDiameter" = "Dh",
+  "VesselDensity" = "VD",
+  "VesselFraction" = "Fv",
+  "Kmax" = "Kmax",
+  "Wthickness" = "Tvw",
+  "PitOpening" = "Dpo",
+  "PitDiameter" = "Dpit",
+  "PitFraction" = "Fp",
+  "pcd" = "Hpit",
+  "Tpm" = "Tpm"
+)
+
+
+
+Median_data <- merge(Median_data,proxy, by="ssp")
+# Replace full names with short names in the data
+Median_data$ssp_short <- short_names[Median_data$ssp]
+colnames(Median_data) <- ifelse(
+  colnames(Median_data) %in% names(trait_names),
+  trait_names[colnames(Median_data)],
+  colnames(Median_data)  # keep unchanged if not in trait_names
+)
+
 
 # --- Step 2: Perform PCA ---
 pca_result <- PCA(Median_data %>%
@@ -84,7 +107,6 @@ variable_plot <- fviz_pca_var(
   gradient.cols = viridis::magma(10)[3:9],          # Use viridis color scale
   repel = TRUE                                 # Avoid overlapping text
 ) +
-  labs(title = "PCA: Variable Contributions") +
   theme_minimal() +
   theme(
     axis.text = element_text(size = 10),
@@ -98,8 +120,7 @@ variable_plot2 <- fviz_pca_var(
   col.var = "contrib",                         # Color by contribution
   gradient.cols = viridis::magma(10)[3:9],          # Use viridis color scale
   repel = TRUE                                 # Avoid overlapping text
-) +
-  labs(title = "PCA: Variable Contributions") +
+)  +
   theme_minimal() +
   theme(
     axis.text = element_text(size = 10),
@@ -108,75 +129,6 @@ variable_plot2 <- fviz_pca_var(
   )
 print(variable_plot2)
 
-
-filtered_data <- Median_data %>%
-  filter(parasitism == "Parasite") 
-
-p1 <- fviz_pca_var(
-  PCA(filtered_data %>%
-        select(where(is.numeric)), scale.unit = TRUE, graph = FALSE),axes = c(1,2),
-  col.var = "contrib",                         # Color by contribution
-  gradient.cols = viridis::magma(10)[3:9],          # Use viridis color scale
-  repel = TRUE                                 # Avoid overlapping text
-) +
-  labs(title = "PCA:Parasites") +
-  theme_minimal() +
-  theme(
-    axis.text = element_text(size = 10),
-    axis.title = element_text(size = 12, face = "bold"),
-    plot.title = element_text(size = 10, face = "bold", hjust = 0.5)
-  )
-
-filtered_data <- Median_data %>%
-  filter(parasitism == "Host") 
-p2 <- fviz_pca_var(
-  PCA(filtered_data %>%
-        select(where(is.numeric)), scale.unit = TRUE, graph = FALSE),axes = c(1,2),
-  col.var = "contrib",                         # Color by contribution
-  gradient.cols = viridis::magma(10)[3:9],          # Use viridis color scale
-  repel = TRUE                                 # Avoid overlapping text
-) +
-  labs(title = "PCA:Hosts") +
-  theme_minimal() +
-  theme(
-    axis.text = element_text(size = 10),
-    axis.title = element_text(size = 12, face = "bold"),
-    plot.title = element_text(size = 10, face = "bold", hjust = 0.5)
-  )
-
-filtered_data <- Median_data %>%
-  filter(parasitism == "Parasite") 
-p3 <- fviz_pca_var(
-  PCA(filtered_data %>%
-        select(where(is.numeric)), scale.unit = TRUE, graph = FALSE),axes = c(2,3),
-  col.var = "contrib",                         # Color by contribution
-  gradient.cols = viridis::magma(10)[3:9],          # Use viridis color scale
-  repel = TRUE                                 # Avoid overlapping text
-) +
-  labs(title = "PCA:Parasites") +
-  theme_minimal() +
-  theme(
-    axis.text = element_text(size = 10),
-    axis.title = element_text(size = 12, face = "bold"),
-    plot.title = element_text(size = 10, face = "bold", hjust = 0.5)
-  )
-
-filtered_data <- Median_data %>%
-  filter(parasitism == "Host") 
-p4 <-  fviz_pca_var(
-  PCA(filtered_data %>%
-        select(where(is.numeric)), scale.unit = TRUE, graph = FALSE),axes = c(2,3),
-  col.var = "contrib",                         # Color by contribution
-  gradient.cols = viridis::magma(10)[3:9],          # Use viridis color scale
-  repel = TRUE                                 # Avoid overlapping text
-) +
-  labs(title = "PCA:Hosts") +
-  theme_minimal() +
-  theme(
-    axis.text = element_text(size = 10),
-    axis.title = element_text(size = 12, face = "bold"),
-    plot.title = element_text(size = 10, face = "bold", hjust = 0.5)
-  )
 
 
 # --- Step 6: PCA Biplot ---
@@ -213,9 +165,7 @@ biplot <- ggbiplot(pc,
     plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
     legend.position = "right"
   ) +
-  labs(color = "Parasitism",
-    shape = "Species"
-  )
+  labs(shape = "Species")
 
 biplot2 <- ggbiplot(pc, 
          choices = c(2, 3),
@@ -244,7 +194,6 @@ biplot2 <- ggbiplot(pc,
   xlab(paste0("Dim2 (", round(summary(pc)$importance[2, 2] * 100, 1), "% variance)")) +
   ylab(paste0("Dim3 (", round(summary(pc)$importance[2, 3] * 100, 1), "% variance)")) +
   labs(
-    color = "Parasitism",
     shape = "Species"
   )
 
@@ -257,32 +206,26 @@ print(board)
 # Ensure consistent aspect ratio for all plots
 biplot <- biplot + theme(aspect.ratio = 1)
 variable_plot <- variable_plot + theme(aspect.ratio = 1)
-p1 <- p1 + theme(aspect.ratio = 1)
-p2 <- p2 + theme(aspect.ratio = 1)
 
 # Arrange plots with specific layout
-board <- (biplot + variable_plot) /
-  (p1 + p2) +
-  plot_layout(heights = c(1, 1))  # Equal heights for rows
+bi_board <- (biplot+variable_plot)+
+  plot_layout(guides = "collect")
 
 # Display the aligned board
-print(board)
+print(bi_board)
 
 
 # Ensure consistent aspect ratio for all plots
 biplot2 <- biplot2 + theme(aspect.ratio = 1)
 variable_plot2 <- variable_plot2 + theme(aspect.ratio = 1)
-p3 <- p3 + theme(aspect.ratio = 1)
-p4 <- p4 + theme(aspect.ratio = 1)
+
 
 # Arrange plots with specific layout
-board2 <- (biplot2 + variable_plot2) /
-  (p3 + p4) +
-  plot_layout(heights = c(1, 1))  # Equal heights for rows
+board2 <- (biplot2 + variable_plot2) + plot_layout(guides = "collect")
 
 
 print(board2)
-ggsave(filename = here("outputs","figs","PCA_plot.png"),board,width = 10,height = 12,units = "in",dpi = 600)
-ggsave(filename = here("outputs","figs","PCA_plot2.png"),board2,width = 10,height = 12,units = "in",dpi = 600)
+ggsave(filename = here("outputs","figs","PCA_biplot.png"),bi_board,width = 12,height = 10,units = "in",dpi = 600)
+ggsave(filename = here("outputs","figs","PCA_plot2.png"),board2,width =12,height = 10,units = "in",dpi = 600)
 ggsave(filename = here("outputs","figs","PCA_scree_plot.png"),scree_plot,dpi = 600)
 write.csv(loadings,file = here("outputs","tables","PCA_loadings.csv"))

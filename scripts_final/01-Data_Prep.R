@@ -63,6 +63,7 @@ PitOp <- PitOp %>%  group_by(ssp, indiv) %>%
 
 # Load and clean Pit Diameter data
 PitDi <- read.csv(here("data","raw","PitDiameter.csv"))[-3]
+str(PitDi)
 PitDi <- within(PitDi, {
   ssp <- gsub("Phoradendeon", "Phoradendron", ssp)
   indiv <- gsub("Phoradendeon", "Phoradendron", indiv)

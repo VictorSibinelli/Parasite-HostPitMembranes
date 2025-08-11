@@ -58,3 +58,6 @@ outputs/.csv
 
 #unused scripts
 Unused/
+
+# Ignore giant CSVs
+data/processed/ressampled/

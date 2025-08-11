@@ -1,34 +1,48 @@
 ######################################################################
 #
-# Victor Sibinelli (victor.sibinelli@usp.br / sibinelli95@gmail.com)
-# 13/07/2024
-# Script 00 - Installing and loading packages needed in the analysis
-#           + packages version control
+# Author: Victor Sibinelli (victor.sibinelli@usp.br / sibinelli95@gmail.com)
+# Date: 13/07/2024
+# Script 00 - Installing Required Packages for Analysis
+#           + Package Version Control (Optional)
 ######################################################################
 
-# Package names
+# ----------------------------
+# Package Names (Alphabetically Ordered)
+# ----------------------------
+# List of required packages for the analysis in alphabetical order
 packages <- c(
-  "tidyverse", "here", "plotly", "data.table","sjPlot","GGally","ggstatsplot",
-  "groundhog", "car", "htmlwidgets","DHARMa","emmeans","devtools","ggbiplot",
-  "nlme", "predictmeans", "performance","FactoMiner","patchwork","ggrepel","factoextra"
+  "car", "data.table", "devtools", "DHARMa", "emmeans", "FactoMiner", "factoextra", 
+  "ggbiplot", "ggnewscale", "ggpubr", "ggrepel", "ggstatsplot", "GGally", "groundhog", 
+  "here", "htmlwidgets", "MASS", "matrixStats", "nlme", "performance", "plotly", "predictmeans", 
+  "sjPlot", "stringr", "tidyverse", "viridis", "patchwork"
 )
 
-# Install packages not yet installed
+# ----------------------------
+# Install Packages if Not Already Installed
+# ----------------------------
+# Check which packages are not installed and install them
 installed_packages <- packages %in% rownames(installed.packages())
 if (any(installed_packages == FALSE)) {
+  # Installing missing packages
   install.packages(packages[!installed_packages])
 }
 
-# Load packages
-print("Packages Loaded")
+# Confirmation message for package installation
+print("Packages Installed Successfully")
 
-#########################################################################
-# If you desire to run the analysis with the same package versions,
-# remove the comments in the lines below and run it
+# ----------------------------
+# Optional: Control Package Versions with 'groundhog'
+# ----------------------------
+# Uncomment the following lines if you want to ensure specific versions
+# for package consistency across sessions.
 
-# groundhog.library(packages, "2024-07-01")
+# groundhog.library(packages, "2024-11-01")
 
+# ----------------------------
+# Clean Environment
+# ----------------------------
+# Clear all objects from the environment to avoid conflicts
 rm(list = ls())
 
-
-
+# End of Script
+######################################################################
