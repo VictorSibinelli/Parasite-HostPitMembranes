@@ -164,8 +164,8 @@ hd_plot <- Hydraulic_data %>%
   geom_boxplot(outlier.colour = "red", outlier.shape = 8,
                notch = TRUE, varwidth = TRUE, size = 0.8, staplewidth = 0.5, alpha = 0.5) +
   geom_violin(color = "black", alpha = 0.01, adjust = 2) +
-  stat_summary(fun.data = mean_cl_boot, geom = "point", color = "blue", size =3) +
-  stat_summary(fun.data = mean_cl_boot, geom = "errorbar", color = "blue", lwd = 0.8) +
+  stat_summary(fun.data = mean_cl_boot, geom = "point", color = "blue", size =3,show.legend = FALSE) +
+  stat_summary(fun.data = mean_cl_boot, geom = "errorbar", color = "blue", lwd = 0.8,show.legend = FALSE) +
   geom_vline(xintercept = c(2.5, 4.5, 6.5)) +
   scale_fill_manual(values = c("Parasite" = "firebrick", "Host" = "grey"), name = "Parasitism") +
   scale_x_discrete(labels = short_names, guide = guide_axis(angle = 45)) +
@@ -175,11 +175,11 @@ hd_plot <- Hydraulic_data %>%
            label = c("ns","ns", "#","ns"), size =10) +
   annotate("text", x = 1:8,
            y = max(Hydraulic_data$VesselDensity) * 1.05,
-           label = paste("n=", hdcount$VesselDensity), size =8)#+
-  # theme(legend.position = "none",
-  #       axis.title.x = element_blank(),
-  #       axis.text.x = element_blank(),
-  #       axis.ticks.x = element_blank()) 
+           label = paste("n=", hdcount$VesselDensity), size =8)+
+   theme(legend.position = "none",
+         axis.title.x = element_blank(),
+        axis.text.x = element_blank(),
+         axis.ticks.x = element_blank()) 
 
 
 # Vessel Fraction Plot (fv_plot)
@@ -188,8 +188,8 @@ hd_plot <- Hydraulic_data %>%
    geom_boxplot(outlier.colour = "red", outlier.shape = 8,
                 notch = TRUE, varwidth = TRUE, size = 0.8, staplewidth = 0.5, alpha = 0.5) +
    geom_violin(color = "black", alpha = 0.01, adjust = 2) +
-   stat_summary(fun.data = mean_cl_boot, geom = "point", color = "blue", size =3) +
-   stat_summary(fun.data = mean_cl_boot, geom = "errorbar", color = "blue", lwd = 0.8) +
+   stat_summary(fun.data = mean_cl_boot, geom = "point", color = "blue", size =3,show.legend = F) +
+   stat_summary(fun.data = mean_cl_boot, geom = "errorbar", color = "blue", lwd = 0.8,show.legend = F) +
    geom_vline(xintercept = c(2.5, 4.5, 6.5)) +
    scale_fill_manual(values = c("Parasite" = "firebrick", "Host" = "grey"),
                      name = "Parasitism") +
@@ -200,7 +200,12 @@ hd_plot <- Hydraulic_data %>%
             label = c("*,#", "*,#", "#", "*,#"), size =10) +
    annotate("text", x = 1:8,
             y = max(Hydraulic_data$VesselFraction) * 1.1,
-            label = paste("n=", hdcount$VesselFraction), size =8)
+            label = paste("n=", hdcount$VesselFraction), size =8)+
+      theme(legend.position = "none",
+            axis.title.x = element_blank(),
+            axis.text.x = element_blank(),
+            axis.ticks.x = element_blank()) 
+    
 
 # Kmax Plot (kmax_plot)
 kmax_plot <- Hydraulic_data %>%
@@ -262,24 +267,20 @@ po_plot <- PitDiOp_data %>%
                notch = TRUE, varwidth = TRUE, size = 0.8, 
                staplewidth = 0.5, alpha = 0.5) +
   geom_violin(color = "black", alpha = 0.01, adjust = 2) +
-  stat_summary(fun.data = mean_cl_boot, geom = "point", color = "blue", size =3) +
-  stat_summary(fun.data = mean_cl_boot, geom = "errorbar", color = "blue", lwd = 0.8) +
+  stat_summary(fun.data = mean_cl_boot, geom = "point", color = "blue", size =3,show.legend = FALSE) +
+  stat_summary(fun.data = mean_cl_boot, geom = "errorbar", color = "blue", lwd = 0.8,show.legend = FALSE) +
   geom_vline(xintercept = c(2.5, 4.5, 6.5)) +
   scale_fill_manual(values = c("Parasite" = "firebrick", "Host" = "grey"),
                     name = "Parasitism") +
   scale_x_discrete(labels = short_names, guide = guide_axis(angle = 45)) +
-  labs(x = "Species", y = "Dpo (µm)") +
+  labs(x = "Species", y = "Dpa (µm)") +
   annotate("text", x = c(1.5, 3.5, 5.5, 7.5),
            y = max(PitDiOp_data$PitOpening, na.rm = TRUE) * 1.25,
            label = c("#", "ns", "*,#", "*,#"), size =10) +
   annotate("text", x = 1:8,
            y = max(PitDiOp_data$PitOpening, na.rm = TRUE) * 1.1,
-           label =paste("n=", pitcount$PitOpening), size = 8) +
-  theme(legend.position = "none",
-        axis.title.x = element_blank(),
-        axis.text.x = element_blank(),
-        axis.ticks.x = element_blank()) +
-  guides(fill = "none", color = "none")
+           label =paste("n=", pitcount$PitOpening), size = 8) 
+  
 
 # Pit Fraction Plot (fp_plot)
 fp_plot <- PitFraction_data %>%
@@ -288,8 +289,8 @@ fp_plot <- PitFraction_data %>%
                notch = TRUE, varwidth = TRUE, size = 0.8, 
                staplewidth = 0.5, alpha = 0.5) +
   geom_violin(color = "black", alpha = 0.01, adjust = 2) +
-  stat_summary(fun.data = mean_cl_boot, geom = "point", color = "blue", size =3) +
-  stat_summary(fun.data = mean_cl_boot, geom = "errorbar", color = "blue", lwd = 0.8) +
+  stat_summary(fun.data = mean_cl_boot, geom = "point", color = "blue", size =3,show.legend = FALSE) +
+  stat_summary(fun.data = mean_cl_boot, geom = "errorbar", color = "blue", lwd = 0.8,show.legend = FALSE) +
   geom_vline(xintercept = c(2.5, 4.5, 6.5)) +
   scale_fill_manual(values = c("Parasite" = "firebrick", "Host" = "grey"),
                     name = "Parasitism") +
@@ -300,13 +301,8 @@ fp_plot <- PitFraction_data %>%
            label = c("#", "ns", "*,#", "*,#"), size =10) +
   annotate("text", x = 1:8,
            y = max(PitFraction_data$PitFraction, na.rm = TRUE) * 1.1,
-           label = paste("n=", fpitcount$PitFraction), size =8) +
-  theme(legend.position = "none",
-        axis.title.x = element_blank(),
-        axis.text.x = element_blank(),
-        axis.ticks.x = element_blank()) +
-  guides(fill = "none", color = "none")
-
+           label = paste("n=", fpitcount$PitFraction), size =8)
+ 
 
 
 
@@ -316,8 +312,8 @@ pcd_plot <- PitMembrane_data %>%
                notch = TRUE, varwidth = TRUE, size = 0.8, 
                staplewidth = 0.5, alpha = 0.5) +
   geom_violin(color = "black", alpha = 0.01, adjust = 2) +
-  stat_summary(fun.data = mean_cl_boot, geom = "point", color = "blue", size =3) +
-  stat_summary(fun.data = mean_cl_boot, geom = "errorbar", color = "blue", lwd = 0.8) +
+  stat_summary(fun.data = mean_cl_boot, geom = "point", color = "blue", size =3,show.legend = FALSE) +
+  stat_summary(fun.data = mean_cl_boot, geom = "errorbar", color = "blue", lwd = 0.8,show.legend = FALSE) +
   geom_vline(xintercept = c(2.5, 4.5, 6.5)) +
   scale_fill_manual(values = c("Parasite" = "firebrick", "Host" = "grey"),
                     name = "Parasitism") +
@@ -341,8 +337,8 @@ Tpm_plot <- PitMembrane_data %>%
                notch = TRUE, varwidth = TRUE, size = 0.8, 
                staplewidth = 0.5, alpha = 0.5) +
   geom_violin(color = "black", alpha = 0.01, adjust = 2) +
-  stat_summary(fun.data = mean_cl_boot, geom = "point", color = "blue", size =3) +
-  stat_summary(fun.data = mean_cl_boot, geom = "errorbar", color = "blue", lwd = 0.8) +
+  stat_summary(fun.data = mean_cl_boot, geom = "point", color = "blue", size =3,show.legend = FALSE) +
+  stat_summary(fun.data = mean_cl_boot, geom = "errorbar", color = "blue", lwd = 0.8,show.legend = FALSE) +
   geom_vline(xintercept = c(2.5, 4.5, 6.5)) +
   scale_fill_manual(values = c("Parasite" = "firebrick", "Host" = "grey"),
                     name = "Parasitism") +
@@ -375,62 +371,47 @@ dtop_plot <- dtop_plot + axis_scale + theme(axis.text.x = element_blank(),
                                             axis.title.x=element_blank())
 hd_plot <- hd_plot + axis_scale + theme(axis.text.x = element_blank(),
                                         axis.title.x=element_blank())
-vd_plot <- vd_plot + axis_scale 
-fv_plot <- fv_plot + axis_scale 
+vd_plot <- vd_plot + axis_scale + theme(axis.text.x = element_blank(),
+                                        axis.title.x=element_blank())
+fv_plot <- fv_plot + axis_scale + theme(axis.text.x = element_blank(),
+                                        axis.title.x=element_blank())
 kmax_plot <- kmax_plot + axis_scale + theme(axis.text.x = element_blank(),
                                             axis.title.x=element_blank())
 w_plot <- w_plot + axis_scale+ theme(axis.text.x = element_blank(),                                        
                                      axis.title.x=element_blank())
 pd_plot <- pd_plot + axis_scale+ theme(axis.text.x = element_blank(),                                        
                                        axis.title.x=element_blank())
-po_plot <- po_plot + axis_scale+ theme(axis.text.x = element_blank(),                                        
-                                       axis.title.x=element_blank())
-fp_plot <- fp_plot + axis_scale+ theme(axis.text.x = element_blank(),                                        
-                                        axis.title.x=element_blank())
+po_plot <- po_plot + axis_scale
+fp_plot <- fp_plot + axis_scale
 pcd_plot <- pcd_plot + axis_scale
 Tpm_plot <- Tpm_plot + axis_scale
 
 combined_plot <- 
-  (d_plot + dtop_plot + hd_plot) /
-  (vd_plot + fv_plot + kmax_plot) /
-  (w_plot + pd_plot + po_plot) /
-  (fp_plot + pcd_plot + Tpm_plot) +
-  plot_layout(guides = "collect") &  # Collect legends from all plots
-  theme(
-    legend.position = "bottom",  # Ensure the legend is at the bottom
-    legend.text = element_text(size = 18),  # Adjust the legend text size
-    legend.title = element_text(size = 20)  # Adjust the legend title size
-  )
-# Display the combined plot
-print(combined_plot)
-combined_plot2 <- (d_plot + dtop_plot)/
-   (hd_plot+ kmax_plot) /
-  (vd_plot + fv_plot)+
-  plot_layout(guides = "collect") &  # Collect legends from all plots
-  theme(
-    legend.position = "bottom",  # Ensure the legend is at the bottom
-    legend.text = element_text(size = 18),  # Adjust the legend text size
-    legend.title = element_text(size = 20)  # Adjust the legend title size
-  )
-combined_plot3 <-  (w_plot + fp_plot )/
-  (pd_plot + po_plot) /
+  ( hd_plot + dtop_plot) /
+  (pd_plot+ kmax_plot) /
   ( pcd_plot + Tpm_plot) +
   plot_layout(guides = "collect") &  # Collect legends from all plots
   theme(
-    legend.position = "bottom",  # Ensure the legend is at the bottom
-    legend.text = element_text(size = 18),  # Adjust the legend text size
-    legend.title = element_text(size = 20)  # Adjust the legend title size
+    legend.position = "bottom"
   )
 
+# Display the combined plot
+print(combined_plot)
+combined_plot2 <- (d_plot + vd_plot)/
+   (fv_plot+w_plot) /
+  (po_plot+fp_plot)+
+  plot_layout(guides = "collect") &  # Collect legends from all plots
+  theme(
+    legend.position = "bottom"
+  )
+print(combined_plot2)
 
 
 
-ggsave(file=here("outputs","figs","trait_violin_plot.png"),
-       combined_plot,units = "in",dpi = 600,height = 28,width = 30)
+ggsave(file=here("outputs","figs","Fig4.png"),
+       combined_plot,units = "in",dpi = 600,height = 20,width = 20)
 
 ggsave(file=here("outputs","figs","trait_violin_plot2.png"),
        combined_plot2,units = "in",dpi = 600,height = 20,width = 20)
 
 
-ggsave(file=here("outputs","figs","trait_violin_plot3.png"),
-       combined_plot3,units = "in",dpi = 600,height = 20,width = 20)

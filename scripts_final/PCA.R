@@ -58,7 +58,7 @@ trait_names <- c(
   "VesselFraction" = "Fv",
   "Kmax" = "Kmax",
   "Wthickness" = "Tvw",
-  "PitOpening" = "Dpo",
+  "PitOpening" = "Dpa",
   "PitDiameter" = "Dpit",
   "PitFraction" = "Fp",
   "pcd" = "Hpit",
@@ -78,8 +78,12 @@ colnames(Median_data) <- ifelse(
 
 
 # --- Step 2: Perform PCA ---
-pca_result <- PCA(Median_data %>%
-                    select(where(is.numeric)), scale.unit = TRUE, graph = FALSE)
+pca_result <- PCA(
+  Median_data %>% dplyr::select(where(is.numeric)),
+  scale.unit = TRUE,
+  graph = FALSE
+)
+
 
 relevel_factors(ls())
 

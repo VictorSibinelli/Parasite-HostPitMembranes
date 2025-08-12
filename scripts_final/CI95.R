@@ -46,7 +46,7 @@ trait_names <- c(
   "VesselFraction" = "Fv",
   "Kmax" = "Kmax",
   "Wthickness" = "Tvw",
-  "PitOpening" = "Dpo",
+  "PitOpening" = "Dpa",
   "PitDiameter" = "Dpit",
   "PitFraction" = "Fp",
   "pcd" = "Hpit",

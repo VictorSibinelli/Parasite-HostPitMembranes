@@ -127,8 +127,16 @@ wave <- wave %>%
   )
 wave
 
+# Find the part of the density below 400
+below <- dens$x <= 600
+
+# Approximate area under the curve up to 400
+area_below <- sum(diff(dens$x)[below[-1]] * dens$y[below][-1])
+pct_below <- area_below * 100
+pct_below-100
 
 
+plot(dens)
 
 library(viridis)  # for viridis color palette
 
@@ -183,8 +191,8 @@ dat2 <- dat %>%
   group_by(gold_size, layer) %>%
   summarise_all(mean)
 
-
-PitMembrane_data$layer <- floor(PitMembrane_data$Tpm / 20)
+###Layers estimation
+PitMembrane_data$layer <- ceiling((PitMembrane_data$Tpm+20) / 40)
 
 # Step 4: Base plot with points colored by gold_size
 wave2 <- ggplot() +
@@ -256,6 +264,15 @@ wave2 <- wave2 +
 # Show plot
 print(wave2)
 
+
+parasite_data <- PitMembrane_data %>%
+  filter(parasitism == "Parasite", !is.na(layer))
+dens2 <- density(parasite_data$layer)
+below <- dens2$x <= 20 
+area_below <- sum(diff(dens2$x)[below[-1]] * dens2$y[below][-1])
+pct_below <- area_below * 100
+pct_below
+
 saveWidget(wave, here("outputs", "figs", "interactive_wave_plot.html"))
 ggsave(
   filename = "penetrable_pores.png",
@@ -265,3 +282,4 @@ ggsave(
   width = 8,
   height = 6
 )
+

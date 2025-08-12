@@ -12,9 +12,9 @@ library(MASS)  # for rlm function
 Median_data <- read.csv(here("data", "processed", "Median_data.csv"))
 head(Median_data)
 Median_data$Kmax <- log(Median_data$Kmax)
-var_names <- c("Dpo","Dpit","Tvw","D","Dtop","Fpit","Dh","VD","Fv","logKmax")
+var_names <- c("Dpa","Dpit","Tvw","D","Dtop","Fpit","Dh","VD","Fv","logKmax")
 colnames(Median_data)[3:12] <- var_names
-trait_order <- c("parasitism","D", "Dtop", "Dh", "VD", "Fv", "logKmax", "Tvw", "Dpo", "Dpit", "Fpit")
+trait_order <- c("parasitism","D", "Dtop", "Dh", "VD", "Fv", "logKmax", "Tvw", "Dpa", "Dpit", "Fpit")
 Median_data <- Median_data[, c(names(Median_data)[1:2], trait_order)]
 source(here("scripts", "Functions.R"))
 
