@@ -123,6 +123,12 @@ for (pair in species_pairs) {
       method = "ML"
     )
     
+     residplot(full_model,newwd = F)
+     title(sub = paste0(pair,collapse = " x "))
+    print(check_model(full_model,show_dots = F))
+     print(CookD(full_model, idn = 20,newwd = F))
+     abline(h=4/nrow(subset_data),col="red")
+     title(sub=paste0(pair,collacpse=" x "))
     
     lrt <- anova(reduced_model, full_model)
     full_model$coefficients$fixed[2]
@@ -133,8 +139,7 @@ for (pair in species_pairs) {
       p_value = na.omit(lrt$`p-value`),
       stringsAsFactors = FALSE
     ))
-    
-    # Inside the loop's tryCatch() after model fitting:
+
     
     # Generate filename and path
     file_name <- paste0(
@@ -212,7 +217,6 @@ VDiameter_AIC <- rbind(VDiameter_AIC, data.frame(
 ))
 residplot(VesselDiameter_full,newwd = F)
 title(sub = "VDiameter PxH")
- check_model(VesselDiameter_full,show_dots = F)
 
 sjPlot::tab_model(VesselDiameter_null, VesselDiameter_full, show.aic = TRUE, show.reflvl = TRUE,
                   title = "Vessel Diameter - Parasites vs Hosts",
@@ -247,13 +251,13 @@ for (pair in species_pairs) {
       method = "ML"
     )
     
-    
-    # residplot(full_model,newwd = F)
-    # title(sub = paste0(pair,collapse = " x "))
-    # print(check_model(full_model,show_dots = F))
-    # print(CookD(full_model, idn = 20,newwd = F))
-    # abline(h=4/nrow(subset_data),col="red")
-    # title(sub=paste0(pair,collacpse=" x "))
+
+    residplot(full_model,newwd = F)
+    title(sub = paste0(pair,collapse = " x "))
+    print(check_model(full_model,show_dots = F))
+    print(CookD(full_model, idn = 20,newwd = F))
+    abline(h=4/nrow(subset_data),col="red")
+    title(sub=paste0(pair,collacpse=" x "))
 
     lrt <- anova(reduced_model, full_model)
     
@@ -1293,6 +1297,8 @@ for (pair in species_pairs) {
 }
 
 
+
+#########################################################
 
 
 AIC_tables <- list(VWall_AIC,

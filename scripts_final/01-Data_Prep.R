@@ -231,6 +231,10 @@ Mean_data <- list(
 
 
 
+Mean_data$CWR <- (Mean_data$Wthickness/Mean_data$VesselDiameter)^2
+Median_data$CWR <- (Mean_data$Wthickness/Mean_data$VesselDiameter)^2
+
+
 
 # Add parasitism column to all data frames
 dataframes <- Filter(function(x) is.data.frame(get(x)), ls())

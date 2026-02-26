@@ -15,22 +15,22 @@ species_pairs <- list(
 
 Obs_medians <-bind_rows(Median_data %>%
                           group_by(parasitism) %>%
-                          summarise(across(everything()[-c(1, 2)], ~ mean(.x, na.rm = TRUE))) %>%
+                          summarise(across(where(is.numeric), ~ mean(.x, na.rm = TRUE))) %>%
                           rename(Group = parasitism),
                         
                         Median_data %>%
                           group_by(ssp) %>%
-                          summarise(across(everything()[-c(1,12)], ~ mean(.x, na.rm = TRUE)))%>%
+                          summarise(across(where(is.numeric), ~ mean(.x, na.rm = TRUE)))%>%
                           rename(Group = ssp)) %>% 
   cbind( bind_rows(TEM_data %>% 
               group_by(parasitism) %>% 
-              summarise(across(everything()[-c(1, 4)], ~ median(.x, na.rm = TRUE))) %>%
+                summarise(across(where(is.numeric), ~ median(.x, na.rm = TRUE))) %>%
               rename(Group = parasitism),
             
             TEM_data %>% 
               group_by(ssp) %>% 
-              summarise(across(c(pcd, Tpm), ~ median(.x, na.rm = TRUE))) %>%
-              rename(Group = ssp))[,2:3]
+              summarise(across(where(is.numeric), ~ median(.x, na.rm = TRUE))) %>%
+              rename(Group = ssp))[,-1]
 )
 
 Var <- colnames(Obs_medians)[sapply(Obs_medians, is.numeric)]
