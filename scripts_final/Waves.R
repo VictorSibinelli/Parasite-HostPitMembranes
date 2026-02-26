@@ -283,3 +283,11 @@ ggsave(
   height = 6
 )
 
+reticulate::py_install("kaleido")
+plotly::save_image(
+  wave,
+  here::here("outputs", "figs", "interactive_wave_plot.png"),
+  width = 4000,
+  height = 3000,
+  scale = 2
+)

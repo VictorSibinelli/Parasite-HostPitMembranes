@@ -61,7 +61,7 @@ trait_names <- c(
   "PitOpening" = "Dpa",
   "PitDiameter" = "Dpit",
   "PitFraction" = "Fp",
-  "pcd" = "Hpit",
+  "Pcd" = "Hpit",
   "Tpm" = "Tpm"
 )
 
@@ -77,6 +77,7 @@ colnames(Median_data) <- ifelse(
 )
 
 
+relevel_factors(ls())
 # --- Step 2: Perform PCA ---
 pca_result <- PCA(
   Median_data %>% dplyr::select(where(is.numeric)),
@@ -85,7 +86,6 @@ pca_result <- PCA(
 )
 
 
-relevel_factors(ls())
 
 # --- Step 3: PCA Summary ---
 # Extract and print eigenvalues
@@ -119,29 +119,15 @@ variable_plot <- fviz_pca_var(
   )
 variable_plot
 
-variable_plot2 <- fviz_pca_var(
-  pca_result,axes = c(2,3),
-  col.var = "contrib",                         # Color by contribution
-  gradient.cols = viridis::magma(10)[3:9],          # Use viridis color scale
-  repel = TRUE                                 # Avoid overlapping text
-)  +
-  theme_minimal() +
-  theme(
-    axis.text = element_text(size = 10),
-    axis.title = element_text(size = 12, face = "bold"),
-    plot.title = element_text(size = 10, face = "bold", hjust = 0.5)
-  )
-print(variable_plot2)
 
 
-
-# --- Step 6: PCA Biplot ---
 # Perform PCA with prcomp for ggbiplot compatibility
-pc <- prcomp(Median_data[, 3:11], center = TRUE, scale. = TRUE)
+pc <- prcomp(Median_data %>% select(where(is.numeric))
+             , center = TRUE, scale. = TRUE)
 
-# Flip signs for PC1 and PC2 as needed
-pc$rotation[, c("PC1", "PC2")] <- -pc$rotation[, c("PC1", "PC2")]
-pc$x[, c("PC1", "PC2")] <- -pc$x[, c("PC1", "PC2")]
+#rotating PC1 to match variable plot
+pc$rotation[, c("PC1")] <- -pc$rotation[, c("PC1")]
+pc$x[, c("PC1")] <- -pc$x[, c("PC1")]
 
 # Create the ggbiplot
 biplot <- ggbiplot(pc, 
@@ -171,40 +157,12 @@ biplot <- ggbiplot(pc,
   ) +
   labs(shape = "Species")
 
-biplot2 <- ggbiplot(pc, 
-         choices = c(2, 3),
-         obs.scale = 1, 
-         var.scale = 1, 
-         groups = Median_data$parasitism, 
-         ellipse = TRUE, 
-         circle = TRUE, 
-         ellipse.prob = 0.68,
-         point.size = 0) +
-  scale_colour_manual(
-    values = c("Parasite" = alpha("red", 0.8), "Host" = alpha("grey", 0.8))
-  ) +
-  scale_fill_manual(
-    values = c("Parasite" = alpha("red", 0.5), "Host" = alpha("grey", 0.5))
-  ) +
-  geom_point(aes(shape = Median_data$ssp_short, colour = Median_data$parasitism), size = 3) +  # Adjust size as needed
-  scale_shape_manual(values = shapes) +  # Define 'shapes' appropriately
-  theme_minimal() +
-  theme(
-    axis.text = element_text(size = 10),
-    axis.title = element_text(size = 12, face = "bold"),
-    plot.title = element_text(size = 14, face = "bold", hjust = 0.5),
-    legend.position = "right"
-  ) +
-  xlab(paste0("Dim2 (", round(summary(pc)$importance[2, 2] * 100, 1), "% variance)")) +
-  ylab(paste0("Dim3 (", round(summary(pc)$importance[2, 3] * 100, 1), "% variance)")) +
-  labs(
-    shape = "Species"
-  )
 
+print (variable_plot)
 print(biplot)
-print(biplot2)
+
 # --- Combine Plots into a Board ---
-board <- (biplot + variable_plot)/(p1+p2)
+board <- (biplot + variable_plot)
 print(board)
 
 # Ensure consistent aspect ratio for all plots
@@ -212,24 +170,16 @@ biplot <- biplot + theme(aspect.ratio = 1)
 variable_plot <- variable_plot + theme(aspect.ratio = 1)
 
 # Arrange plots with specific layout
-bi_board <- (biplot+variable_plot)+
-  plot_layout(guides = "collect")
+bi_board <- (biplot+variable_plot) + plot_annotation(tag_levels = 'a') &
+  theme(plot.tag = element_text(face = 'bold', size = 25))
 
 # Display the aligned board
 print(bi_board)
 
 
-# Ensure consistent aspect ratio for all plots
-biplot2 <- biplot2 + theme(aspect.ratio = 1)
-variable_plot2 <- variable_plot2 + theme(aspect.ratio = 1)
 
 
-# Arrange plots with specific layout
-board2 <- (biplot2 + variable_plot2) + plot_layout(guides = "collect")
+ggsave(filename = here("outputs","figs","PCA_biplot.png"),bi_board,width = 14,height = 6,units = "in",dpi = 600)
 
-
-print(board2)
-ggsave(filename = here("outputs","figs","PCA_biplot.png"),bi_board,width = 12,height = 10,units = "in",dpi = 600)
-ggsave(filename = here("outputs","figs","PCA_plot2.png"),board2,width =12,height = 10,units = "in",dpi = 600)
 ggsave(filename = here("outputs","figs","PCA_scree_plot.png"),scree_plot,dpi = 600)
 write.csv(loadings,file = here("outputs","tables","PCA_loadings.csv"))

@@ -10,12 +10,12 @@ library(car)
 library(tidyverse)
 library(MASS)  # for rlm function
 Median_data <- read.csv(here("data", "processed", "Median_data.csv"))
-head(Median_data)
-Median_data$Kmax <- log(Median_data$Kmax)
-var_names <- c("Dpa","Dpit","Tvw","D","Dtop","Fpit","Dh","VD","Fv","logKmax")
-colnames(Median_data)[3:12] <- var_names
-trait_order <- c("parasitism","D", "Dtop", "Dh", "VD", "Fv", "logKmax", "Tvw", "Dpa", "Dpit", "Fpit")
-Median_data <- Median_data[, c(names(Median_data)[1:2], trait_order)]
+# Rename the columns for traits
+var_names <- c("Dpa", "Dpit", "Tvw", "D", "Dtop","Fpit", "Dh","VD", "Fv", "Kmax","CWR")
+Median_data <- Median_data %>%
+  dplyr::rename_with(~ var_names, .cols = where(is.numeric))
+Median_data$Kmax <- log10(Median_data$Kmax)
+
 source(here("scripts", "Functions.R"))
 
 relevel_factors(ls())
@@ -54,51 +54,6 @@ pair_plot <- ggpairs(
 print(pair_plot)
 
 
-CorMat_plot <- # Create the correlation matrix using the magma palette with lighter extremes
-  ggcorrmat(
-    data = Median_data %>% filter(parasitism=="Parasite"),
-    type = "robust",
-    label = TRUE,
-    title = "Parasite",
-    grouping.var = parasitism,
-    p.adjust.method = "fdr",
-    digits = 3
-  ) +
-  # Apply the viridis magma palette with adjusted scaling
-  scale_fill_viridis_c(
-    option = "magma", 
-    name = "Winsorized pearson's \nCorrelation",
-    limits = c(-1, 1),              
-    begin = 0.25,                    
-    end = 1                
-  ) +
-  theme(legend.position = "none")+
-  # Create the correlation matrix using the magma palette with lighter extremes
-  ggcorrmat(
-    data = Median_data %>% filter(parasitism=="Host"),
-    type = "robust",
-    label = TRUE,
-    title = "Host",
-    grouping.var = parasitism,
-    size = 0,
-    p.adjust.method = "fdr",
-    digits = 3
-  ) +
-  # Apply the viridis magma palette with adjusted scaling
-  scale_fill_viridis_c(
-    option = "magma", 
-    name = "Winsorized pearson's \nCorrelation",
-    limits = c(-1, 1),              
-    begin = 0.25,                    
-    end = 1                
-  ) +
-  theme(
-    legend.position = "right",       # Adjust legend position
-    legend.title = element_text(size = 12, face = "bold"),
-    legend.text = element_text(size = 10)
-  )
-CorMat_plot <- CorMat_plot + plot_annotation(title = "Correlation matrix",
-                                             theme = theme(plot.title = element_text(size = 20)))
 
 
 
@@ -226,13 +181,16 @@ for (pair in sig_slopes$trait_pair) {
   print(plot)
   regression_plots[[pair]] <- plot
 }
-spur <- c(11,13,15,19)
-regression_plots <- regression_plots[-spur]
-
+regression_plots
+spur <- c("D_Dtop","D_Dh","Dtop_Kmax","Dh_Kmax")
+regression_plots <- regression_plots[!(names(regression_plots) %in% spur)]
+length(regression_plots)
 # Combine all plots and save
 regression_board <- lapply(regression_plots, function(p) p + theme(aspect.ratio = 1))
 # Combine the plots into rows using valid list subsetting
-regression_board <- patchwork::wrap_plots(regression_board, ncol = 3)
+regression_board <- patchwork::wrap_plots(regression_board, ncol = 4) +
+  plot_annotation(tag_levels = 'a')&
+  theme(plot.tag = element_text(face = 'bold', size = 35))
 
 
 

@@ -390,7 +390,8 @@ combined_plot <-
   ( hd_plot + dtop_plot) /
   (pd_plot+ kmax_plot) /
   ( pcd_plot + Tpm_plot) +
-  plot_layout(guides = "collect") &  # Collect legends from all plots
+  plot_layout(guides = "collect") &  plot_annotation(tag_levels = 'a')&
+  theme(plot.tag = element_text(face = 'bold', size = 35))&
   theme(
     legend.position = "bottom"
   )
@@ -399,8 +400,8 @@ combined_plot <-
 print(combined_plot)
 combined_plot2 <- (d_plot + vd_plot)/
    (fv_plot+w_plot) /
-  (po_plot+fp_plot)+
-  plot_layout(guides = "collect") &  # Collect legends from all plots
+  (po_plot+fp_plot) + plot_layout(guides = "collect") &  plot_annotation(tag_levels = 'a')&
+  theme(plot.tag = element_text(face = 'bold', size = 35))&
   theme(
     legend.position = "bottom"
   )
